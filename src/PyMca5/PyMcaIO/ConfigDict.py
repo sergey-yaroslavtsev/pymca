@@ -129,7 +129,10 @@ class ConfigDict(dict):
         
         cfg = ConfigParser.ConfigParser()
         cfg.optionxform = self.__convert
-        cfg.read(cleanlist)
+        read_ok = cfg.read(cleanlist)
+        read_nok = [filename for filename in cleanlist if filename not in read_ok]
+        if read_nok:
+            raise IOError(f"The following files could not be read: {read_nok}")
         self.__read(cfg, sections)
 
         for ffile in filelist:
