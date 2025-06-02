@@ -34,6 +34,7 @@ import unittest
 import sys
 import os
 import gc
+import stat
 import tempfile
 if sys.version_info < (3,):
     from StringIO import StringIO
@@ -189,6 +190,36 @@ class testConfigDict(unittest.TestCase):
                 self.assertTrue( read == original,
                             "Read <%s> instead of <%s>" % (read, original))
 
+    def testConfigDictIOError(self):
+        from PyMca5.PyMcaIO import ConfigDict
+        testDict = {}
+        testDict['section'] = {}
+        testDict['section']['value1'] = 1
+        testDict['section']['value2'] = 2
+
+        readInstance = ConfigDict.ConfigDict()
+        writeInstance = ConfigDict.ConfigDict(initdict=testDict)
+
+        with self.assertRaises(IOError):
+            readInstance.read("__non_existing_file__.cfg")
+
+        tmpFile = tempfile.mkstemp(text=False)
+        os.close(tmpFile[0])
+        self._tmpFileName = tmpFile[1]
+
+        writeInstance.write(self._tmpFileName)
+
+        os.chmod(self._tmpFileName, stat.S_IWRITE)
+        if os.access(self._tmpFileName, os.R_OK):
+            raise unittest.SkipTest(f"Cannot make file unreadable: {self._tmpFileName}")
+        else:
+            with self.assertRaises(IOError):
+                readInstance.read(self._tmpFileName)
+
+        os.chmod(self._tmpFileName, stat.S_IREAD | stat.S_IWRITE)
+        readInstance.read(self._tmpFileName)
+
+
 def getSuite(auto=True):
     testSuite = unittest.TestSuite()
     if auto:
@@ -199,6 +230,7 @@ def getSuite(auto=True):
         testSuite.addTest(testConfigDict("testConfigDictImport"))
         testSuite.addTest(testConfigDict("testConfigDictIO"))
         testSuite.addTest(testConfigDict("testHdf5Uri"))
+        testSuite.addTest(testConfigDict("testConfigDictIOError"))
     return testSuite
 
 def test(auto=False):
