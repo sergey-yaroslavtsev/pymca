@@ -244,8 +244,9 @@ class TestHdf5NodeView(TestCaseQt):
     @unittest.skipUnless(SILX, "silx not installed")
     def testShow(self):
         from PyMca5.PyMcaGui.io.hdf5.Hdf5NodeView import Plot2DViewWithPlugins
-        widget = Plot2DViewWithPlugins()
-        widget.show()
+        dummy = qt.QWidget()
+        widget = Plot2DViewWithPlugins(dummy)
+        dummy.show()
         self.qapp.processEvents()
         from PyMca5.PyMcaGui.plotting import PyMcaPrintPreview
         PyMcaPrintPreview.resetSingletonPrintPreview()
