@@ -246,6 +246,7 @@ class TestHdf5NodeView(TestCaseQt):
         from PyMca5.PyMcaGui.io.hdf5.Hdf5NodeView import Plot2DViewWithPlugins
         dummy = qt.QWidget()
         widget = Plot2DViewWithPlugins(dummy)
+        widget.createWidget(dummy)
         dummy.show()
         self.qapp.processEvents()
         from PyMca5.PyMcaGui.plotting import PyMcaPrintPreview
