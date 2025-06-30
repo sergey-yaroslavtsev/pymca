@@ -1,5 +1,5 @@
 #/*##########################################################################
-# Copyright (C) 2004-2022 European Synchrotron Radiation Facility
+# Copyright (C) 2004-2025 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF.
@@ -94,36 +94,21 @@ class Plot1DViewWithPlugins(DataViews._Plot1dView):
     def createWidget(self, parent):
         return Plot1DWithPlugins(parent=parent)
 
-
-class Plot2DWithPlugins(Plot2D):
-    """Add a plugin toolbutton to a Plot2D"""
-    def __init__(self, parent=None):
-        Plot2D.__init__(self, parent)
-
-        self._toolbar = qt.QToolBar(self)
-        self.addToolBar(self._toolbar)
-        pluginsToolButton = PluginsToolButton(plot=self, parent=self,
+class Plot2DViewWithPlugins(DataViews._Plot2dView):
+    def createWidget(self, parent):
+        widget = super().createWidget(parent)
+        widget.setKeepDataAspectRatio(False)
+        pymcaToolbar = qt.QToolBar(widget)
+        widget.addToolBar(pymcaToolbar)
+        pluginsToolButton = PluginsToolButton(plot=widget, parent=widget,
                                               method="getPlugin2DInstance")
 
         if PLUGINS_DIR:
             pluginsToolButton.getPlugins(
                     method="getPlugin2DInstance",
                     directoryList=PLUGINS_DIR)
-        self._toolbar.addWidget(pluginsToolButton)
-        if hasattr(self, "getIntensityHistogramAction"):
-            self.getIntensityHistogramAction().setVisible(True)
-        else:
-            print("Plot2D getIntensityHistogramAction missing")
-
-
-class Plot2DViewWithPlugins(DataViews._Plot2dView):
-    def createWidget(self, parent):
-        widget = Plot2DWithPlugins(parent=parent)
-        widget.setDefaultColormap(self.defaultColormap())
-        widget.getColormapAction().setColorDialog(self.defaultColorDialog())
-        widget.setKeepDataAspectRatio(False)
-        widget.getXAxis().setLabel('X')
-        widget.getYAxis().setLabel('Y')
+        pymcaToolbar.addWidget(pluginsToolButton)
+        widget.getIntensityHistogramAction().setVisible(True)
         return widget
 
 class ArrayCurvePlotWithPlugins(NXdataWidgets.ArrayCurvePlot):
