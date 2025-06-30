@@ -98,8 +98,8 @@ class Plot2DViewWithPlugins(DataViews._Plot2dView):
     def createWidget(self, parent):
         widget = super().createWidget(parent)
         widget.setKeepDataAspectRatio(False)
-        widget.pymcaToolbar = qt.QToolBar(widget)
-        widget.addToolBar(widget.pymcaToolbar)
+        pymcaToolbar = qt.QToolBar(widget)
+        widget.addToolBar(pymcaToolbar)
         pluginsToolButton = PluginsToolButton(plot=widget, parent=widget,
                                               method="getPlugin2DInstance")
 
