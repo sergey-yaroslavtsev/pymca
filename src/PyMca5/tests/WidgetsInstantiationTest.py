@@ -1,5 +1,5 @@
 #/*##########################################################################
-# Copyright (C) 2004-2023 European Synchrotron Radiation Facility
+# Copyright (C) 2004-2025 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF by the Software group.
@@ -231,6 +231,22 @@ class TestPCAParametersDialog(TestCaseQt):
         from PyMca5.PyMcaGui.plotting import PyMcaPrintPreview
         PyMcaPrintPreview.resetSingletonPrintPreview()
 
+class TestHdf5NodeView(TestCaseQt):
+    def setUp(self):
+        super(TestHdf5NodeView, self).setUp()
+
+    @unittest.skipUnless(SILX, "silx not installed")
+    def testInteractionSilxMpl(self, backend="silx-mpl"):
+        return self._workOnBackend(backend)
+
+    def testShow(self):
+        from PyMca5.PyMcaGui.io.hdf5.Hdf5NodeView import Plot2DViewWithPlugins
+        widget = Plot2DViewWithPlugins()
+        widget.show()
+        self.qapp.processEvents()
+        from PyMca5.PyMcaGui.plotting import PyMcaPrintPreview
+        PyMcaPrintPreview.resetSingletonPrintPreview()
+
 class TestPyMcaMain(TestCaseQt):
     def setUp(self):
         super(TestPyMcaMain, self).setUp()
@@ -283,7 +299,8 @@ def getSuite(auto=True):
                         TestXMCDWindow,
                         TestPCAParametersDialog,
                         TestPyMcaMain,
-                        ):
+                        TestHdf5NodeView,
+                       ):
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(TestCaseCls))
     return test_suite
