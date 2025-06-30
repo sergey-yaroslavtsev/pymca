@@ -30,6 +30,12 @@ import sys
 import unittest
 import PyMca5.PyMcaGui.PyMcaQt as qt
 from PyMca5.PyMcaGui.misc.testutils import TestCaseQt
+try:
+    import silx.gui
+    SILX = True
+except Exception:
+    # do not block tests because of any unforeseen silx exception
+    SILX = False
 
 _logger = logging.getLogger(__name__)
 
