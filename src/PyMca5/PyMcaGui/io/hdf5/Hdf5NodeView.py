@@ -109,8 +109,6 @@ class Plot2DViewWithPlugins(DataViews._Plot2dView):
                     directoryList=PLUGINS_DIR)
         pymcaToolbar.addWidget(pluginsToolButton)
         widget.getIntensityHistogramAction().setVisible(True)
-        else:
-            print("Plot2D getIntensityHistogramAction missing")
         return widget
 
 class ArrayCurvePlotWithPlugins(NXdataWidgets.ArrayCurvePlot):
