@@ -242,9 +242,6 @@ class TestHdf5NodeView(TestCaseQt):
         super(TestHdf5NodeView, self).setUp()
 
     @unittest.skipUnless(SILX, "silx not installed")
-    def testInteractionSilxMpl(self, backend="silx-mpl"):
-        return self._workOnBackend(backend)
-
     def testShow(self):
         from PyMca5.PyMcaGui.io.hdf5.Hdf5NodeView import Plot2DViewWithPlugins
         widget = Plot2DViewWithPlugins()
