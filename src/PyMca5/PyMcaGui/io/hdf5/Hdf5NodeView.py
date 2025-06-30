@@ -108,8 +108,7 @@ class Plot2DViewWithPlugins(DataViews._Plot2dView):
                     method="getPlugin2DInstance",
                     directoryList=PLUGINS_DIR)
         widget.pymcaToolbar.addWidget(pluginsToolButton)
-        if hasattr(widget, "getIntensityHistogramAction"):
-            widget.getIntensityHistogramAction().setVisible(True)
+        widget.getIntensityHistogramAction().setVisible(True)
         else:
             print("Plot2D getIntensityHistogramAction missing")
         return widget
