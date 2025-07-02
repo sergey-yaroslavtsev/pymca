@@ -107,11 +107,17 @@ class FitParamForm(qt.QWidget):
         lastLabel_font = qt.QFont(self.lastLabel.font())
         lastLabel_font.setItalic(1)
         self.lastLabel.setFont(lastLabel_font)
-        self.lastLabel.setText(str("Last channel :"))
+        self.lastLabel.setText(str("Fitting region last channel :"))
         self.lastLabel.setAlignment(QLabelAlignVCenter | QLabelAlignRight)
 
         self.regionCheck = qt.QCheckBox(self.tabFit)
-        self.regionCheck.setText(str("Limit fitting region to :"))
+        self.regionCheck.setText(str("Prevent overwriting of the fitting region on data update"))
+        # limit tooltip
+        limitToolTip = "Checking this box will prevent overwriting\n"
+        limitToolTip += "the fitting region when updating the data\n"
+        limitToolTip += "Use it to avoid setting the limits based on\n"
+        limitToolTip += "a zoomed region"
+        self.regionCheck.setToolTip(limitToolTip)
 
         self.topLine = qt.QFrame(self.tabFit)
         self.topLine.setFrameShape(qt.QFrame.HLine)
@@ -214,7 +220,7 @@ class FitParamForm(qt.QWidget):
         firstLabel_font = qt.QFont(self.firstLabel.font())
         firstLabel_font.setItalic(1)
         self.firstLabel.setFont(firstLabel_font)
-        self.firstLabel.setText(str("First channel :"))
+        self.firstLabel.setText(str("Fitting region first channel :"))
         self.firstLabel.setAlignment(qt.Qt.AlignVCenter | qt.Qt.AlignRight)
 
 
