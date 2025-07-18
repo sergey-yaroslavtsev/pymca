@@ -74,7 +74,7 @@ class CntSelectionType(qt.QWidget):
                 maximum *= dim
         self._index.setMinimum(0)
         if maximum and maximum < 2**31-1:
-            self._index.setMaximum(maximum - 1)
+            self._index.setMaximum(min(maximum,2**31)  - 1)
         else:
             self._index.setMaximum(0)
         self._index.setValue(0)
