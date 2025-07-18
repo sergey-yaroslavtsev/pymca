@@ -73,7 +73,7 @@ class CntSelectionType(qt.QWidget):
             for dim in shape[:-1]:
                 maximum *= dim
         self._index.setMinimum(0)
-        if maximum:
+        if maximum and maximum < 2**31-1:
             self._index.setMaximum(maximum - 1)
         else:
             self._index.setMaximum(0)
