@@ -528,8 +528,8 @@ class RGBCorrelatorWidget(qt.QWidget):
                 )
                 self.__redImage = red
                 ddict["red"] = red.tobytes()
-
             ddict["size"] = size
+
         if "g" in colorlist:
             # get slider
             label = self.__greenLabel
@@ -675,8 +675,8 @@ class RGBCorrelatorWidget(qt.QWidget):
         self._imageDict[label] = {}
         self._imageDict[label]["image"] = image
         tmp = numpy.ravel(image)
-        self._imageDict[label]["min"] = min(tmp)
-        self._imageDict[label]["max"] = max(tmp)
+        self._imageDict[label]["min"] = numpy.nanmin(tmp)
+        self._imageDict[label]["max"] = numpy.nanmax(tmp)
 
         self.tableWidget.build(self._imageList)
         i = 0
