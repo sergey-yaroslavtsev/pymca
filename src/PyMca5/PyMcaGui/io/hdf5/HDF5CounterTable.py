@@ -1,5 +1,5 @@
 #/*##########################################################################
-# Copyright (C) 2004-2023 European Synchrotron Radiation Facility
+# Copyright (C) 2004-2025 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF.
@@ -74,7 +74,7 @@ class CntSelectionType(qt.QWidget):
                 maximum *= dim
         self._index.setMinimum(0)
         if maximum:
-            self._index.setMaximum(maximum - 1)
+            self._index.setMaximum(min(maximum,2**31)  - 1)
         else:
             self._index.setMaximum(0)
         self._index.setValue(0)
