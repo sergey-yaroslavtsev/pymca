@@ -149,7 +149,7 @@ jobs:
         run: |
           EXPECTED_NAME="Pymca_release_test"
           shopt -s nullglob
-          for file in wheelhouse/*.whl; do
+          for file in dist/*.whl; do
             if [[ $file == *.whl ]]; then
               NAME=$(unzip -p "$file" "*.dist-info/METADATA" | grep ^Name: | awk '{print $2}')
             else
@@ -170,7 +170,7 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.TESTPYPI_PASSWORD }}
         run: |
           python -m pip install --upgrade twine
-          python -m twine upload --repository testpypi wheelhouse/*.whl wheelhouse/*.tar.gz
+          python -m twine upload --repository testpypi dist/*.whl dist/*.tar.gz
 
       - name: Install
         run: |
