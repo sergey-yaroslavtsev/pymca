@@ -148,7 +148,8 @@ jobs:
       - name: Verify package names before upload
         run: |
           EXPECTED_NAME="Pymca_release_test"
-          for file in wheelhouse/*.{whl,tar.gz}; do
+          shopt -s nullglob
+          for file in wheelhouse/*.whl; do
             if [[ $file == *.whl ]]; then
               NAME=$(unzip -p "$file" "*.dist-info/METADATA" | grep ^Name: | awk '{print $2}')
             else
