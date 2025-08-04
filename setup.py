@@ -923,14 +923,11 @@ if use_gui():
 
 setup_requires = ["numpy"]
 
-distrib = setup(name="PyMca5",
-                version=__version__,
+distrib = setup(name="Pymca_release_test",
+                version='0.0.1.test',
                 description=description,
                 author="V. Armando Sole",
-                author_email="sole@esrf.fr",
                 license="MIT",
-                url="http://pymca.sourceforge.net",
-                download_url="https://github.com/vasole/pymca/archive/v%s.tar.gz" % __version__,
                 long_description=long_description,
                 packages=packages,
                 package_dir={'': 'src'},

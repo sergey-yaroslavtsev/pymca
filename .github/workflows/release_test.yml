@@ -18,19 +18,19 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name-suffix: "(Minimum Versions)"
-            os: ubuntu-latest
-            python-version: 3.9
-            BUILD_COMMAND: --sdist
-            QT_BINDING: PyQt5==5.14.1
-            XVFB_RUN: xvfb-run -a
-
-          - name-suffix: "PySide6 wheel"
-            os: ubuntu-latest
-            python-version: "3.10"
-            BUILD_COMMAND: --wheel
-            QT_BINDING: PySide6
-            XVFB_RUN: xvfb-run -a
+#          - name-suffix: "(Minimum Versions)"
+#            os: ubuntu-latest
+#            python-version: 3.9
+#            BUILD_COMMAND: --sdist
+#            QT_BINDING: PyQt5==5.14.1
+#            XVFB_RUN: xvfb-run -a
+#
+#          - name-suffix: "PySide6 wheel"
+#            os: ubuntu-latest
+#            python-version: "3.10"
+#            BUILD_COMMAND: --wheel
+#            QT_BINDING: PySide6
+#            XVFB_RUN: xvfb-run -a
 
 #          - name-suffix: "PyQt5 wheel"
 #            os: ubuntu-latest
@@ -41,7 +41,7 @@ jobs:
 
           - name-suffix: "PyQt6 wheel"
             os: macos-latest
-            python-version: 3.11
+            python-version: 3.12
             BUILD_COMMAND: --wheel
             QT_BINDING: PyQt6
             XVFB_RUN: ""
@@ -53,12 +53,19 @@ jobs:
 #            QT_BINDING: PyQt6
 #            XVFB_RUN: ""
 
-          - name-suffix: "PySide6 wheel"
-            os: windows-latest
-            python-version: "3.13"
-            BUILD_COMMAND: --wheel
-            QT_BINDING: PySide6
-            XVFB_RUN: ""
+#          - name-suffix: "PySide6 wheel"
+#            os: windows-latest
+#            python-version: "3.13"
+#            BUILD_COMMAND: --wheel
+#            QT_BINDING: PySide6
+#            XVFB_RUN: ""
+#
+#          - name-suffix: "PySide6 wheel"
+#            os: windows-latest
+#            python-version: "3.9"
+#            BUILD_COMMAND: --wheel
+#            QT_BINDING: PySide6
+#            XVFB_RUN: ""
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -127,16 +134,42 @@ jobs:
 
       - name: Generate source package or wheel
         env:
-          MACOSX_DEPLOYMENT_TARGET: "10.9"
+          MACOSX_DEPLOYMENT_TARGET: "10.9" # do nothing if not MacOS
         run: |
           python -m build ${{ matrix.BUILD_COMMAND }}
           ls dist
-      
+
       - name: Upload wheel as artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ runner.os }}-python${{ matrix.python-version }}-${{ matrix.QT_BINDING }}-dist
           path: dist/*
+
+      - name: Verify package names before upload
+        run: |
+          EXPECTED_NAME="Pymca_release_test"
+          for file in wheelhouse/*.{whl,tar.gz}; do
+            if [[ $file == *.whl ]]; then
+              NAME=$(unzip -p "$file" "*.dist-info/METADATA" | grep ^Name: | awk '{print $2}')
+            else
+              NAME=$(tar -xOzf "$file" */PKG-INFO | grep ^Name: | awk '{print $2}')
+            fi
+
+            if [[ "$NAME" != "$EXPECTED_NAME" ]]; then
+              echo "ERROR: Package name mismatch in $file. Found: $NAME, expected: $EXPECTED_NAME"
+              exit 1
+            else
+              echo "Verified package name: $NAME in $file"
+            fi
+          done
+
+      - name: Upload wheels to TestPyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TESTPYPI_PASSWORD }}
+        run: |
+          python -m pip install --upgrade twine
+          python -m twine upload --repository testpypi wheelhouse/*.{whl,tar.gz}
 
       - name: Install
         run: |
@@ -146,3 +179,5 @@ jobs:
         run: |
           cd ..
           ${{ matrix.XVFB_RUN }} python -m PyMca5.tests.TestAll
+
+

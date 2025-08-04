@@ -1,0 +1,23 @@
+(1)
+instead of:
+      - name: Generate source package or wheel
+        env:
+          MACOSX_DEPLOYMENT_TARGET: "10.9" # do nothing if not MacOS
+        run: |
+          python -m build ${{ matrix.BUILD_COMMAND }}
+          ls dist
+oen can use:
+      - name: Build wheels with cibuildwheel for Python ${{ matrix.python-version }}
+        env:
+          CIBW_BUILD: cp${{ matrix.cibw-version }}-* #cp311-* cp312-*
+          CIBW_OUTPUT_DIR: wheelhouse
+          CIBW_BUILD_FRONTEND: build
+          CIBW_BUILD_VERBOSITY: 1
+          CIBW_ARCHS_MACOS: universal2
+        run: |
+          python -m cibuildwheel --output-dir wheelhouse #--debug-traceback
+
+to build wheels for multiple python version under one job.
+
+(2)
+why to pip install every library while creating rozen binaries instead of just pip install pymca from pypi?
