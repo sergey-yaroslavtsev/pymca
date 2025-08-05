@@ -60,11 +60,17 @@ jobs:
         run:
           python build-pyinstaller.py
 
+      - name: Build with PyInstaller
+        shell: cmd
+        run:
+          dir
+          dir dist* /s
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: windows-pyinstaller-artifacts
-          path: dist-win32/PyMca*/**/*.exe
+          path: dist/PyMca*/**/*.exe
 
   windows_cxfreeze_python38:
     runs-on: ${{ matrix.os }}
@@ -114,6 +120,12 @@ jobs:
         shell: cmd
         run:
           python build-cxfreeze.py
+
+      - name: Build with PyInstaller
+        shell: cmd
+        run:
+          dir
+          dir dist* /s
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
