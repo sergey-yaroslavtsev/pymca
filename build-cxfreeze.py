@@ -31,6 +31,14 @@ else:
         os.remove(target)
     shutil.move(source, target)
     # cleanup
-    os.remove(os.path.join(".", "package", "cxfreeze","nsisscript.nsi"))
-    shutil.rmtree(os.path.join(".", "package", "cxfreeze","build"))
+    try:
+        os.remove(os.path.join(".", "package", "cxfreeze","nsisscript.nsi"))
+    except FileNotFoundError:
+        print("Could not find nsisscript.nsi")
+        pass
+    try:
+        shutil.rmtree(os.path.join(".", "package", "cxfreeze","build"))
+    except Exception as e:
+        print(e)
+
     
