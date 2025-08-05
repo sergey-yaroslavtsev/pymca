@@ -24,11 +24,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Download untar.py script
-        run: curl -o untar.py https://gitlab.esrf.fr/silx/bob/main/raw/master/untar.py
-
-      - name: Run untar.py
-        run: python untar.py "artifacts/${{ env.PROJECT }}*.tar.gz"
+#      - name: Download untar.py script
+#        run: curl -o untar.py https://gitlab.esrf.fr/silx/bob/main/raw/master/untar.py
+#
+#      - name: Run untar.py
+#        run: python untar.py "artifacts/${{ env.PROJECT }}*.tar.gz"
 
       - uses: actions/setup-python@v2
         with:
@@ -46,7 +46,7 @@ jobs:
           pip install PyOpenGL
           pip install qtconsole==5.4.1
           pip install PyInstaller
-          pip install --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test
+          pip install --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
           pip install Cython
           pip install wheel
           pip install git+https://github.com/vasole/bcflight.git
@@ -73,11 +73,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Download untar.py script
-        run: curl -o untar.py https://gitlab.esrf.fr/silx/bob/main/raw/master/untar.py
-
-      - name: Run untar.py
-        run: python untar.py "artifacts/${{ env.PROJECT }}*.tar.gz"
+#      - name: Download untar.py script
+#        run: curl -o untar.py https://gitlab.esrf.fr/silx/bob/main/raw/master/untar.py
+#
+#      - name: Run untar.py
+#        run: python untar.py "artifacts/${{ env.PROJECT }}*.tar.gz"
 
       - name: Setup Python
         uses: actions/setup-python@v2
@@ -97,7 +97,7 @@ jobs:
           pip install qtconsole==5.4.1
           pip install lief==0.12.3
           pip install cx_Freeze==6.14.7
-          pip install --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test
+          pip install --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
           pip install Cython
           pip install wheel
           pip install git+https://github.com/vasole/bcflight.git
@@ -155,7 +155,7 @@ jobs:
           pip install PyInstaller==6.2.0
           pip install Cython
           pip install wheel
-          pip install --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test
+          pip install --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
           pip install git+https://github.com/vasole/bcflight.git
 
       - name: Build with PyInstaller (universal2)
