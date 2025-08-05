@@ -53,9 +53,9 @@ jobs:
           
           pip install git+https://github.com/vasole/bcflight.git
 
-      - name: Clean build folder
-        shell: cmd
-        run: rmdir /s /q build
+#      - name: Clean build folder
+#        shell: cmd
+#        run: rmdir /s /q build
 
       - name: Build with PyInstaller
         run:
@@ -107,9 +107,9 @@ jobs:
           pip install wheel
           pip install git+https://github.com/vasole/bcflight.git
 
-      - name: Clean build folder
-        shell: cmd
-        run: rmdir /s /q build
+#      - name: Clean build folder
+#        shell: cmd
+#        run: rmdir /s /q build
 
       - name: Build with cx_Freeze
         shell: cmd
@@ -175,11 +175,10 @@ jobs:
 
       - name: Build with PyInstaller (universal2)
         run: |
-          cd ${{ env.PROJECT_LOWER }}*
           python build-pyinstaller.py universal2
           ls dist
-          mkdir -p ../artifacts/eighthours
-          cp dist/*.dmg ../artifacts/eighthours/
+          # mkdir -p ../artifacts/eighthours
+          # cp dist/*.dmg ../artifacts/eighthours/
           # Uncomment if needed:
           # cp dist/*.pkg ../artifacts/eighthours/
           # cp -R dist/*.app ../artifacts/eighthours/
@@ -188,7 +187,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: macos-pyinstaller-artifacts
-          path: artifacts
+          path: dist/*.dmg
 
 
   #    build_installers:
