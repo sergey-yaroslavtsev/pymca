@@ -21,7 +21,7 @@ else:
     if not os.path.exists(dist):
         os.mkdir(dist)
     # move the frozen installer
-    installer = glob.glob(os.path.join(".", "package", "cxfreeze","*.exe"))
+    installer = glob.glob(os.path.join(".", "package", "cxfreeze", "**", "*.exe"), recursive=True)
     if not len(installer):
         print("Could not generate installer")
         sys.exit(1)

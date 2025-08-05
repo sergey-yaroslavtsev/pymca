@@ -64,7 +64,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-pyinstaller-artifacts
-          path: artifacts
+          path: dist/*.exe
 
   windows_cxfreeze_python38:
     runs-on: ${{ matrix.os }}
