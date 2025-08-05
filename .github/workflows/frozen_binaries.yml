@@ -54,6 +54,7 @@ jobs:
           pip install git+https://github.com/vasole/bcflight.git
 
       - name: Clean build folder
+        shell: cmd
         run: rmdir /s /q build
 
       - name: Build with PyInstaller
@@ -107,6 +108,7 @@ jobs:
           pip install git+https://github.com/vasole/bcflight.git
 
       - name: Clean build folder
+        shell: cmd
         run: rmdir /s /q build
 
       - name: Build with cx_Freeze
@@ -124,7 +126,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ macos-12 ]
+        os: [ macos-latest ]
         python-version: [ "3.12" ]
 
     steps:
