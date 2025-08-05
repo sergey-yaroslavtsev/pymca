@@ -53,7 +53,7 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          cd ${{ env.PROJECT }}*
+        #  cd ${{ env.PROJECT }}*
           python build-pyinstaller.py
 
       - name: Upload artifacts
@@ -105,29 +105,34 @@ jobs:
       - name: Build with cx_Freeze
         shell: cmd
         run: |
-          cd %PROJECT%*
+        #  cd %PROJECT%*
           python build-cxfreeze.py
-          xcopy ".\\dist\\*.exe" "..\\artifacts" /Y
+        #  xcopy ".\\dist\\*.exe" "..\\artifacts" /Y
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: windows-cxfreeze-artifacts
-          path: artifacts
+          path: dist/*.exe
 
   macos11_pyinstaller_python312:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ macos-latest ]
+        os: [ macos-12 ]
         python-version: [ "3.12" ]
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
 
 #      - name: Extract artifact tarball
 #        run: tar xvf ./artifacts/${{ env.PROJECT_LOWER }}*.tar.gz
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
         run: |
