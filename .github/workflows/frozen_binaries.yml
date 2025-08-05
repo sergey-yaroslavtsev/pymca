@@ -52,8 +52,7 @@ jobs:
           pip install git+https://github.com/vasole/bcflight.git
 
       - name: Build with PyInstaller
-        run: |
-        #  cd ${{ env.PROJECT }}*
+        run:
           python build-pyinstaller.py
 
       - name: Upload artifacts
@@ -104,10 +103,8 @@ jobs:
 
       - name: Build with cx_Freeze
         shell: cmd
-        run: |
-        #  cd %PROJECT%*
+        run:
           python build-cxfreeze.py
-        #  xcopy ".\\dist\\*.exe" "..\\artifacts" /Y
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
