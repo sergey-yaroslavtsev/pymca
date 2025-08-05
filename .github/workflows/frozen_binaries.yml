@@ -19,7 +19,7 @@ jobs:
     strategy:
       matrix:
         os: [ windows-latest ]
-        python-version: [ "3.9" ]
+        python-version: [ "3.11" ]
 
     steps:
       - uses: actions/checkout@v2
@@ -37,20 +37,19 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip setuptools wheel
+          pip install qtconsole==5.4.1
+          pip install matplotlib
+          pip install --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
           pip install Cython
           pip install wheel
-          pip install matplotlib==3.5.3
-          pip install --no-binary :all: numpy
-          pip install PyQt5
+          pip install numpy
+          pip install Pyside6
           pip install h5py
           pip install fisx          
           pip install hdf5plugin
           pip install silx
           pip install PyOpenGL
-          pip install qtconsole==5.4.1
           pip install PyInstaller
-          pip install --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
-          
           pip install git+https://github.com/vasole/bcflight.git
 
 #      - name: Clean build folder
@@ -72,7 +71,7 @@ jobs:
     strategy:
       matrix:
         os: [ windows-latest ]
-        python-version: [ "3.9" ]
+        python-version: [ "3.11" ]
 
     steps:
       - name: Checkout code
@@ -92,7 +91,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install numpy==1.24.4
-          pip install PyQt5
+          pip install Pyside6
           pip install h5py
           pip install fisx
           pip install matplotlib==3.5.3
