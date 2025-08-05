@@ -60,17 +60,18 @@ jobs:
         run:
           python build-pyinstaller.py
 
-      - name: Build with PyInstaller
-        shell: cmd
-        run:
-          dir
-          dir dist* /s
+      - name: Print dist* directories content with PowerShell
+        shell: pwsh
+        run: |
+          Get-ChildItem -Directory -Name dist* | ForEach-Object {
+            Write-Host "Contents of $_ :"
+            Get-Chil
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: windows-pyinstaller-artifacts
-          path: dist/PyMca*/**/*.exe
+          path: dist/PyMca*/**/*.
 
   windows_cxfreeze_python38:
     runs-on: ${{ matrix.os }}
@@ -121,17 +122,18 @@ jobs:
         run:
           python build-cxfreeze.py
 
-      - name: Build with PyInstaller
-        shell: cmd
-        run:
-          dir
-          dir dist* /s
+      - name: Print dist* directories content with PowerShell
+        shell: pwsh
+        run: |
+          Get-ChildItem -Directory -Name dist* | ForEach-Object {
+            Write-Host "Contents of $_ :"
+            Get-Chil
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: windows-cxfreeze-artifacts
-          path: dist/*.exe
+          path: dist/*
 
 #  macos11_pyinstaller_python312:
 #    runs-on: ${{ matrix.os }}
