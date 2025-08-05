@@ -36,20 +36,25 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install numpy
+          python -m pip install --upgrade pip setuptools wheel
+          pip install Cython
+          pip install wheel
+          pip install matplotlib==3.5.3
+          pip install --no-binary :all: numpy
           pip install PyQt5
           pip install h5py
-          pip install fisx
-          pip install matplotlib==3.5.3
+          pip install fisx          
           pip install hdf5plugin
           pip install silx
           pip install PyOpenGL
           pip install qtconsole==5.4.1
           pip install PyInstaller
           pip install --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
-          pip install Cython
-          pip install wheel
+          
           pip install git+https://github.com/vasole/bcflight.git
+
+      - name: Clean build folder
+        run: rmdir /s /q build
 
       - name: Build with PyInstaller
         run:
@@ -100,6 +105,9 @@ jobs:
           pip install Cython
           pip install wheel
           pip install git+https://github.com/vasole/bcflight.git
+
+      - name: Clean build folder
+        run: rmdir /s /q build
 
       - name: Build with cx_Freeze
         shell: cmd
@@ -159,6 +167,9 @@ jobs:
           pip install wheel
           pip install --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
           pip install git+https://github.com/vasole/bcflight.git
+
+      - name: Clean build folder
+        run: rm -rf build
 
       - name: Build with PyInstaller (universal2)
         run: |
