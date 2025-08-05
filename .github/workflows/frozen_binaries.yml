@@ -71,7 +71,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-pyinstaller-artifacts
-          path: dist/PyMca*/**/*.
+          path: dist/PyMca*/**.
 
   windows_cxfreeze_python38:
     runs-on: ${{ matrix.os }}
@@ -133,7 +133,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-cxfreeze-artifacts
-          path: dist/*
+          path: dist/**
 
 #  macos11_pyinstaller_python312:
 #    runs-on: ${{ matrix.os }}
