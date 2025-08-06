@@ -184,8 +184,7 @@ jobs:
 #              echo "Verified package name: $NAME in $file"
 #            fi
 #          done
-
-      - name: Upload wheels to TestPyPI
+      - name: Upgrade
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.TESTPYPI_PASSWORD }}
@@ -193,7 +192,13 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install --upgrade setuptools wheel
           python -m pip install --upgrade twine
-          python -m twine upload --repository testpypi dist-artifacts/**/*.whl dist-artifacts/**/*.tar.gz
+
+      - name: Upload wheels to TestPyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TESTPYPI_PASSWORD }}
+        run:
+          python -m twine upload --verbose --repository testpypi dist-artifacts/**/*.whl dist-artifacts/**/*.tar.gz
 
 #      - name: Upload wheels to TestPyPI
 #        if: runner.os != 'Linux'
