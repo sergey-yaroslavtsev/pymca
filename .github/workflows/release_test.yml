@@ -18,6 +18,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # python 3.8 leads to errors with cython\
+
           - name-suffix: "(Minimum Versions)"
             os: ubuntu-latest
             python-version: 3.9
@@ -55,24 +57,11 @@ jobs:
 
           - name-suffix: "PyQt5 wheel"
             os: windows-latest
-            python-version: "3.8"
-            BUILD_COMMAND: --wheel
-            QT_BINDING: PyQt5
-            XVFB_RUN: ""
-
-          - name-suffix: "PyQt5 wheel"
-            os: windows-latest
             python-version: "3.9"
             BUILD_COMMAND: --wheel
             QT_BINDING: PyQt5
             XVFB_RUN: ""
 
-          - name-suffix: "PyQt6 wheel"
-            os: windows-latest
-            python-version: "3.8"
-            BUILD_COMMAND: --wheel
-            QT_BINDING: PyQt6
-            XVFB_RUN: ""
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
