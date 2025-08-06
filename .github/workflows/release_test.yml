@@ -200,7 +200,7 @@ jobs:
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.TESTPYPI_PASSWORD }}
-        run:
+        run: |
           files=$(find dist-artifacts -type f \( -name '*.whl' -o -name '*.tar.gz' \))
           echo "Uploading files:"
           echo "$files"
