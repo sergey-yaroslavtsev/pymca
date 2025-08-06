@@ -25,35 +25,35 @@ jobs:
             QT_BINDING: PyQt5==5.14.1
             XVFB_RUN: xvfb-run -a
 
-          - name-suffix: "PyQt6 wheel M312"
+          - name-suffix: "PyQt6 wheel"
             os: macos-latest
             python-version: 3.12
             BUILD_COMMAND: --wheel
             QT_BINDING: PyQt6
             XVFB_RUN: ""
 
-          - name-suffix: "PyQt6 wheel W313"
+          - name-suffix: "PyQt6 wheel"
             os: windows-latest
             python-version: "3.13"
             BUILD_COMMAND: --wheel
             QT_BINDING: PyQt6
             XVFB_RUN: ""
 
-          - name-suffix: "PySide6 wheel W311"
+          - name-suffix: "PySide6 wheel"
             os: windows-latest
             python-version: "3.11"
             BUILD_COMMAND: --wheel
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
-          - name-suffix: "PySide6 wheel W39"
+          - name-suffix: "PySide6 wheel"
             os: windows-latest
             python-version: "3.9"
             BUILD_COMMAND: --wheel
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
-          - name-suffix: "PyQt5 wheel W38"
+          - name-suffix: "PyQt5 wheel"
             os: windows-latest
             python-version: "3.8"
             BUILD_COMMAND: --wheel
