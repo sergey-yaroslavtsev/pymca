@@ -346,7 +346,7 @@ if sys.platform.startswith("win"):
     exe_win_dir = os.path.join("build",
                            "exe.win-amd64-%d.%d" %
                            (sys.version_info[0], sys.version_info[1]))
-    REPLACE_BIG_FILES = True
+    REPLACE_BIG_FILES = False # True
     REMOVE_DUPLICATED_MODULES = True
     REMOVE_REPEATED_DLL = True
     RENAME_EXECUTABLES = False

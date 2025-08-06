@@ -35,7 +35,6 @@ else:
 logger.info("Using icon <%s>" % icon)
 
 hiddenimports = ["secrets"] # needed by numpy 1.23.2
-hiddenimports += ["multiprocessing"]
 hiddenimports += collect_submodules('encodings.ascii')
 hiddenimports += collect_submodules('encodings.utf_8')
 hiddenimports += collect_submodules('encodings.latin_1')
@@ -44,8 +43,8 @@ hiddenimports += collect_submodules('PyQt5.uic')
 hiddenimports += collect_submodules('hdf5plugin')
 hiddenimports += collect_submodules('fisx')
 hiddenimports += collect_submodules('PyMca5.PyMcaGui.PyMcaQt')
-
 hiddenimports += collect_submodules('PyMca5.PyMcaGui.pymca')
+hiddenimports += collect_submodules('multiprocessing')
 
 # they will be added in full
 excludes = ["fabio", "hdf5plugin", "silx"]

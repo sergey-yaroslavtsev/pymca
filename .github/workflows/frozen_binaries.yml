@@ -137,7 +137,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-cxfreeze-artifacts
-          path: dist/**
+          path: build/**
 
 #  macos11_pyinstaller_python312:
 #    runs-on: ${{ matrix.os }}
