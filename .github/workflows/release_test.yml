@@ -190,15 +190,21 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.TESTPYPI_PASSWORD }}
         run: |
           python -m pip install --upgrade pip
-          python -m pip install --upgrade setuptools wheel
           python -m pip install --upgrade twine
+
+      - name: List files to be uploaded
+        run: |
+          find dist-artifacts -type f \( -name '*.whl' -o -name '*.tar.gz' \)
 
       - name: Upload wheels to TestPyPI
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.TESTPYPI_PASSWORD }}
         run:
-          python -m twine upload --verbose --repository testpypi dist-artifacts/*.whl dist-artifacts/*.tar.gz
+          files=$(find dist-artifacts -type f \( -name '*.whl' -o -name '*.tar.gz' \))
+          echo "Uploading files:"
+          echo "$files"
+          python -m twine upload --verbose --repository testpypi $files
 
 #      - name: Upload wheels to TestPyPI
 #        if: runner.os != 'Linux'
