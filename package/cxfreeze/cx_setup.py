@@ -576,3 +576,5 @@ if sys.platform.startswith("win") and shutil.which("makensis"):
     cmd = '"%s" %s' % (nsis, outFile)
     print(cmd)
     os.system(cmd)
+else:
+    print("Cannot find makensis executable")

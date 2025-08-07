@@ -119,7 +119,7 @@ jobs:
 #        run: rmdir /s /q build
 
       - name: Install NSIS
-        uses: warrenbuckley/install-nsis@v1
+        uses: choco install nsis -y
 
 #      - name: Run NSIS to build installer
 #        run: |
