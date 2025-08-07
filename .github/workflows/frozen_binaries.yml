@@ -123,9 +123,20 @@ jobs:
         run: |
           $nsisUrl = "https://prdownloads.sourceforge.net/nsis/nsis-3.10-setup.exe"
           $installer = "$env:RUNNER_TEMP\nsis-setup.exe"
-          Invoke-WebRequest -Uri $nsisUrl -OutFile $installer
-          # Silent install; default path is C:\Program Files (x86)\NSIS
+          Invoke-WebRequest -Uri $nsisUrl -OutFile $installer -UseBasicParsing -Verbose
+
+          if (-Not (Test-Path $installer)) {
+            Write-Error "Installer was not downloaded!"
+            exit 1
+          }
+      
+          if ((Get-Item $installer).Length -lt 1000000) {
+            Write-Error "Downloaded installer is too small and possibly corrupted!"
+            exit 1
+          }
+
           Start-Process -FilePath $installer -ArgumentList "/S" -Wait
+
           # Confirm file exists
           if (-Not (Test-Path "C:\Program Files (x86)\NSIS\makensis.exe")) {
             Write-Error "NSIS installation failed!"
