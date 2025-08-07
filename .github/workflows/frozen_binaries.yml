@@ -164,11 +164,32 @@ jobs:
             Write-Host "Path $path does not exist."
           }
 
+      - name: List build folder contents
+        shell: powershell
+        run: |
+          echo "Searching for build directories:"
+          Get-ChildItem -Directory -Name build* | ForEach-Object {
+            echo "Found build folder: $_"
+            Write-Host "Contents of $_ :"
+            Get-ChildItem -Recurse -Path $_
+          }
+        
+      - name: Search for executables and DLLs inside build
+        shell: powershell
+        run: |
+          echo "Searching for .exe and .dll files inside build folders:"
+          Get-ChildItem -Directory -Name build* | ForEach-Object {
+            echo "Checking folder: $_"
+            Get-ChildItem -Recurse -Path $_ -Include *.exe,*.dll | ForEach-Object {
+              Write-Host $_.FullName
+            }
+          }
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: windows-cxfreeze-artifacts
-          path: package/cxfreeze/build/**
+          path: dist/*
 
 #  macos11_pyinstaller_python312:
 #    runs-on: ${{ matrix.os }}
