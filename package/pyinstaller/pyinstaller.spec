@@ -8,7 +8,7 @@ import time
 import logging
 
 import PyInstaller
-from PyInstaller.utils.hooks import collect_data_files, collect_submodules
+from PyInstaller.utils.hooks import collect_data_files, collect_submodules, collect_dynamic_libs
 from PyInstaller.config import CONF
 
 logger = logging.getLogger("pyinstaller")
@@ -44,7 +44,11 @@ hiddenimports += collect_submodules('hdf5plugin')
 hiddenimports += collect_submodules('fisx')
 hiddenimports += collect_submodules('PyMca5.PyMcaGui.PyMcaQt')
 hiddenimports += collect_submodules('PyMca5.PyMcaGui.pymca')
+
 hiddenimports += collect_submodules('multiprocessing')
+hiddenimports += ['numpy.core._multiarray_umath']
+
+numpy_binaries = collect_dynamic_libs('numpy')
 
 # they will be added in full
 excludes = ["fabio", "hdf5plugin", "silx"]
@@ -107,10 +111,10 @@ for i in range(len(script_l)):
     script_a.append(Analysis(
                             [script_n[i]],
                             pathex=[],
-                            binaries=[],
+                            binaries=numpy_binaries,
                             datas=datas,
                             hiddenimports=hiddenimports,
-                            hookspath=[],
+                            hookspath=[os.path.join(sys.exec_prefix, 'Lib', 'site-packages', 'PyInstaller', 'hooks')],
                             runtime_hooks=[],
                             excludes=excludes,
                             win_no_prefer_redirects=False,
