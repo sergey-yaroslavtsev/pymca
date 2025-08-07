@@ -118,33 +118,12 @@ jobs:
 #        shell: cmd
 #        run: rmdir /s /q build
 
-      - name: Download and install NSIS silently
-        shell: pwsh
-        run: |
-          $nsisUrl = "https://downloads.sourceforge.net/project/nsis/NSIS%203/3.10/nsis-3.10-setup.exe"
-          $installer = "$env:RUNNER_TEMP\nsis-setup.exe"
-      
-          # Use a browser User-Agent to avoid SourceForge blocking the request
-          Invoke-WebRequest -Uri $nsisUrl -OutFile $installer -Headers @{ "User-Agent" = "Mozilla/5.0" } -UseBasicParsing -Verbose
-      
-          if (-Not (Test-Path $installer)) {
-            Write-Error "Installer was not downloaded!"
-            exit 1
-          }
-      
-          if ((Get-Item $installer).Length -lt 1000000) {
-            Write-Error "Downloaded installer is too small and possibly corrupted!"
-            exit 1
-          }
-      
-          Start-Process -FilePath $installer -ArgumentList "/S" -Wait
-      
-          # Confirm makensis is installed where expected
-          $makensis = "C:\Program Files (x86)\NSIS\makensis.exe"
-          if (-Not (Test-Path $makensis)) {
-            Write-Error "NSIS installation failed!"
-            exit 1
-          }
+      - name: Install NSIS
+        uses: warrenbuckley/install-nsis@v1
+
+#      - name: Run NSIS to build installer
+#        run: |
+#          makensis.exe package\cxfreeze\nsisscript.nsi.in
 
       - name: Build with cx_Freeze
         shell: cmd
@@ -163,6 +142,19 @@ jobs:
         shell: pwsh
         run: |
           $path = "package/cxfreeze"
+          if (Test-Path $path) {
+            Write-Host "Contents of $path :"
+            Get-ChildItem -Path $path -Recurse -Force | ForEach-Object {
+              Write-Host $_.FullName
+            }
+          } else {
+            Write-Host "Path $path does not exist."
+          }
+
+      - name: Print all files and folders recursively from dist with PowerShell
+        shell: pwsh
+        run: |
+          $path = "dist"
           if (Test-Path $path) {
             Write-Host "Contents of $path :"
             Get-ChildItem -Path $path -Recurse -Force | ForEach-Object {

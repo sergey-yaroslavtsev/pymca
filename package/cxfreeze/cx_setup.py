@@ -544,8 +544,10 @@ if not sys.platform.startswith("win"):
 
 
 #  generation of the NSIS executable
-nsis = os.path.join(r"\Program Files (x86)", "NSIS", "makensis.exe")
-if sys.platform.startswith("win") and os.path.exists(nsis):
+# nsis = os.path.join(r"\Program Files (x86)", "NSIS", "makensis.exe")
+# if sys.platform.startswith("win") and os.path.exists(nsis):
+nsis = shutil.which("makensis")
+if sys.platform.startswith("win") and shutil.which("makensis"):
     # check if we can perform the packaging
     outFile = "nsisscript.nsi"
     f = open("nsisscript.nsi.in", "r")
