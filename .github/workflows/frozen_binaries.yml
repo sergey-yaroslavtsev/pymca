@@ -22,57 +22,57 @@ jobs:
         python-version: [ "3.9" ]
 
     steps:
-      - uses: actions/checkout@v2
-
-#      - name: Download untar.py script
-#        run: curl -o untar.py https://gitlab.esrf.fr/silx/bob/main/raw/master/untar.py
+#      - uses: actions/checkout@v2
 #
-#      - name: Run untar.py
-#        run: python untar.py "artifacts/${{ env.PROJECT }}*.tar.gz"
-
-      - uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip setuptools wheel
-          pip install qtconsole==5.4.1
-          pip install matplotlib
-          pip install --pre --extra-index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
-          pip install Cython
-          pip install wheel
-          pip install numpy
-          pip install PyQt5
-          pip install h5py
-          pip install fisx          
-          pip install hdf5plugin
-          pip install silx
-          pip install PyOpenGL
-          pip install PyInstaller
-          pip install git+https://github.com/vasole/bcflight.git
-
-#      - name: Clean build folder
-#        shell: cmd
-#        run: rmdir /s /q build
-
-      - name: Build with PyInstaller
-        run:
-          python build-pyinstaller.py
-
-      - name: Print dist* directories content with PowerShell
-        shell: pwsh
-        run: |
-          Get-ChildItem -Directory -Name dist* | ForEach-Object {
-            Write-Host "Contents of $_ :"
-            Get-ChildItem -Path $_ -Recurse
-          }
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-pyinstaller-artifacts
-          path: dist/PyMca*/**
+##      - name: Download untar.py script
+##        run: curl -o untar.py https://gitlab.esrf.fr/silx/bob/main/raw/master/untar.py
+##
+##      - name: Run untar.py
+##        run: python untar.py "artifacts/${{ env.PROJECT }}*.tar.gz"
+#
+#      - uses: actions/setup-python@v2
+#        with:
+#          python-version: ${{ matrix.python-version }}
+#
+#      - name: Install dependencies
+#        run: |
+#          python -m pip install --upgrade pip setuptools wheel
+#          pip install qtconsole==5.4.1
+#          pip install matplotlib
+#          pip install --pre --extra-index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
+#          pip install Cython
+#          pip install wheel
+#          pip install numpy
+#          pip install PyQt5
+#          pip install h5py
+#          pip install fisx
+#          pip install hdf5plugin
+#          pip install silx
+#          pip install PyOpenGL
+#          pip install PyInstaller
+#          pip install git+https://github.com/vasole/bcflight.git
+#
+##      - name: Clean build folder
+##        shell: cmd
+##        run: rmdir /s /q build
+#
+#      - name: Build with PyInstaller
+#        run:
+#          python build-pyinstaller.py
+#
+#      - name: Print dist* directories content with PowerShell
+#        shell: pwsh
+#        run: |
+#          Get-ChildItem -Directory -Name dist* | ForEach-Object {
+#            Write-Host "Contents of $_ :"
+#            Get-ChildItem -Path $_ -Recurse
+#          }
+#
+#      - name: Upload artifacts
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: windows-pyinstaller-artifacts
+#          path: dist/PyMca*/**
 
   windows_cxfreeze_python38:
     runs-on: ${{ matrix.os }}
