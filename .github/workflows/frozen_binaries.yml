@@ -19,7 +19,7 @@ jobs:
     strategy:
       matrix:
         os: [ windows-latest ]
-        python-version: [ "3.11" ]
+        python-version: [ "3.9" ]
 
     steps:
       - uses: actions/checkout@v2
@@ -49,7 +49,6 @@ jobs:
           pip install hdf5plugin
           pip install silx
           pip install PyOpenGL
-          pip install multiprocessing 
           pip install PyInstaller
           pip install git+https://github.com/vasole/bcflight.git
 
@@ -80,7 +79,7 @@ jobs:
     strategy:
       matrix:
         os: [ windows-latest ]
-        python-version: [ "3.11" ]
+        python-version: [ "3.9" ]
 
     steps:
       - name: Checkout code
@@ -107,7 +106,6 @@ jobs:
           pip install hdf5plugin
           pip install git+https://github.com/silx-kit/silx.git
           pip install PyOpenGL
-          pip install multiprocessing 
           pip install qtconsole==5.4.1
           pip install lief==0.12.3
           pip install cx_Freeze==6.14.7
