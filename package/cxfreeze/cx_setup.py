@@ -351,7 +351,7 @@ if sys.platform.startswith("win"):
     REMOVE_DUPLICATED_MODULES = False#True
     REMOVE_REPEATED_DLL = False#True
     RENAME_EXECUTABLES = False
-    QTDIR = True
+    QTDIR = os.getenv("QTDIR")#False
 else:
     exe_win_dir = os.path.join("build",
                            "exe.%s-x86_64-%d.%d" %
