@@ -19,7 +19,7 @@ jobs:
     strategy:
       matrix:
         os: [ windows-latest ]
-        python-version: [ "3.9" ]
+        python-version: [ "3.11" ]
 
     steps:
       - uses: actions/checkout@v2
@@ -37,7 +37,7 @@ jobs:
           pip install Cython
           pip install wheel
           pip install numpy
-          pip install PyQt5
+          pip install Pyside6
           pip install h5py
           pip install fisx
           pip install hdf5plugin
