@@ -118,13 +118,15 @@ jobs:
 #        shell: cmd
 #        run: rmdir /s /q build
 
-      - name: Download and silently install NSIS to Program Files (x86)
+      - name: Download and install NSIS silently
         shell: pwsh
         run: |
-          $nsisUrl = "https://github.com/kichik/nsis/releases/download/3.10/nsis-3.10-setup.exe"
+          $nsisUrl = "https://downloads.sourceforge.net/project/nsis/NSIS%203/3.10/nsis-3.10-setup.exe"
           $installer = "$env:RUNNER_TEMP\nsis-setup.exe"
-          Invoke-WebRequest -Uri $nsisUrl -OutFile $installer -UseBasicParsing -Verbose
-
+      
+          # Use a browser User-Agent to avoid SourceForge blocking the request
+          Invoke-WebRequest -Uri $nsisUrl -OutFile $installer -Headers @{ "User-Agent" = "Mozilla/5.0" } -UseBasicParsing -Verbose
+      
           if (-Not (Test-Path $installer)) {
             Write-Error "Installer was not downloaded!"
             exit 1
@@ -134,15 +136,14 @@ jobs:
             Write-Error "Downloaded installer is too small and possibly corrupted!"
             exit 1
           }
-
+      
           Start-Process -FilePath $installer -ArgumentList "/S" -Wait
-
-          # Confirm file exists
-          if (-Not (Test-Path "C:\Program Files (x86)\NSIS\makensis.exe")) {
+      
+          # Confirm makensis is installed where expected
+          $makensis = "C:\Program Files (x86)\NSIS\makensis.exe"
+          if (-Not (Test-Path $makensis)) {
             Write-Error "NSIS installation failed!"
             exit 1
-          } else {
-            Write-Host "NSIS installed successfully."
           }
 
       - name: Build with cx_Freeze
