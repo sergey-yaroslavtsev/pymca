@@ -8,8 +8,11 @@ import time
 import logging
 
 import PyInstaller
-from PyInstaller.utils.hooks import collect_data_files, collect_submodules, collect_dynamic_libs
+from PyInstaller.utils.hooks import collect_data_files, collect_submodules, collect_dynamic_libs, get_package_paths
 from PyInstaller.config import CONF
+
+import numpy
+import glob
 
 logger = logging.getLogger("pyinstaller")
 
