@@ -348,10 +348,10 @@ if sys.platform.startswith("win"):
                            (sys.version_info[0], sys.version_info[1]))
     REPLACE_BIG_FILES = False # True
     print('big files remain')
-    REMOVE_DUPLICATED_MODULES = True
-    REMOVE_REPEATED_DLL = True
+    REMOVE_DUPLICATED_MODULES = False#True
+    REMOVE_REPEATED_DLL = False#True
     RENAME_EXECUTABLES = False
-    QTDIR = False
+    QTDIR = True
 else:
     exe_win_dir = os.path.join("build",
                            "exe.%s-x86_64-%d.%d" %

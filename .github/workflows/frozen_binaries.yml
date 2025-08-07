@@ -118,6 +118,22 @@ jobs:
 #        shell: cmd
 #        run: rmdir /s /q build
 
+      - name: Download and silently install NSIS to Program Files (x86)
+        shell: pwsh
+        run: |
+          $nsisUrl = "https://prdownloads.sourceforge.net/nsis/nsis-3.10-setup.exe"
+          $installer = "$env:RUNNER_TEMP\nsis-setup.exe"
+          Invoke-WebRequest -Uri $nsisUrl -OutFile $installer
+          # Silent install; default path is C:\Program Files (x86)\NSIS
+          Start-Process -FilePath $installer -ArgumentList "/S" -Wait
+          # Confirm file exists
+          if (-Not (Test-Path "C:\Program Files (x86)\NSIS\makensis.exe")) {
+            Write-Error "NSIS installation failed!"
+            exit 1
+          } else {
+            Write-Host "NSIS installed successfully."
+          }
+
       - name: Build with cx_Freeze
         shell: cmd
         run:
@@ -129,6 +145,19 @@ jobs:
           Get-ChildItem -Directory -Name dist* | ForEach-Object {
             Write-Host "Contents of $_ :"
             Get-ChildItem -Path $_ -Recurse
+          }
+
+      - name: Print all files and folders recursively from package/cxfreeze with PowerShell
+        shell: pwsh
+        run: |
+          $path = "package/cxfreeze"
+          if (Test-Path $path) {
+            Write-Host "Contents of $path :"
+            Get-ChildItem -Path $path -Recurse -Force | ForEach-Object {
+              Write-Host $_.FullName
+            }
+          } else {
+            Write-Host "Path $path does not exist."
           }
 
       - name: Upload artifacts
