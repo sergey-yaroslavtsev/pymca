@@ -167,22 +167,25 @@ jobs:
       - name: List build folder contents
         shell: powershell
         run: |
-          echo "Searching for build directories:"
+          Write-Host "Searching in build* folders..."
           Get-ChildItem -Directory -Name build* | ForEach-Object {
-            echo "Found build folder: $_"
-            Write-Host "Contents of $_ :"
-            Get-ChildItem -Recurse -Path $_
+            $folder = $_
+            Write-Host "Checking folder: $folder"
+            if (Test-Path $folder) {
+              Get-ChildItem -Path $folder -Recurse | Where-Object { $_.Extension -eq '.exe' -or $_.Extension -eq '.dll' } | ForEach-Object {
+                Write-Host $_.FullName
+              }
+            } else {
+              Write-Host "Folder $folder does not exist."
+            }
           }
         
       - name: Search for executables and DLLs inside build
         shell: powershell
         run: |
-          echo "Searching for .exe and .dll files inside build folders:"
-          Get-ChildItem -Directory -Name build* | ForEach-Object {
-            echo "Checking folder: $_"
-            Get-ChildItem -Recurse -Path $_ -Include *.exe,*.dll | ForEach-Object {
-              Write-Host $_.FullName
-            }
+          Write-Host "Searching for .exe and .dll files recursively from current directory..."
+          Get-ChildItem -Recurse | Where-Object { $_.Extension -eq '.exe' -or $_.Extension -eq '.dll' } | ForEach-Object {
+            Write-Host $_.FullName
           }
 
       - name: Upload artifacts

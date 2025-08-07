@@ -346,11 +346,10 @@ if sys.platform.startswith("win"):
     exe_win_dir = os.path.join("build",
                            "exe.win-amd64-%d.%d" %
                            (sys.version_info[0], sys.version_info[1]))
-    REPLACE_BIG_FILES = False # True
-    print('big files remain')
-    REMOVE_DUPLICATED_MODULES = False#True
-    REMOVE_REPEATED_DLL = False#True
-    RENAME_EXECUTABLES = False
+    REPLACE_BIG_FILES = True
+    REMOVE_DUPLICATED_MODULES = True
+    REMOVE_REPEATED_DLL =False# True
+    RENAME_EXECUTABLES = True# False
     QTDIR = os.getenv("QTDIR")#False
 else:
     exe_win_dir = os.path.join("build",
