@@ -176,6 +176,7 @@ jobs:
       - name: Build with PyInstaller (universal2)
         run: |
           python build-pyinstaller.py universal2
+          ls dist
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
