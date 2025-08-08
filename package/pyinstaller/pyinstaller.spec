@@ -65,7 +65,7 @@ excludes += ["fabio", "hdf5plugin", "silx"]
 excludes.append("debugpy")
 
 # This module basically does not work with frozen versions
-excludes.append("multiprocessing")
+# excludes.append("multiprocessing")
 
 
 # get the script list
