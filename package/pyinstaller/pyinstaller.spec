@@ -50,11 +50,15 @@ hiddenimports += collect_submodules('fisx')
 hiddenimports += collect_submodules('PyMca5.PyMcaGui.PyMcaQt')
 hiddenimports += collect_submodules('PyMca5.PyMcaGui.pymca')
 
-# hiddenimports += collect_submodules('multiprocessing')
-hiddenimports += collect_submodules('numpy')
-hiddenimports += ['numpy.core._multiarray_umath', 'numpy.core.multiarray']
+if sys.platform.startswith("win"):
+    # hiddenimports += collect_submodules('multiprocessing')
+    hiddenimports += collect_submodules('numpy')
+    hiddenimports += ['numpy.core._multiarray_umath', 'numpy.core.multiarray']
 
-numpy_binaries = collect_dynamic_libs('numpy')
+    numpy_binaries = collect_dynamic_libs('numpy')
+
+else:
+    numpy_binaries = []
 
 excludes = []
 
