@@ -27,7 +27,7 @@ jobs:
             QT_BINDING: PyQt5==5.14.1
             XVFB_RUN: xvfb-run -a
 
-          - name-suffix: "PyQt6 wheel"
+          - name-suffix: "PySide6 wheel"
             os: macos-latest
             python-version: 3.13
             BUILD_COMMAND: --wheel
@@ -62,11 +62,11 @@ jobs:
             QT_BINDING: PyQt5
             XVFB_RUN: ""
 
-          - name-suffix: "PyQt5 wheel"
+          - name-suffix: "PySide6 wheel"
             os: windows-latest
             python-version: "3.9"
             BUILD_COMMAND: --wheel
-            QT_BINDING: PyQt5
+            QT_BINDING: PySide6
             XVFB_RUN: ""
 
 #          - name-suffix: "PyQt5 wheel"
@@ -141,10 +141,18 @@ jobs:
            python ./ci/info_platform.py
            pip list
 
-      - name: Generate source package or wheel
-        env:
-          MACOSX_DEPLOYMENT_TARGET: "10.9" # do nothing if not MacOS
+      - name: Set environment for 10.9 compatibility
+        if: runner.os == 'macOS'
         run: |
+          echo "MACOSX_DEPLOYMENT_TARGET=10.9" >> $GITHUB_ENV
+          echo "CFLAGS=-mmacosx-version-min=10.9" >> $GITHUB_ENV
+          echo "LDFLAGS=-mmacosx-version-min=10.9" >> $GITHUB_ENV
+
+      - name: Generate source package or wheel
+        run: |
+          export MACOSX_DEPLOYMENT_TARGET=10.9
+          export CFLAGS="-mmacosx-version-min=10.9"
+          export LDFLAGS="-mmacosx-version-min=10.9"
           python -m build ${{ matrix.BUILD_COMMAND }}
           ls dist
 

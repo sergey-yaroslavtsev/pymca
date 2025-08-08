@@ -14,101 +14,45 @@ env:
 jobs:
 # Fat binaries
 
-#  windows_pyinstaller_python39: #also works with cp311 and pyside6
-#    runs-on: ${{ matrix.os }}
-#    strategy:
-#      matrix:
-#        os: [ windows-latest ]
-#        python-version: [ "3.9" ]
-#
-#    steps:
-#      - uses: actions/checkout@v2
-#
-#      - uses: actions/setup-python@v2
-#        with:
-#          python-version: ${{ matrix.python-version }}
-#
-#      - name: Install dependencies
-#        run: |
-#          python -m pip install --upgrade pip setuptools wheel
-#          pip install qtconsole==5.4.1
-#          pip install matplotlib
-#          pip install --pre --extra-index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
-#          pip install Cython
-#          pip install wheel
-#          pip install numpy
-#          pip install PyQt5
-#          pip install h5py
-#          pip install fisx
-#          pip install hdf5plugin
-#          pip install silx
-#          pip install PyOpenGL
-#          pip install PyInstaller
-#          pip install git+https://github.com/vasole/bcflight.git
-#
-#      - name: Install NSIS
-#        run: choco install nsis -y
-#
-#      - name: Build with PyInstaller
-#        run:
-#          python build-pyinstaller.py
-#
-##      - name: Print dist* directories content with PowerShell
-##        shell: pwsh
-##        run: |
-##          Get-ChildItem -Directory -Name dist* | ForEach-Object {
-##            Write-Host "Contents of $_ :"
-##            Get-ChildItem -Path $_ -Recurse
-##          }
-#
-#      - name: Upload artifacts
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: windows-pyinstaller-artifacts
-#          path: dist/PyMca*/**
+  windows_pyinstaller_python39: #also works with cp311 and pyside6
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ windows-latest ]
+        python-version: [ "3.9" ]
 
-#  windows_cxfreeze_python39:
-#    runs-on: ${{ matrix.os }}
-#    strategy:
-#      matrix:
-#        os: [ windows-latest ]
-#        python-version: [ "3.9" ]
-#
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v2
-#
-#      - name: Setup Python
-#        uses: actions/setup-python@v2
-#        with:
-#          python-version: ${{ matrix.python-version }}
-#
-#      - name: Install dependencies
-#        run: |
-#          pip install numpy==1.24.4
-#          pip install PyQt5
-#          pip install h5py
-#          pip install fisx
-#          pip install matplotlib==3.5.3
-#          pip install hdf5plugin
-#          pip install git+https://github.com/silx-kit/silx.git
-#          pip install PyOpenGL
-#          pip install qtconsole==5.4.1
-#          pip install lief==0.12.3
-#          pip install cx_Freeze==6.14.7
-#          pip install --pre --extra-index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
-#          pip install Cython
-#          pip install wheel
-#          pip install git+https://github.com/vasole/bcflight.git
-#
-#      - name: Install NSIS
-#        run: choco install nsis -y
-#
-#      - name: Build with cx_Freeze
-#        shell: cmd
-#        run:
-#          python build-cxfreeze.py
-#
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install qtconsole==5.4.1
+          pip install matplotlib
+          pip install --pre --extra-index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
+          pip install Cython
+          pip install wheel
+          pip install numpy
+          pip install PySide6
+          pip install h5py
+          pip install fisx
+          pip install hdf5plugin
+          pip install silx
+          pip install PyOpenGL
+          pip install PyInstaller
+          pip install git+https://github.com/vasole/bcflight.git
+
+      - name: Install NSIS
+        run: choco install nsis -y
+
+      - name: Build with PyInstaller
+        run:
+          python build-pyinstaller.py
+
 #      - name: Print dist* directories content with PowerShell
 #        shell: pwsh
 #        run: |
@@ -116,12 +60,68 @@ jobs:
 #            Write-Host "Contents of $_ :"
 #            Get-ChildItem -Path $_ -Recurse
 #          }
-#
-#      - name: Upload artifacts
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: windows-cxfreeze-artifacts
-#          path: dist/*
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-pyinstaller-artifacts
+          path: dist/PyMca*/**
+
+  windows_cxfreeze_python39:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ windows-latest ]
+        python-version: [ "3.9" ]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          pip install numpy==1.24.4
+          pip install PySide6
+          pip install h5py
+          pip install fisx
+          pip install matplotlib==3.5.3
+          pip install hdf5plugin
+          pip install git+https://github.com/silx-kit/silx.git
+          pip install PyOpenGL
+          pip install qtconsole==5.4.1
+          pip install lief==0.12.3
+          pip install cx_Freeze==6.14.7
+          pip install --pre --extra-index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
+          pip install Cython
+          pip install wheel
+          pip install git+https://github.com/vasole/bcflight.git
+
+      - name: Install NSIS
+        run: choco install nsis -y
+
+      - name: Build with cx_Freeze
+        shell: cmd
+        run:
+          python build-cxfreeze.py
+
+      - name: Print dist* directories content with PowerShell
+        shell: pwsh
+        run: |
+          Get-ChildItem -Directory -Name dist* | ForEach-Object {
+            Write-Host "Contents of $_ :"
+            Get-ChildItem -Path $_ -Recurse
+          }
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-cxfreeze-artifacts
+          path: dist/*
 
 ##################################################
 
@@ -143,6 +143,12 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+
+      - name: Set environment for 10.9 compatibility
+        run: |
+          echo "MACOSX_DEPLOYMENT_TARGET=10.9" >> $GITHUB_ENV
+          echo "CFLAGS=-mmacosx-version-min=10.9" >> $GITHUB_ENV
+          echo "LDFLAGS=-mmacosx-version-min=10.9" >> $GITHUB_ENV
 
       - name: Install dependencies
         run: |
