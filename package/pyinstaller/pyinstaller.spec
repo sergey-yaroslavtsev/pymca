@@ -61,8 +61,10 @@ for f in multiarray_bin:
     # The destination folder is "numpy/core"
     numpy_binaries.append((f, os.path.join('numpy', 'core')))
 
+excludes = []
+
 # they will be added in full
-# excludes = ["fabio", "hdf5plugin", "silx"]
+# excludes += ["fabio", "hdf5plugin", "silx"]
 
 # if this module is included, the interactive console does not work
 excludes.append("debugpy")
