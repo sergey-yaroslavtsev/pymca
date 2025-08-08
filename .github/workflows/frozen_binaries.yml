@@ -14,58 +14,58 @@ env:
 jobs:
 # Fat binaries
 
-  windows_pyinstaller_python38:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ windows-latest ]
-        python-version: [ "3.9" ]
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip setuptools wheel
-          pip install qtconsole==5.4.1
-          pip install matplotlib
-          pip install --pre --extra-index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
-          pip install Cython
-          pip install wheel
-          pip install numpy
-          pip install PyQt5
-          pip install h5py
-          pip install fisx
-          pip install hdf5plugin
-          pip install silx
-          pip install PyOpenGL
-          pip install PyInstaller
-          pip install git+https://github.com/vasole/bcflight.git
-
-      - name: Install NSIS
-        run: choco install nsis -y
-
-      - name: Build with PyInstaller
-        run:
-          python build-pyinstaller.py
-
-#      - name: Print dist* directories content with PowerShell
-#        shell: pwsh
+#  windows_pyinstaller_python39: #also works with cp311 and pyside6
+#    runs-on: ${{ matrix.os }}
+#    strategy:
+#      matrix:
+#        os: [ windows-latest ]
+#        python-version: [ "3.9" ]
+#
+#    steps:
+#      - uses: actions/checkout@v2
+#
+#      - uses: actions/setup-python@v2
+#        with:
+#          python-version: ${{ matrix.python-version }}
+#
+#      - name: Install dependencies
 #        run: |
-#          Get-ChildItem -Directory -Name dist* | ForEach-Object {
-#            Write-Host "Contents of $_ :"
-#            Get-ChildItem -Path $_ -Recurse
-#          }
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-pyinstaller-artifacts
-          path: dist/PyMca*/**
+#          python -m pip install --upgrade pip setuptools wheel
+#          pip install qtconsole==5.4.1
+#          pip install matplotlib
+#          pip install --pre --extra-index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
+#          pip install Cython
+#          pip install wheel
+#          pip install numpy
+#          pip install PyQt5
+#          pip install h5py
+#          pip install fisx
+#          pip install hdf5plugin
+#          pip install silx
+#          pip install PyOpenGL
+#          pip install PyInstaller
+#          pip install git+https://github.com/vasole/bcflight.git
+#
+#      - name: Install NSIS
+#        run: choco install nsis -y
+#
+#      - name: Build with PyInstaller
+#        run:
+#          python build-pyinstaller.py
+#
+##      - name: Print dist* directories content with PowerShell
+##        shell: pwsh
+##        run: |
+##          Get-ChildItem -Directory -Name dist* | ForEach-Object {
+##            Write-Host "Contents of $_ :"
+##            Get-ChildItem -Path $_ -Recurse
+##          }
+#
+#      - name: Upload artifacts
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: windows-pyinstaller-artifacts
+#          path: dist/PyMca*/**
 
 #  windows_cxfreeze_python39:
 #    runs-on: ${{ matrix.os }}
@@ -125,73 +125,73 @@ jobs:
 
 ##################################################
 
-#  macos11_pyinstaller_python312:
-#    runs-on: ${{ matrix.os }}
-#    strategy:
-#      matrix:
-#        os: [ macos-latest ]
-#        python-version: [ "3.12" ]
-#
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v2
-#
-##      - name: Extract artifact tarball
-##        run: tar xvf ./artifacts/${{ env.PROJECT_LOWER }}*.tar.gz
-#
-#      - name: Setup Python
-#        uses: actions/setup-python@v2
-#        with:
-#          python-version: ${{ matrix.python-version }}
-#
-#      - name: Install dependencies
-#        run: |
-#          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/numpy-1.26.2-cp312-cp312-macosx_10_9_universal2.whl
-#          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/h5py-3.10.0-cp312-cp312-macosx_11_0_universal2.whl
-#          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/psutil-5.9.6-cp312-abi3-macosx_10_9_universal2.whl
-#          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/Pillow-10.1.0-cp312-cp312-macosx_11_0_universal2.whl
-#          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/tornado-6.3.3-cp38-abi3-macosx_10_9_universal2.whl
-#          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/contourpy-1.2.0-cp312-cp312-macosx_11_0_universal2.whl
-#          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/kiwisolver-1.4.5-cp312-cp312-macosx_11_0_universal2.whl
-#          pip install cycler==0.12.1
-#          pip install fonttools==4.45.1
-#          pip install packaging==23.2
-#          pip install pyparsing==3.1.1
-#          pip install python_dateutil==2.8.2
-#          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/matplotlib-3.8.2-cp312-cp312-macosx_11_0_universal2.whl
-#          pip install hdf5plugin
-#          pip install PySide6==6.6.0
-#          pip install lxml==4.9.3
-#          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/fabio-2023.10.0-cp312-cp312-macosx_10_9_universal2.whl
-#          pip install fisx
-#          pip install git+https://github.com/silx-kit/silx.git
-#          pip install PyOpenGL
-#          pip install multiprocessing
-#          pip install qtconsole==5.5.1
-#          pip install PyInstaller==6.2.0
-#          pip install Cython
-#          pip install wheel
-#          pip install --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
-#          pip install git+https://github.com/vasole/bcflight.git
-#
-#      - name: Clean build folder
-#        run: rm -rf build
-#
-#      - name: Build with PyInstaller (universal2)
-#        run: |
-#          python build-pyinstaller.py universal2
-#          ls dist
-#          # mkdir -p ../artifacts/eighthours
-#          # cp dist/*.dmg ../artifacts/eighthours/
-#          # Uncomment if needed:
-#          # cp dist/*.pkg ../artifacts/eighthours/
-#          # cp -R dist/*.app ../artifacts/eighthours/
-#
-#      - name: Upload artifacts
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: macos-pyinstaller-artifacts
-#          path: dist/*.dmg
+  macos11_pyinstaller_python312:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ macos-latest ]
+        python-version: [ "3.12" ]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+#      - name: Extract artifact tarball
+#        run: tar xvf ./artifacts/${{ env.PROJECT_LOWER }}*.tar.gz
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/numpy-1.26.2-cp312-cp312-macosx_10_9_universal2.whl
+          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/h5py-3.10.0-cp312-cp312-macosx_11_0_universal2.whl
+          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/psutil-5.9.6-cp312-abi3-macosx_10_9_universal2.whl
+          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/Pillow-10.1.0-cp312-cp312-macosx_11_0_universal2.whl
+          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/tornado-6.3.3-cp38-abi3-macosx_10_9_universal2.whl
+          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/contourpy-1.2.0-cp312-cp312-macosx_11_0_universal2.whl
+          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/kiwisolver-1.4.5-cp312-cp312-macosx_11_0_universal2.whl
+          pip install cycler==0.12.1
+          pip install fonttools==4.45.1
+          pip install packaging==23.2
+          pip install pyparsing==3.1.1
+          pip install python_dateutil==2.8.2
+          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/matplotlib-3.8.2-cp312-cp312-macosx_11_0_universal2.whl
+          pip install hdf5plugin
+          pip install PySide6==6.6.0
+          pip install lxml==4.9.3
+          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/fabio-2023.10.0-cp312-cp312-macosx_10_9_universal2.whl
+          pip install fisx
+          pip install git+https://github.com/silx-kit/silx.git
+          pip install PyOpenGL
+          pip install multiprocessing
+          pip install qtconsole==5.5.1
+          pip install PyInstaller==6.2.0
+          pip install Cython
+          pip install wheel
+          pip install --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
+          pip install git+https://github.com/vasole/bcflight.git
+
+      - name: Clean build folder
+        run: rm -rf build
+
+      - name: Build with PyInstaller (universal2)
+        run: |
+          python build-pyinstaller.py universal2
+          ls dist
+          # mkdir -p ../artifacts/eighthours
+          # cp dist/*.dmg ../artifacts/eighthours/
+          # Uncomment if needed:
+          # cp dist/*.pkg ../artifacts/eighthours/
+          # cp -R dist/*.app ../artifacts/eighthours/
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-pyinstaller-artifacts
+          path: dist/*.dmg
 
 ####################################################################################################
   #    build_installers:
