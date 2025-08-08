@@ -30,6 +30,8 @@ datas.append((os.path.join(PROJECT_PATH, "LICENSE"), "."))
 datas.append((os.path.join(PROJECT_PATH, "copyright"), "."))
 #datas += collect_data_files("silx.resources")
 
+datas += collect_data_files('numpy')
+
 if sys.platform.startswith('darwin'):
    icon = os.path.join(PROJECT_PATH, "icons", "PyMca.icns")
 else:
@@ -48,18 +50,19 @@ hiddenimports += collect_submodules('fisx')
 hiddenimports += collect_submodules('PyMca5.PyMcaGui.PyMcaQt')
 hiddenimports += collect_submodules('PyMca5.PyMcaGui.pymca')
 
-hiddenimports += collect_submodules('multiprocessing')
-hiddenimports += ['numpy.core._multiarray_umath']
+# hiddenimports += collect_submodules('multiprocessing')
+hiddenimports += collect_submodules('numpy')
+hiddenimports += ['numpy.core._multiarray_umath', 'numpy.core.multiarray']
 
-#numpy_binaries = collect_dynamic_libs('numpy')
+numpy_binaries = collect_dynamic_libs('numpy')
 
-numpy_base, numpy_dir = get_package_paths('numpy')
-numpy_binaries = []
-# Search for _multiarray_umath compiled extension in numpy/core
-multiarray_bin = glob.glob(os.path.join(numpy_dir, 'core', '_multiarray_umath.*'))
-for f in multiarray_bin:
-    # The destination folder is "numpy/core"
-    numpy_binaries.append((f, os.path.join('numpy', 'core')))
+#numpy_base, numpy_dir = get_package_paths('numpy')
+#numpy_binaries = []
+## Search for _multiarray_umath compiled extension in numpy/core
+#multiarray_bin = glob.glob(os.path.join(numpy_dir, 'core', '_multiarray_umath.*'))
+#for f in multiarray_bin:
+#    # The destination folder is "numpy/core"
+#    numpy_binaries.append((f, os.path.join('numpy', 'core')))
 
 excludes = []
 
@@ -127,7 +130,7 @@ for i in range(len(script_l)):
                             binaries=numpy_binaries,
                             datas=datas,
                             hiddenimports=hiddenimports,
-                            hookspath=[os.path.join(sys.exec_prefix, 'Lib', 'site-packages', 'PyInstaller', 'hooks')],
+                            hookspath=[],
                             runtime_hooks=[],
                             excludes=excludes,
                             win_no_prefer_redirects=False,

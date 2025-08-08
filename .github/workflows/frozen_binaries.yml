@@ -53,13 +53,13 @@ jobs:
         run:
           python build-pyinstaller.py
 
-      - name: Print dist* directories content with PowerShell
-        shell: pwsh
-        run: |
-          Get-ChildItem -Directory -Name dist* | ForEach-Object {
-            Write-Host "Contents of $_ :"
-            Get-ChildItem -Path $_ -Recurse
-          }
+#      - name: Print dist* directories content with PowerShell
+#        shell: pwsh
+#        run: |
+#          Get-ChildItem -Directory -Name dist* | ForEach-Object {
+#            Write-Host "Contents of $_ :"
+#            Get-ChildItem -Path $_ -Recurse
+#          }
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
