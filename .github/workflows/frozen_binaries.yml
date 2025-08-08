@@ -19,7 +19,7 @@ jobs:
     strategy:
       matrix:
         os: [ windows-latest ]
-        python-version: [ "3.9" ]
+        python-version: [ "3.11" ]
 
     steps:
       - uses: actions/checkout@v2
@@ -86,7 +86,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install numpy==1.24.4
-          pip install PySide6
+          pip install PyQt5
           pip install h5py
           pip install fisx
           pip install matplotlib==3.5.3
@@ -183,6 +183,7 @@ jobs:
         run: |
           python build-pyinstaller.py universal2
           ls dist
+          find dist/ -type f -perm +111 -exec otool -l {} \; | grep -A 5 LC_VERSION_MIN_MACOSX
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
