@@ -8,7 +8,7 @@ import time
 import logging
 
 import PyInstaller
-from PyInstaller.utils.hooks import collect_data_files, collect_submodules, collect_dynamic_libs, get_package_paths
+from PyInstaller.utils.hooks import collect_data_files, collect_submodules, collect_dynamic_libs
 from PyInstaller.config import CONF
 
 import numpy
@@ -56,24 +56,16 @@ hiddenimports += ['numpy.core._multiarray_umath', 'numpy.core.multiarray']
 
 numpy_binaries = collect_dynamic_libs('numpy')
 
-#numpy_base, numpy_dir = get_package_paths('numpy')
-#numpy_binaries = []
-## Search for _multiarray_umath compiled extension in numpy/core
-#multiarray_bin = glob.glob(os.path.join(numpy_dir, 'core', '_multiarray_umath.*'))
-#for f in multiarray_bin:
-#    # The destination folder is "numpy/core"
-#    numpy_binaries.append((f, os.path.join('numpy', 'core')))
-
 excludes = []
 
 # they will be added in full
-# excludes += ["fabio", "hdf5plugin", "silx"]
+excludes += ["fabio", "hdf5plugin", "silx"]
 
 # if this module is included, the interactive console does not work
 excludes.append("debugpy")
 
 # This module basically does not work with frozen versions
-# excludes.append("multiprocessing")
+excludes.append("multiprocessing")
 
 
 # get the script list
