@@ -7,7 +7,6 @@ jobs:
   upload_release:
     name: Upload all packages
     runs-on: ubuntu-latest # do switch to anything else
-    if: ${{github.event_name == 'release' }}
     steps:
 
       - name: Download Linux artifact
@@ -31,9 +30,19 @@ jobs:
       - name: List all downloaded files
         run: ls -R dist
 
+      - name: Get latest version from TestPyPI
+        id: get_version
+        run: |
+          PACKAGE="Pymca_release_test"
+          META=$(curl -s https://test.pypi.org/pypi/$PACKAGE/json)
+          VERSION=$(echo "$META" | jq -r '.info.version')
+          echo "Latest version is $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
       - name: Upload to GitHub Release (tar.gz, dmg, exe)
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: "v${{ steps.get_version.outputs.version }}"
           files: dist/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

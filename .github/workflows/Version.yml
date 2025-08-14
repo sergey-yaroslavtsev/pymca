@@ -24,12 +24,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip requests
 
-      - name: Check if version exists on PyPI and TestPyPI
-        env:
-          PACKAGE_NAME: ${{ env.PROJECT_LOWER }}
+      - name: Extract version from __init__.py
+        id: extract_version
         shell: python
         run: |
-          import requests
           path = 'src/PyMca5/__init__.py'
 
           version = None
@@ -39,8 +37,32 @@ jobs:
                       version = line.replace(' ', '').split('=')[-1].strip().strip('"\'')
                       break
           assert version is not None, "Version not found in __init__.py"
-          
-          pkg_name = "${{ env.PROJECT_LOWER }}"
+          print(version)
+          # Save version to GitHub output
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f"version={version}\n")
+
+      - name: Check if git tag exists for the version
+        run: |
+          VERSION=${{ steps.extract_version.outputs.version }}
+          TAG="v$VERSION"
+          if git rev-parse "refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "❌ Git tag '$TAG' already exists."
+            exit 1
+          else
+            echo "✅ Git tag '$TAG' does not exist."
+          fi
+
+      - name: Check if version exists on PyPI and TestPyPI
+        env:
+          PACKAGE_NAME: ${{ env.PROJECT_LOWER }}
+          VERSION: ${{ steps.extract_version.outputs.version }}
+        shell: python
+        run: |
+          import requests
+
+          version = "${{ env.VERSION }}"
+          pkg_name = "${{ env.PACKAGE_NAME }}"
 
           def version_exists(index_url):
               url = f"{index_url}/{pkg_name}/json"
@@ -58,5 +80,3 @@ jobs:
               exit(1)
           else:
               print(f"✅ Version {version} is new and OK to publish")
-
-        

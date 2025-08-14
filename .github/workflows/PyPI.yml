@@ -11,7 +11,6 @@ jobs:
   upload_to_pypi:
     name: Upload all wheels to PyPI
     runs-on: macos-latest
-    if: ${{github.event_name == 'release' }}
     steps:
 
       - name: Install jq

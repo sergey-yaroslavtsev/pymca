@@ -1,0 +1,54 @@
+name: Create Tag and Release from TestPyPI Version
+
+on:
+  workflow_dispatch:
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+
+    - name: Get latest version from TestPyPI
+      id: get_version
+      run: |
+        PACKAGE="Pymca_release_test"
+        META=$(curl -s https://test.pypi.org/pypi/$PACKAGE/json)
+        VERSION=$(echo "$META" | jq -r '.info.version')
+        echo "Latest version is $VERSION"
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+    - name: Create Git tag via API
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TAG_VERSION: ${{ steps.get_version.outputs.version }}
+      run: |
+        API_URL="${{ github.api_url }}/repos/${{ github.repository }}/git/refs"
+        API_VERSION="2022-11-28"
+        TAG_NAME="v${TAG_VERSION}"
+        REF_SHA="${{ github.sha }}"
+        RESPONSE=$(curl -s -o response.json -w "%{http_code}" \
+          -L --request POST \
+          --url "${API_URL}" \
+          --header "Authorization: Bearer $GITHUB_TOKEN" \
+          --header "Content-Type: application/json" \
+          --header "Accept: application/vnd.github+json" \
+          --header "X-GitHub-Api-Version: ${API_VERSION}" \
+          --data "{
+            \"ref\": \"refs/tags/${TAG_NAME}\",
+            \"sha\": \"${REF_SHA}\"
+          }")
+        if [[ "$RESPONSE" -ne 201 ]]; then
+          echo "❌ GitHub API request failed with status code: $RESPONSE"
+          cat response.json
+          exit 1
+        fi
+
+    - name: Create GitHub release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: "v${{ steps.get_version.outputs.version }}"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

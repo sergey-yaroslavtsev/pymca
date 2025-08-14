@@ -1,12 +1,52 @@
 name: Release
 
 on:
-  release:
-    types: [published]
+#  release:
+#    types: [published]
   workflow_dispatch:
+    inputs:
+      force:
+        description: 'Force release even if version was not changed'
+        required: false
+        default: 'false'
+        # change to 'true' for manual release
+  push:
+    branches:
+      - master
 
 jobs:
+  version-change:
+    runs-on: ubuntu-latest
+    outputs:
+      should_release: ${{ steps.check-change.outputs.should_release }}
+      version: ${{ steps.check-change.outputs.version }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Get version from file
+        id: check-change
+        run: |
+          version=$(grep -Po "^__version__ = '\K[^']+" src/PyMca5/__init__.py)
+          echo "Found version: $version"
+          echo "version=$version" >> $GITHUB_OUTPUT
+
+          # Check if the version line was modified in the last commit
+          changed=$(git diff HEAD^ HEAD -- src/PyMca5/__init__.py | grep '__version__' || true)
+
+          if [[ -n "$changed" ]]; then
+            echo "Version changed"
+            echo "should_release=true" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.force }}" == "true" ]]; then
+            echo "Release was triggered manually"
+            echo "should_release=true" >> $GITHUB_OUTPUT
+          else
+            echo "No release... for now"
+            echo "should_release=false" >> $GITHUB_OUTPUT
+          fi
+
   version-check:
+    needs: version-change
+    if: needs.version-change.outputs.should_release == 'true'
     uses: ./.github/workflows/Version.yml
 
   run-build-upload:
@@ -27,18 +67,19 @@ jobs:
     needs: run-build-upload
     uses: ./.github/workflows/MacOS.yml
 
-  upload-release:
+  tag-release:
     needs:
       - trigger-windows1
       - trigger-windows2
       - trigger-mac
+    uses: ./.github/workflows/TagRelease.yml
+
+  upload-release:
+    needs: tag-release
     uses: ./.github/workflows/UploadRelease.yml
 
   upload-pypi:
-    needs:
-      - trigger-windows1
-      - trigger-windows2
-      - trigger-mac
+    needs: tag-release
     uses: ./.github/workflows/PyPI.yml
 
 
