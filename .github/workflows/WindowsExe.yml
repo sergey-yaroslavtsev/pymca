@@ -12,18 +12,13 @@ env:
 jobs:
 # Fat binaries
   windows_pyinstaller_python39: #also works with cp311 and pyside6 as well as oldest cp39 pyqt5
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ windows-latest ]
-        python-version: [ "3.11" ]
-
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
 
       - uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.11"
 
       - name: Install dependencies
         run: |

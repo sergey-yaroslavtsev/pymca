@@ -11,12 +11,7 @@ env:
 jobs:
 # Fat binaries
   macos11_pyinstaller_python312:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ macos-latest ]
-        python-version: [ "3.12" ]
-
+    runs-on: macos-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -24,7 +19,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.12"
 
       - name: Set environment for 10.9 compatibility
         run: |
