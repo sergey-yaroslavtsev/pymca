@@ -22,6 +22,8 @@ jobs:
       version: ${{ steps.check-change.outputs.version }}
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 2 #to have previous commit
 
       - name: Get version from file
         id: check-change

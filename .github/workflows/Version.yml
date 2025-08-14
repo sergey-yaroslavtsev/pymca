@@ -47,6 +47,7 @@ jobs:
         run: |
           VERSION=${{ steps.extract_version.outputs.version }}
           TAG="v$VERSION"
+          git fetch --tags
           if git rev-parse "refs/tags/$TAG" >/dev/null 2>&1; then
             echo "❌ Git tag '$TAG' already exists."
             exit 1
