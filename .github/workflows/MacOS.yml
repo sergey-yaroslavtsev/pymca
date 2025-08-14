@@ -79,19 +79,24 @@ jobs:
             fi
           done | sort
 
+      - name: Set app name variable
+        run: |
+          APP_NAME=$(find dist -maxdepth 1 -name 'PyMca*.app' | head -n 1 | xargs -n 1 basename)
+          echo "APP_NAME=$APP_NAME" >> $GITHUB_ENV
+
       ### correct and test app file
 
       - name: Move .app to /Applications
         run: |
-          sudo mv ./dist/PyMca5.9.4.app /Applications/
-          ls -l /Applications/PyMca5.9.4.app/Contents/MacOS
+          sudo mv ./dist/${{ env.APP_NAME }} /Applications/
+          ls -l /Applications/${{ env.APP_NAME }}/Contents/MacOS
 
       - name: Make main binary executable
-        run: chmod +x /Applications/PyMca5.9.4.app/Contents/MacOS/PyMcaMain
+        run: chmod +x /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain
 
       - name: Rename __dot__dylibs folders to .dylibs
         run: |
-          find /Applications/PyMca5.9.4.app -depth -type d -name '__dot__dylibs' | while IFS= read -r dir; do
+          find /Applications/${{ env.APP_NAME }} -depth -type d -name '__dot__dylibs' | while IFS= read -r dir; do
             parent_dir=$(dirname "$dir")
             target="$parent_dir/.dylibs"
 
@@ -118,7 +123,7 @@ jobs:
           echo "Launching PyMcaMain..."
 
           # Start the app in the background
-          /Applications/PyMca5.9.4.app/Contents/MacOS/PyMcaMain &
+          /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain &
           APP_PID=$!
 
           echo "App started with PID $APP_PID"
@@ -148,24 +153,27 @@ jobs:
       - name: Copy .app out /Applications
         run: |
           sudo mkdir -p myappfolder
-          sudo cp -R "/Applications/PyMca5.9.4.app" myappfolder/
+          sudo cp -R "/Applications/${{ env.APP_NAME }}" myappfolder/
 
       - name: Cleanup
         run: |
-          sudo rm -rf /Applications/PyMca5.9.4.app
+          sudo rm -rf /Applications/${{ env.APP_NAME }}
 
       ### dmg test
 
       - name: Mount the DMG
         run: |
-          hdiutil attach dist/PyMca5.9.4.dmg -mountpoint /Volumes/PyMcaApp
+          DMG_NAME="${APP_NAME/.app/.dmg}"
+          hdiutil attach "dist/$DMG_NAME" -mountpoint /Volumes/PyMcaApp
+        env:
+          APP_NAME: ${{ env.APP_NAME }}
 
       - name: Copy .app to /Applications
         run: |
-          sudo cp -R "/Volumes/PyMcaApp/PyMca5.9.4.app" /Applications/
+          sudo cp -R "/Volumes/PyMcaApp/${{ env.APP_NAME }}" /Applications/
 
       - name: Make main binary executable
-        run: chmod +x /Applications/PyMca5.9.4.app/Contents/MacOS/PyMcaMain
+        run: chmod +x /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain
 
       - name: Run the app to check it launches
         run: |
@@ -174,7 +182,7 @@ jobs:
           echo "Launching PyMcaMain..."
 
           # Start the app in the background
-          /Applications/PyMca5.9.4.app/Contents/MacOS/PyMcaMain &
+          /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain &
           APP_PID=$!
 
           echo "App started with PID $APP_PID"
@@ -203,7 +211,7 @@ jobs:
 
       - name: Cleanup
         run: |
-          sudo rm -rf /Applications/PyMca5.9.4.app
+          sudo rm -rf /Applications/${{ env.APP_NAME }}
 
       # upload .dmg
       - name: Upload artifacts
