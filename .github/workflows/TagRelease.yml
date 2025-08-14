@@ -1,7 +1,7 @@
 name: Create Tag and Release from TestPyPI Version
 
 on:
-  workflow_dispatch:
+  workflow_call:
 
 jobs:
   create-release:

@@ -28,6 +28,7 @@ jobs:
         id: extract_version
         shell: python
         run: |
+          import os
           path = 'src/PyMca5/__init__.py'
 
           version = None
