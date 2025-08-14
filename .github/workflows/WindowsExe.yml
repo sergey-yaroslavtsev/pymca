@@ -1,20 +1,16 @@
-# This is a basic workflow to help you get started with Actions
-
 name: Windows (pyinstaller - simple executable)
 
-# Controls when the action will run.
+
 on:
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
   workflow_call:
 
 env:
   PROJECT: Pymca_release_test
   PROJECT_LOWER: pymca_release_test
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+
 jobs:
 # Fat binaries
-
   windows_pyinstaller_python39: #also works with cp311 and pyside6 as well as oldest cp39 pyqt5
     runs-on: ${{ matrix.os }}
     strategy:

@@ -1,20 +1,15 @@
-# This is a basic workflow to help you get started with Actions
-
 name: Windows (cx_freeze - installer)
 
-# Controls when the action will run.
 on:
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
   workflow_call:
 
 env:
   PROJECT: Pymca_release_test
   PROJECT_LOWER: pymca_release_test
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+
 jobs:
 # Fat binaries
-
   windows_cxfreeze_python39:
     runs-on: ${{ matrix.os }}
     strategy:

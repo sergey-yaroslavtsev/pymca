@@ -6,7 +6,11 @@ on:
   workflow_dispatch:
 
 jobs:
+  version-check:
+    uses: ./.github/workflows/Version.yml
+
   run-build-upload:
+    needs: version-check
     uses: ./.github/workflows/Wheels.yml
     secrets:
       TESTPYPI_PASSWORD: ${{ secrets.TESTPYPI_PASSWORD }}
