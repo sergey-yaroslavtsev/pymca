@@ -197,7 +197,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Setup MacOS x86_64 Python
-        if: matrix.ARCH_COMMAND == 'x86_64' && runner.os == 'macOS'
+        if: matrix.ARCH_COMMAND == 'arch -x86_64' && runner.os == 'macOS'
         run: |
           arch -x86_64 python -m venv venv-x86
           #lipo venv-x86/bin/python -remove arm64 -output venv-x86/bin/python_x86
@@ -207,7 +207,7 @@ jobs:
           source venv-x86/bin/activate
 
       - name: Setup MacOS arm64 Python
-        if: matrix.ARCH_COMMAND == 'arm64' && runner.os == 'macOS'
+        if: matrix.ARCH_COMMAND == 'arch -arm64' && runner.os == 'macOS'
         run: |
           arch -arm64 python -m venv venv-arm64
           #lipo venv-arm64/bin/python -remove x86_64 -output venv-arm64/bin/python_arm64
