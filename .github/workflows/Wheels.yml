@@ -32,9 +32,7 @@ jobs:
             python-version: "3.13"
             BUILD_COMMAND: --wheel
             ARCH: "x86_64"
-            SOURCE: |
-              source venv-x86/bin/activate
-              export ARCHFLAGS='-arch x86_64'
+            SOURCE: "source venv-x86/bin/activate"
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
@@ -43,9 +41,7 @@ jobs:
             python-version: "3.12"
             BUILD_COMMAND: --wheel
             ARCH: "x86_64"
-            SOURCE: |
-              source venv-x86/bin/activate
-              export ARCHFLAGS='-arch x86_64'
+            SOURCE: "source venv-x86/bin/activate"
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
@@ -54,9 +50,7 @@ jobs:
             python-version: "3.11"
             BUILD_COMMAND: --wheel
             ARCH: "x86_64"
-            SOURCE: |
-              source venv-x86/bin/activate
-              export ARCHFLAGS='-arch x86_64'
+            SOURCE: "source venv-x86/bin/activate"
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
@@ -65,9 +59,7 @@ jobs:
             python-version: "3.10"
             BUILD_COMMAND: --wheel
             ARCH: "x86_64"
-            SOURCE: |
-              source venv-x86/bin/activate
-              export ARCHFLAGS='-arch x86_64'
+            SOURCE: "source venv-x86/bin/activate"
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
@@ -76,9 +68,7 @@ jobs:
             python-version: "3.9"
             BUILD_COMMAND: --wheel
             ARCH: "x86_64"
-            SOURCE: |
-              source venv-x86/bin/activate
-              export ARCHFLAGS='-arch x86_64'
+            SOURCE: "source venv-x86/bin/activate"
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
@@ -87,9 +77,7 @@ jobs:
             python-version: "3.13"
             BUILD_COMMAND: --wheel
             ARCH: "arm64"
-            SOURCE: |
-              source venv-arm64/bin/activate
-              export ARCHFLAGS='-arch arm64'
+            SOURCE: "source venv-arm64/bin/activate"
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
@@ -98,9 +86,7 @@ jobs:
             python-version: "3.12"
             BUILD_COMMAND: --wheel
             ARCH: "arm64"
-            SOURCE: |
-              source venv-arm64/bin/activate
-              export ARCHFLAGS='-arch arm64'
+            SOURCE: "source venv-arm64/bin/activate"
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
@@ -109,9 +95,7 @@ jobs:
             python-version: "3.11"
             BUILD_COMMAND: --wheel
             ARCH: "arm64"
-            SOURCE: |
-              source venv-arm64/bin/activate
-              export ARCHFLAGS='-arch arm64'
+            SOURCE: "source venv-arm64/bin/activate"
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
@@ -120,9 +104,7 @@ jobs:
             python-version: "3.10"
             BUILD_COMMAND: --wheel
             ARCH: "arm64"
-            SOURCE: |
-              source venv-arm64/bin/activate
-              export ARCHFLAGS='-arch arm64'
+            SOURCE: "source venv-arm64/bin/activate"
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
@@ -131,9 +113,7 @@ jobs:
             python-version: "3.9"
             BUILD_COMMAND: --wheel
             ARCH: "arm64"
-            SOURCE: |
-              source venv-arm64/bin/activate
-              export ARCHFLAGS='-arch arm64'
+            SOURCE: "source venv-arm64/bin/activate"
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
@@ -219,6 +199,7 @@ jobs:
       - name: Setup MacOS x86_64 Python
         if: matrix.ARCH == 'x86_64' && runner.os == 'macOS'
         run: |
+          export ARCHFLAGS='-arch x86_64'
           arch -x86_64 python -m venv venv-x86
           file venv-x86/bin/python
           source venv-x86/bin/activate
@@ -226,6 +207,7 @@ jobs:
       - name: Setup MacOS x86_64 Python
         if: matrix.ARCH == 'arm64' && runner.os == 'macOS'
         run: |
+          export ARCHFLAGS='-arch arm64'
           arch -arm64 python3 -m venv venv-arm64
           file venv-arm64/bin/python
           source venv-arm64/bin/activate
