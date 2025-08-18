@@ -292,9 +292,8 @@ jobs:
           pip install PyInstaller==6.2.0
           pip install Cython
           pip install wheel
-          pip install --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
+          arch -x86_64 pip install --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
           pip install git+https://github.com/vasole/bcflight.git
-
 
       - name: Build PyInstaller app for x86_64
         run: |
