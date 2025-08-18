@@ -197,6 +197,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      # to "castrate" interpreter to be sure it is run on required architecture
       - name: Setup MacOS x86_64 Python
         if: matrix.ARCH_COMMAND == 'arch -x86_64' && runner.os == 'macOS'
         run: |
@@ -207,6 +208,7 @@ jobs:
           file venv-x86/bin/python
           source venv-x86/bin/activate
 
+      # to "castrate" interpreter to be sure it is run on required architecture
       - name: Setup MacOS arm64 Python
         if: matrix.ARCH_COMMAND == 'arch -arm64' && runner.os == 'macOS'
         run: |
@@ -270,6 +272,7 @@ jobs:
           ${{ matrix.ARCH_COMMAND }} python -m build ${{ matrix.BUILD_COMMAND }}
           ls dist
 
+      # even if interpreter is "castrated" system still see it as "universal2"
       - name: Rename wheels on macOS
         if: runner.os == 'macOS'
         run: |
@@ -315,11 +318,17 @@ jobs:
         if: runner.os != 'Linux'
         uses: actions/upload-artifact@v4
         with:
-          name: >-
-            ${{ runner.os }}
-            ${{ contains(matrix.ARCH_COMMAND, 'arm64') && 'arm64' || contains(matrix.ARCH_COMMAND, 'x86_64') && 'x86_64' || '' }}
-            -python${{ matrix.python-version }}
-            -${{ matrix.QT_BINDING }}-dist
+#          name: >-
+#            ${{ runner.os }}
+#            ${{ contains(matrix.ARCH_COMMAND, 'arm64') && 'arm64' || contains(matrix.ARCH_COMMAND, 'x86_64') && 'x86_64' || '' }}
+#            -python${{ matrix.python-version }}
+#            -${{ matrix.QT_BINDING }}-dist
+          name: |
+            ${{ runner.os + '-' +
+                (contains(matrix.ARCH_COMMAND, 'arm64') ? 'arm64' : contains(matrix.ARCH_COMMAND, 'x86_64') ? 'x86_64' : '') + '-' +
+                'python' + matrix.python-version + '-' +
+                matrix.QT_BINDING + '-dist'
+            }}
           path: dist/*.whl
           retention-days: 1
 
