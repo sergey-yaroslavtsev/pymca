@@ -199,7 +199,7 @@ jobs:
             sleep 1
           done
 
-          echo "App ran for 5 minutes without crashing. Killing it now..."
+          echo "App ran for 2 minutes without crashing. Killing it now..."
           kill $APP_PID || true
           wait $APP_PID || true
           echo "App test complete."
@@ -234,7 +234,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: "3.12"
+          python-version: "3.11" # there are spslut for cp311 and cp313 only
 
       - name: Install Rosetta
         run: |
@@ -318,7 +318,7 @@ jobs:
           LOGFILE=$(mktemp)
           
           # Start the app in the background
-          /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain &
+          /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain > "$LOGFILE" 2>&1 &
           APP_PID=$!
           
           echo "App started with PID $APP_PID"
@@ -351,7 +351,7 @@ jobs:
             sleep 1
           done
           
-          echo "App ran for 5 minutes without crashing. Killing it now..."
+          echo "App ran for 2 minutes without crashing. Killing it now..."
           kill $APP_PID || true
           wait $APP_PID || true
           echo "App test complete."

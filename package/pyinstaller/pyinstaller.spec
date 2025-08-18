@@ -61,6 +61,7 @@ if sys.platform.startswith("win"):
 
 else:
     import h5py
+
 #    possible_dirs = [
 #        os.path.join(os.path.dirname(h5py.__file__), '.dylibs'),
 #        '/usr/local/lib',  # Homebrew typical location
@@ -76,16 +77,17 @@ else:
 #
 #    my_binaries += hdf5_libs
 
-   # hiddenimports += collect_submodules('h5py')
-   # hiddenimports += [
-   #     'h5py',
-   #     'h5py.defs',
-   #     'h5py._errors',
-   #     'h5py._objects',
-   # ]
-   # my_binaries += collect_dynamic_libs('h5py')
+#    hiddenimports += collect_submodules('h5py')
+#    hiddenimports += [
+#        'h5py',
+#        'h5py.defs',
+#        'h5py._errors',
+#        'h5py._objects',
+#    ]
+#    my_binaries += collect_dynamic_libs('h5py')
 #    my_binaries += collect_dynamic_libs('hdf5')
 #    my_binaries += [('/usr/local/opt/hdf5/lib/libhdf5.200.dylib', 'h5py/.dylibs')]
+
     print('this is a Mac, so shut up and listen')
 
 excludes = []
