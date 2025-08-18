@@ -27,14 +27,15 @@ jobs:
             QT_BINDING: PyQt5==5.14.1
             XVFB_RUN: xvfb-run -a
 
-          - name-suffix: "x86_64 PySide6 wheel"
-            os: macos-latest
-            python-version: "3.13"
-            BUILD_COMMAND: --wheel
-            ARCH_COMMAND: "arch -x86_64"
-            SOURCE: "source venv-x86/bin/activate"
-            QT_BINDING: PySide6
-            XVFB_RUN: ""
+### does not work with castration - potential issue later
+#          - name-suffix: "x86_64 PySide6 wheel"
+#            os: macos-latest
+#            python-version: "3.13"
+#            BUILD_COMMAND: --wheel
+#            ARCH_COMMAND: "arch -x86_64"
+#            SOURCE: "source venv-x86/bin/activate"
+#            QT_BINDING: PySide6
+#            XVFB_RUN: ""
 
           - name-suffix: "x86_64 PySide6 wheel"
             os: macos-latest
@@ -200,9 +201,9 @@ jobs:
         if: matrix.ARCH_COMMAND == 'arch -x86_64' && runner.os == 'macOS'
         run: |
           arch -x86_64 python -m venv venv-x86
-          #lipo venv-x86/bin/python -remove arm64 -output venv-x86/bin/python_x86
-          #sudo mv venv-x86/bin/python_x86 venv-x86/bin/python
-          #chmod +x venv-x86/bin/python
+          lipo venv-x86/bin/python -remove arm64 -output venv-x86/bin/python_x86
+          sudo mv venv-x86/bin/python_x86 venv-x86/bin/python
+          chmod +x venv-x86/bin/python
           file venv-x86/bin/python
           source venv-x86/bin/activate
 
@@ -210,9 +211,9 @@ jobs:
         if: matrix.ARCH_COMMAND == 'arch -arm64' && runner.os == 'macOS'
         run: |
           arch -arm64 python -m venv venv-arm64
-          #lipo venv-arm64/bin/python -remove x86_64 -output venv-arm64/bin/python_arm64
-          #sudo mv venv-arm64/bin/python_arm64 venv-arm64/bin/python
-          #chmod +x venv-arm64/bin/python
+          lipo venv-arm64/bin/python -remove x86_64 -output venv-arm64/bin/python_arm64
+          sudo mv venv-arm64/bin/python_arm64 venv-arm64/bin/python
+          chmod +x venv-arm64/bin/python
           file venv-arm64/bin/python
           source venv-arm64/bin/activate
 
@@ -262,6 +263,18 @@ jobs:
           ${{ matrix.ARCH_COMMAND }} python -m build ${{ matrix.BUILD_COMMAND }}
           ls dist
 
+      - name: Rename wheels on macOS
+        if: runner.os == 'macOS'
+        run: |
+          arch_suffix=$(echo "${{ matrix.ARCH_COMMAND }}" | awk '{print $2}' | tr -d '-')
+          echo "Architecture is $arch_suffix"
+          for file in dist/*.whl; do
+            base=$(basename "$file")
+            newname="${base/_universal2/_$arch_suffix}"
+            sudo mv "$file" "dist/$newname"
+          done
+          ls dist
+
       - name: Install
         run: |
           ${{ matrix.SOURCE }}
@@ -295,7 +308,13 @@ jobs:
         if: runner.os != 'Linux'
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ runner.os }}-python${{ matrix.python-version }}-${{ matrix.QT_BINDING }}-dist
+          name: ${{ runner.os }}${
+            {
+            contains(matrix.ARCH_COMMAND, 'arm64') && 'arm64' ||
+            contains(matrix.ARCH_COMMAND, 'x86_64') && 'x86_64' ||
+            ''
+            }
+            }-python${{ matrix.python-version }}-${{ matrix.QT_BINDING }}-dist
           path: dist/*.whl
           retention-days: 1
 
