@@ -258,42 +258,47 @@ jobs:
           echo "CFLAGS=-mmacosx-version-min=10.13" >> $GITHUB_ENV
           echo "LDFLAGS=-mmacosx-version-min=10.13" >> $GITHUB_ENV
 
+      # "castrate" interpreter to have only x86
       - name: Setup MacOS x86_64 Python
         run: |
           arch -x86_64 python -m venv venv-x86
+          lipo venv-x86/bin/python -remove arm64 -output venv-x86/bin/python_x86
+          sudo mv venv-x86/bin/python_x86 venv-x86/bin/python
+          chmod +x venv-x86/bin/python
+          file venv-x86/bin/python
           source venv-x86/bin/activate
 
       - name: Install dependencies
         run: |
           source venv-x86/bin/activate
-          pip install "setuptools<81"
-          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/numpy-1.26.2-cp312-cp312-macosx_10_9_universal2.whl
-          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/h5py-3.10.0-cp312-cp312-macosx_11_0_universal2.whl
-          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/psutil-5.9.6-cp312-abi3-macosx_10_9_universal2.whl
-          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/Pillow-10.1.0-cp312-cp312-macosx_11_0_universal2.whl
-          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/tornado-6.3.3-cp38-abi3-macosx_10_9_universal2.whl
-          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/contourpy-1.2.0-cp312-cp312-macosx_11_0_universal2.whl
-          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/kiwisolver-1.4.5-cp312-cp312-macosx_11_0_universal2.whl
-          pip install cycler==0.12.1
-          pip install fonttools==4.45.1
-          pip install packaging==23.2
-          pip install pyparsing==3.1.1
-          pip install python_dateutil==2.8.2
-          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/matplotlib-3.8.2-cp312-cp312-macosx_11_0_universal2.whl
-          pip install h5py
-          pip install hdf5plugin
-          pip install PySide6==6.6.0
-          pip install lxml==4.9.3
-          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/fabio-2023.10.0-cp312-cp312-macosx_10_9_universal2.whl
-          pip install fisx
-          pip install git+https://github.com/silx-kit/silx.git
-          pip install PyOpenGL
-          pip install qtconsole==5.5.1
-          pip install PyInstaller==6.2.0
-          pip install Cython
-          pip install wheel
+          arch -x86_64 pip install "setuptools<81"
+          arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/numpy-1.26.2-cp312-cp312-macosx_10_9_universal2.whl
+          arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/h5py-3.10.0-cp312-cp312-macosx_11_0_universal2.whl
+          arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/psutil-5.9.6-cp312-abi3-macosx_10_9_universal2.whl
+          arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/Pillow-10.1.0-cp312-cp312-macosx_11_0_universal2.whl
+          arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/tornado-6.3.3-cp38-abi3-macosx_10_9_universal2.whl
+          arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/contourpy-1.2.0-cp312-cp312-macosx_11_0_universal2.whl
+          arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/kiwisolver-1.4.5-cp312-cp312-macosx_11_0_universal2.whl
+          arch -x86_64 pip install cycler==0.12.1
+          arch -x86_64 pip install fonttools==4.45.1
+          arch -x86_64 pip install packaging==23.2
+          arch -x86_64 pip install pyparsing==3.1.1
+          arch -x86_64 pip install python_dateutil==2.8.2
+          arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/matplotlib-3.8.2-cp312-cp312-macosx_11_0_universal2.whl
+          arch -x86_64 pip install h5py
+          arch -x86_64 pip install hdf5plugin
+          arch -x86_64 pip install PySide6==6.6.0
+          arch -x86_64 pip install lxml==4.9.3
+          arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/fabio-2023.10.0-cp312-cp312-macosx_10_9_universal2.whl
+          arch -x86_64 pip install fisx
+          arch -x86_64 pip install git+https://github.com/silx-kit/silx.git
+          arch -x86_64 pip install PyOpenGL
+          arch -x86_64 pip install qtconsole==5.5.1
+          arch -x86_64 pip install PyInstaller==6.2.0
+          arch -x86_64 pip install Cython
+          arch -x86_64 pip install wheel
           arch -x86_64 pip install --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
-          pip install git+https://github.com/vasole/bcflight.git
+          arch -x86_64 pip install git+https://github.com/vasole/bcflight.git
 
       - name: Build PyInstaller app for x86_64
         run: |
