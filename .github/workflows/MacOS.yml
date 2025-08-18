@@ -10,7 +10,7 @@ env:
 
 jobs:
 # Fat binaries
-  macos11_pyinstaller_python312_arm:
+  macos_arm_pyinstaller_python312:
     runs-on: macos-latest
     steps:
       - name: Checkout code
@@ -25,11 +25,11 @@ jobs:
         run: |
           sudo softwareupdate --install-rosetta --agree-to-license
 
-      - name: Set environment for 10.13 compatibility #10.13 is a minimum - setting 10.9 do not actually work
+      - name: Set environment for 10.9 compatibility #10.13 is a minimum - setting 10.9 do not actually work
         run: |
-          echo "MACOSX_DEPLOYMENT_TARGET=10.13" >> $GITHUB_ENV
-          echo "CFLAGS=-mmacosx-version-min=10.13" >> $GITHUB_ENV
-          echo "LDFLAGS=-mmacosx-version-min=10.13" >> $GITHUB_ENV
+          echo "MACOSX_DEPLOYMENT_TARGET=10.9" >> $GITHUB_ENV
+          echo "CFLAGS=-mmacosx-version-min=10.9" >> $GITHUB_ENV
+          echo "LDFLAGS=-mmacosx-version-min=10.9" >> $GITHUB_ENV
 
       - name: Install dependencies
         run: |
@@ -72,6 +72,7 @@ jobs:
             if [ -n "$version" ]; then
               echo "$version  <-  $file"
             fi
+          done | sort
 
       - name: Set app name variable
         run: |
@@ -224,7 +225,7 @@ jobs:
           include-hidden-files: true
           retention-days: 1
 
-  macos11_pyinstaller_python312_x86:
+  macos_x86_pyinstaller_python312:
     runs-on: macos-latest
     steps:
       - name: Checkout code
@@ -239,11 +240,11 @@ jobs:
         run: |
           sudo softwareupdate --install-rosetta --agree-to-license
 
-      - name: Set environment for 10.13 compatibility #10.13 is a minimum - setting 10.9 do not actually work
+      - name: Set environment for 10.9 compatibility #10.13 is a minimum - setting 10.9 do not actually work
         run: |
-          echo "MACOSX_DEPLOYMENT_TARGET=10.13" >> $GITHUB_ENV
-          echo "CFLAGS=-mmacosx-version-min=10.13" >> $GITHUB_ENV
-          echo "LDFLAGS=-mmacosx-version-min=10.13" >> $GITHUB_ENV
+          echo "MACOSX_DEPLOYMENT_TARGET=10.9" >> $GITHUB_ENV
+          echo "CFLAGS=-mmacosx-version-min=10.9" >> $GITHUB_ENV
+          echo "LDFLAGS=-mmacosx-version-min=10.9" >> $GITHUB_ENV
 
       - name: Install dependencies
         run: |
@@ -280,6 +281,13 @@ jobs:
       - name: Build PyInstaller app for x86_64
         run: |
           arch -x86_64 python build-pyinstaller.py
+          ls dist
+          find dist/ -type f -perm +111 | while read -r file; do
+            version=$(otool -l "$file" 2>/dev/null | awk '/LC_VERSION_MIN_MACOSX/ {show=1} show && /version / {print $2; show=0}' | head -n 1)
+            if [ -n "$version" ]; then
+              echo "$version  <-  $file"
+            fi
+          done | sort
 
       - name: Set app name variable
         run: |
