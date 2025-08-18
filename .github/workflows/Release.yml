@@ -76,6 +76,10 @@ jobs:
       - trigger-mac
     uses: ./.github/workflows/TagRelease.yml
 
+  changelog:
+    needs: tag-release
+    uses: ./.github/workflows/ChangeLog.yml
+
   upload-release:
     needs: tag-release
     uses: ./.github/workflows/UploadRelease.yml

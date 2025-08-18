@@ -1,9 +1,7 @@
 name: Update Changelog on Tag
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_call:
 
 jobs:
   changelog:
@@ -18,33 +16,26 @@ jobs:
       - name: Set up GitHub CLI
         uses: cli/cli-action@v2
 
-      - name: Extract current tag version
-        id: tag
-        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-
-      - name: Get previous tag
-        id: prevtag
+      - name: Extract current and previous tag
+        id: tags
         run: |
-          PREV_TAG=$(git tag --sort=-creatordate | grep -v "${GITHUB_REF#refs/tags/}" | tail -n 1)
-          echo "previous_tag=$PREV_TAG" >> $GITHUB_OUTPUT
+          CURRENT_TAG="${GITHUB_REF#refs/tags/}"
+          PREV_TAG=$(git tag --sort=-creatordate | grep -v "^$CURRENT_TAG$" | head -n 1)
+          echo "current=$CURRENT_TAG" >> $GITHUB_OUTPUT
+          echo "previous=$PREV_TAG" >> $GITHUB_OUTPUT
 
       - name: Generate changelog notes from merged PRs
         id: changelog
         run: |
-          gh pr list --state merged --search "merged:>${{ steps.prevtag.outputs.previous_tag }}" \
+          gh pr list --state merged --search "merged:>${{ steps.tags.outputs.previous }}" \
             --json title,number \
             --jq '.[] | "- " + (try (.title | capture("^\\[(?<tag>.*?)\\]\\s*(?<rest>.*)") | "\(.tag). \(.rest)") catch .title) + " (#\(.number))"' > changelog_notes.txt
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create or update GitHub release with changelog
+      - name: Update GitHub release notes
         run: |
-          gh release create "v${{ steps.tag.outputs.version }}" \
-            --title "v${{ steps.tag.outputs.version }}" \
-            --notes-file changelog_notes.txt \
-            --verify-tag || \
-          gh release edit "v${{ steps.tag.outputs.version }}" \
+          gh release edit "${{ steps.tags.outputs.current }}" \
             --notes-file changelog_notes.txt
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
