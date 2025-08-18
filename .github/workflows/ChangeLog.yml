@@ -47,3 +47,4 @@ jobs:
             --notes-file changelog_notes.txt
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
