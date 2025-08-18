@@ -258,8 +258,15 @@ jobs:
           echo "CFLAGS=-mmacosx-version-min=10.13" >> $GITHUB_ENV
           echo "LDFLAGS=-mmacosx-version-min=10.13" >> $GITHUB_ENV
 
+      - name: Setup MacOS x86_64 Python
+        run: |
+          arch -x86_64 /usr/local/bin/brew install python@3.12
+          arch -x86_64 /usr/local/bin/python3 -m venv venv-x86
+          source venv-x86/bin/activate
+
       - name: Install dependencies
         run: |
+          source venv-x86/bin/activate
           pip install "setuptools<81"
           pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/numpy-1.26.2-cp312-cp312-macosx_10_9_universal2.whl
           pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/h5py-3.10.0-cp312-cp312-macosx_11_0_universal2.whl
@@ -292,7 +299,8 @@ jobs:
 
       - name: Build PyInstaller app for x86_64
         run: |
-          arch -x86_64 python build-pyinstaller.py
+          source venv-x86/bin/activate
+          python build-pyinstaller.py
           ls dist
           find dist/ -type f -perm +111 | while read -r file; do
             version=$(otool -l "$file" 2>/dev/null | awk '/LC_VERSION_MIN_MACOSX/ {show=1} show && /version / {print $2; show=0}' | head -n 1)

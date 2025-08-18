@@ -9,7 +9,7 @@ on:
 
 jobs:
   build_and_test:
-    name: "Python ${{ matrix.python-version }} on ${{ matrix.os }} ${{ matrix.ARCH_COMMAND }} ${{ matrix.name-suffix }}"
+    name: "Python ${{ matrix.python-version }} on ${{ matrix.os }} ${{ matrix.ARCH }} ${{ matrix.name-suffix }}"
     runs-on: ${{ matrix.os }}
     strategy:
       # do not cancel tests after first fail
@@ -22,7 +22,8 @@ jobs:
             os: ubuntu-latest
             python-version: "3.9"
             BUILD_COMMAND: --sdist
-            ARCH_COMMAND: ""
+            ARCH: ""
+            SOURCE: ""
             QT_BINDING: PyQt5==5.14.1
             XVFB_RUN: xvfb-run -a
 
@@ -30,7 +31,8 @@ jobs:
             os: macos-latest
             python-version: "3.13"
             BUILD_COMMAND: --wheel
-            ARCH_COMMAND: "arch -x86_64"
+            ARCH: "x86_64"
+            SOURCE: "source venv-x86/bin/activate"
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
@@ -38,7 +40,8 @@ jobs:
             os: macos-latest
             python-version: "3.12"
             BUILD_COMMAND: --wheel
-            ARCH_COMMAND: "arch -x86_64"
+            ARCH: "x86_64"
+            SOURCE: "source venv-x86/bin/activate"
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
@@ -46,7 +49,8 @@ jobs:
             os: macos-latest
             python-version: "3.11"
             BUILD_COMMAND: --wheel
-            ARCH_COMMAND: "arch -x86_64"
+            ARCH: "x86_64"
+            SOURCE: "source venv-x86/bin/activate"
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
@@ -54,7 +58,8 @@ jobs:
             os: macos-latest
             python-version: "3.10"
             BUILD_COMMAND: --wheel
-            ARCH_COMMAND: "arch -x86_64"
+            ARCH: "x86_64"
+            SOURCE: "source venv-x86/bin/activate"
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
@@ -62,7 +67,8 @@ jobs:
             os: macos-latest
             python-version: "3.9"
             BUILD_COMMAND: --wheel
-            ARCH_COMMAND: "arch -x86_64"
+            ARCH: "x86_64"
+            SOURCE: "source venv-x86/bin/activate"
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
@@ -70,7 +76,8 @@ jobs:
             os: macos-latest
             python-version: "3.13"
             BUILD_COMMAND: --wheel
-            ARCH_COMMAND: "arch -arm64"
+            ARCH: "arm64"
+            SOURCE: ""
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
@@ -78,7 +85,8 @@ jobs:
             os: macos-latest
             python-version: "3.12"
             BUILD_COMMAND: --wheel
-            ARCH_COMMAND: "arch -arm64"
+            ARCH: "arm64"
+            SOURCE: ""
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
@@ -86,7 +94,8 @@ jobs:
             os: macos-latest
             python-version: "3.11"
             BUILD_COMMAND: --wheel
-            ARCH_COMMAND: "arch -arm64"
+            ARCH: "arm64"
+            SOURCE: ""
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
@@ -94,7 +103,8 @@ jobs:
             os: macos-latest
             python-version: "3.10"
             BUILD_COMMAND: --wheel
-            ARCH_COMMAND: "arch -arm64"
+            ARCH: "arm64"
+            SOURCE: ""
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
@@ -102,7 +112,8 @@ jobs:
             os: macos-latest
             python-version: "3.9"
             BUILD_COMMAND: --wheel
-            ARCH_COMMAND: "arch -arm64"
+            ARCH: "arm64"
+            SOURCE: ""
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
@@ -110,7 +121,8 @@ jobs:
             os: windows-latest
             python-version: "3.13"
             BUILD_COMMAND: --wheel
-            ARCH_COMMAND: ""
+            ARCH: ""
+            SOURCE: ""
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
@@ -118,7 +130,8 @@ jobs:
             os: windows-latest
             python-version: "3.12"
             BUILD_COMMAND: --wheel
-            ARCH_COMMAND: ""
+            ARCH: ""
+            SOURCE: ""
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
@@ -126,7 +139,8 @@ jobs:
             os: windows-latest
             python-version: "3.11"
             BUILD_COMMAND: --wheel
-            ARCH_COMMAND: ""
+            ARCH: ""
+            SOURCE: ""
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
@@ -134,7 +148,8 @@ jobs:
             os: windows-latest
             python-version: "3.10"
             BUILD_COMMAND: --wheel
-            ARCH_COMMAND: ""
+            ARCH: ""
+            SOURCE: ""
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
@@ -142,7 +157,8 @@ jobs:
             os: windows-latest
             python-version: "3.9"
             BUILD_COMMAND: --wheel
-            ARCH_COMMAND: ""
+            ARCH: ""
+            SOURCE: ""
             QT_BINDING: PyQt5
             XVFB_RUN: ""
 
@@ -180,19 +196,29 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Setup MacOS x86_64 Python
+        if: matrix.ARCH == 'x86_64' && runner.os == 'macOS'
+        run: |
+          arch -x86_64 /usr/local/bin/brew install python@3.12
+          arch -x86_64 /usr/local/bin/python3 -m venv venv-x86
+          source venv-x86/bin/activate
+
       # Display the python version
       - name: Display Python version
         run:
+          ${{ matrix.SOURCE }}
           python -c "import sys; print(sys.version)"
 
       - name: Upgrade distribution modules
         run: |
+          ${{ matrix.SOURCE }}
           python -m pip install --upgrade pip
           pip install --upgrade setuptools wheel cython
           # if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Install build dependencies
         run: |
+          ${{ matrix.SOURCE }}
           pip install --upgrade wheel
           pip install --upgrade numpy
           pip install --upgrade build
@@ -200,13 +226,15 @@ jobs:
 
       - name: Install runtime dependencies
         run: |
+          ${{ matrix.SOURCE }}
           # pip install silx --pre --find-links https://silx.gitlab-pages.esrf.fr/bob/silx/
           pip install ${{ matrix.QT_BINDING }}
           
       - name: Print python info
         run: |
-           python ./ci/info_platform.py
-           pip list
+          ${{ matrix.SOURCE }}
+          python ./ci/info_platform.py
+          pip list
 
       - name: Set environment for 10.13 compatibility
         if: runner.os == 'macOS'
@@ -217,18 +245,21 @@ jobs:
 
       - name: Generate source package or wheel
         run: |
-          ${{ matrix.ARCH_COMMAND }} python -m build ${{ matrix.BUILD_COMMAND }}
+          ${{ matrix.SOURCE }}
+          python -m build ${{ matrix.BUILD_COMMAND }}
           ls dist
 
       - name: Install
         run: |
-         pip install --pre "$(ls dist/*test-5.*)"
-        # pip install --pre "$(ls dist/*ca5-5.*)"
+          ${{ matrix.SOURCE }}
+          pip install --pre "$(ls dist/*test-5.*)"
+#          pip install --pre "$(ls dist/*ca5-5.*)"
 
       - name: Run the tests
         run: |
+          ${{ matrix.SOURCE }}
           cd ..
-          ${{ matrix.ARCH_COMMAND }} ${{ matrix.XVFB_RUN }} python -m PyMca5.tests.TestAll
+          ${{ matrix.XVFB_RUN }} python -m PyMca5.tests.TestAll
 
       - name: Upload wheel as artifact
         if: runner.os == 'Linux'
@@ -251,7 +282,7 @@ jobs:
         if: runner.os != 'Linux'
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ runner.os }}-python${{ matrix.python-version }}-${{ matrix.QT_BINDING }}-${{ matrix.ARCH_COMMAND }}dist
+          name: ${{ runner.os }}-python${{ matrix.python-version }}-${{ matrix.QT_BINDING }}-${{ matrix.ARCH }}dist
           path: dist/*.whl
           retention-days: 1
 
