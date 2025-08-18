@@ -318,17 +318,7 @@ jobs:
         if: runner.os != 'Linux'
         uses: actions/upload-artifact@v4
         with:
-#          name: >-
-#            ${{ runner.os }}
-#            ${{ contains(matrix.ARCH_COMMAND, 'arm64') && 'arm64' || contains(matrix.ARCH_COMMAND, 'x86_64') && 'x86_64' || '' }}
-#            -python${{ matrix.python-version }}
-#            -${{ matrix.QT_BINDING }}-dist
-          name: |
-            ${{ runner.os + '-' +
-                (contains(matrix.ARCH_COMMAND, 'arm64') ? 'arm64' : contains(matrix.ARCH_COMMAND, 'x86_64') ? 'x86_64' : '') + '-' +
-                'python' + matrix.python-version + '-' +
-                matrix.QT_BINDING + '-dist'
-            }}
+          name: ${{ runner.os }}-${{ contains(matrix.ARCH_COMMAND, 'arm64') && 'arm64' || contains(matrix.ARCH_COMMAND, 'x86_64') && 'x86_64' || '' }}-python${{ matrix.python-version }}-${{ matrix.QT_BINDING }}-dist
           path: dist/*.whl
           retention-days: 1
 
