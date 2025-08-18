@@ -330,7 +330,7 @@ jobs:
           LOGFILE=$(mktemp)
           
           # Start the app in the background
-          /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain > "$LOGFILE" 2>&1 &
+          arch -x86_64 /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain > "$LOGFILE" 2>&1 &
           APP_PID=$!
           
           echo "App started with PID $APP_PID"

@@ -9,7 +9,7 @@ on:
 
 jobs:
   build_and_test:
-    name: "Python ${{ matrix.python-version }} on ${{ matrix.os }} ${{ matrix.name-suffix }}"
+    name: "Python ${{ matrix.python-version }} on ${{ matrix.os }} ${{ matrix.ARCH_COMMAND }} ${{ matrix.name-suffix }}"
     runs-on: ${{ matrix.os }}
     strategy:
       # do not cancel tests after first fail
@@ -228,7 +228,7 @@ jobs:
       - name: Run the tests
         run: |
           cd ..
-          ${{ matrix.XVFB_RUN }} python -m PyMca5.tests.TestAll
+          ${{ matrix.ARCH_COMMAND }} ${{ matrix.XVFB_RUN }} python -m PyMca5.tests.TestAll
 
       - name: Upload wheel as artifact
         if: runner.os == 'Linux'
