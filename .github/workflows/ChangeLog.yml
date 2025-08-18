@@ -1,0 +1,49 @@
+name: Update Changelog on Tag
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  changelog:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Set up GitHub CLI
+        uses: cli/cli-action@v2
+
+      - name: Extract current tag version
+        id: tag
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Get previous tag
+        id: prevtag
+        run: |
+          PREV_TAG=$(git tag --sort=-creatordate | grep -v "${GITHUB_REF#refs/tags/}" | tail -n 1)
+          echo "previous_tag=$PREV_TAG" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog notes from merged PRs
+        id: changelog
+        run: |
+          gh pr list --state merged --search "merged:>${{ steps.prevtag.outputs.previous_tag }}" \
+            --json title,number \
+            --jq '.[] | "- " + (try (.title | capture("^\\[(?<tag>.*?)\\]\\s*(?<rest>.*)") | "\(.tag). \(.rest)") catch .title) + " (#\(.number))"' > changelog_notes.txt
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create or update GitHub release with changelog
+        run: |
+          gh release create "v${{ steps.tag.outputs.version }}" \
+            --title "v${{ steps.tag.outputs.version }}" \
+            --notes-file changelog_notes.txt \
+            --verify-tag || \
+          gh release edit "v${{ steps.tag.outputs.version }}" \
+            --notes-file changelog_notes.txt
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
