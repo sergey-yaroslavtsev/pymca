@@ -18,7 +18,13 @@ jobs:
       - name: Download Mac artifact
         uses: actions/download-artifact@v4
         with:
-          name: macos-pyinstaller-artifacts-dmg
+          name: macos-arm-pyinstaller-artifacts-dashdotfix
+          path: dist
+
+      - name: Download Mac artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-x86(intel)-pyinstaller-artifacts-dmg
           path: dist
 
       - name: Download Windows artifact

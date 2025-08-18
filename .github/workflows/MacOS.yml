@@ -25,11 +25,11 @@ jobs:
         run: |
           sudo softwareupdate --install-rosetta --agree-to-license
 
-      - name: Set environment for 10.9 compatibility #10.13 is a minimum - setting 10.9 do not actually work
+      - name: Set environment for 10.13 compatibility #10.13 is a minimum - setting 10.9 do not actually work
         run: |
-          echo "MACOSX_DEPLOYMENT_TARGET=10.9" >> $GITHUB_ENV
-          echo "CFLAGS=-mmacosx-version-min=10.9" >> $GITHUB_ENV
-          echo "LDFLAGS=-mmacosx-version-min=10.9" >> $GITHUB_ENV
+          echo "MACOSX_DEPLOYMENT_TARGET=10.13" >> $GITHUB_ENV
+          echo "CFLAGS=-mmacosx-version-min=10.13" >> $GITHUB_ENV
+          echo "LDFLAGS=-mmacosx-version-min=10.13" >> $GITHUB_ENV
 
       - name: Install dependencies
         run: |
@@ -240,11 +240,11 @@ jobs:
         run: |
           sudo softwareupdate --install-rosetta --agree-to-license
 
-      - name: Set environment for 10.9 compatibility #10.13 is a minimum - setting 10.9 do not actually work
+      - name: Set environment for 10.13 compatibility #10.13 is a minimum - setting 10.9 do not actually work
         run: |
-          echo "MACOSX_DEPLOYMENT_TARGET=10.9" >> $GITHUB_ENV
-          echo "CFLAGS=-mmacosx-version-min=10.9" >> $GITHUB_ENV
-          echo "LDFLAGS=-mmacosx-version-min=10.9" >> $GITHUB_ENV
+          echo "MACOSX_DEPLOYMENT_TARGET=10.13" >> $GITHUB_ENV
+          echo "CFLAGS=-mmacosx-version-min=10.13" >> $GITHUB_ENV
+          echo "LDFLAGS=-mmacosx-version-min=10.13" >> $GITHUB_ENV
 
       - name: Install dependencies
         run: |
@@ -315,6 +315,7 @@ jobs:
           set -e
           
           echo "Launching PyMcaMain..."
+          LOGFILE=$(mktemp)
           
           # Start the app in the background
           /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain &
@@ -328,6 +329,7 @@ jobs:
               echo "App exited early. Checking exit code..."
               wait $APP_PID
               EXIT_CODE=$?
+              cat "$LOGFILE"
               if [ $EXIT_CODE -ne 0 ]; then
                 echo "App exited with error code $EXIT_CODE"
                 exit $EXIT_CODE
@@ -336,6 +338,16 @@ jobs:
                 exit 0
               fi
             fi
+          
+            if grep -qE 'ImportError|Traceback|ERROR:' "$LOGFILE"; then
+              echo "Detected error in application output:"
+              cat "$LOGFILE"
+              echo "Failing due to runtime error."
+              kill $APP_PID || true
+              wait $APP_PID || true
+              exit 1
+            fi
+          
             sleep 1
           done
           
