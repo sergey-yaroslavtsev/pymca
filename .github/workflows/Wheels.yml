@@ -199,8 +199,7 @@ jobs:
       - name: Setup MacOS x86_64 Python
         if: matrix.ARCH == 'x86_64' && runner.os == 'macOS'
         run: |
-          arch -x86_64 /usr/local/bin/brew install python@3.12
-          arch -x86_64 /usr/local/bin/python3 -m venv venv-x86
+          arch -x86_64 python -m venv venv-x86
           source venv-x86/bin/activate
 
       # Display the python version

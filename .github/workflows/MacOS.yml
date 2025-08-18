@@ -260,8 +260,7 @@ jobs:
 
       - name: Setup MacOS x86_64 Python
         run: |
-          arch -x86_64 /usr/local/bin/brew install python@3.12
-          arch -x86_64 /usr/local/bin/python3 -m venv venv-x86
+          arch -x86_64 python -m venv venv-x86
           source venv-x86/bin/activate
 
       - name: Install dependencies
