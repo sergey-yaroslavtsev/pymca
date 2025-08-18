@@ -22,6 +22,7 @@ jobs:
             os: ubuntu-latest
             python-version: "3.9"
             BUILD_COMMAND: --sdist
+            ARCH_COMMAND: ""
             QT_BINDING: PyQt5==5.14.1
             XVFB_RUN: xvfb-run -a
 
@@ -29,6 +30,7 @@ jobs:
             os: macos-latest
             python-version: "3.13"
             BUILD_COMMAND: --wheel
+            ARCH_COMMAND: "arch -x86_64"
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
@@ -36,6 +38,7 @@ jobs:
             os: macos-latest
             python-version: "3.12"
             BUILD_COMMAND: --wheel
+            ARCH_COMMAND: "arch -x86_64"
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
@@ -43,6 +46,7 @@ jobs:
             os: macos-latest
             python-version: "3.11"
             BUILD_COMMAND: --wheel
+            ARCH_COMMAND: "arch -x86_64"
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
@@ -50,6 +54,7 @@ jobs:
             os: macos-latest
             python-version: "3.10"
             BUILD_COMMAND: --wheel
+            ARCH_COMMAND: "arch -x86_64"
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
@@ -57,6 +62,47 @@ jobs:
             os: macos-latest
             python-version: "3.9"
             BUILD_COMMAND: --wheel
+            ARCH_COMMAND: "arch -x86_64"
+            QT_BINDING: PySide6
+            XVFB_RUN: ""
+
+          - name-suffix: "PySide6 wheel"
+            os: macos-latest
+            python-version: "3.13"
+            BUILD_COMMAND: --wheel
+            ARCH_COMMAND: "arch -arm64"
+            QT_BINDING: PySide6
+            XVFB_RUN: ""
+
+          - name-suffix: "PySide6 wheel"
+            os: macos-latest
+            python-version: "3.12"
+            BUILD_COMMAND: --wheel
+            ARCH_COMMAND: "arch -arm64"
+            QT_BINDING: PySide6
+            XVFB_RUN: ""
+
+          - name-suffix: "PySide6 wheel"
+            os: macos-latest
+            python-version: "3.11"
+            BUILD_COMMAND: --wheel
+            ARCH_COMMAND: "arch -arm64"
+            QT_BINDING: PySide6
+            XVFB_RUN: ""
+
+          - name-suffix: "PySide6 wheel"
+            os: macos-latest
+            python-version: "3.10"
+            BUILD_COMMAND: --wheel
+            ARCH_COMMAND: "arch -arm64"
+            QT_BINDING: PySide6
+            XVFB_RUN: ""
+
+          - name-suffix: "PySide6 wheel"
+            os: macos-latest
+            python-version: "3.9"
+            BUILD_COMMAND: --wheel
+            ARCH_COMMAND: "arch -arm64"
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
@@ -64,6 +110,7 @@ jobs:
             os: windows-latest
             python-version: "3.13"
             BUILD_COMMAND: --wheel
+            ARCH_COMMAND: ""
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
@@ -71,6 +118,7 @@ jobs:
             os: windows-latest
             python-version: "3.12"
             BUILD_COMMAND: --wheel
+            ARCH_COMMAND: ""
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
@@ -78,6 +126,7 @@ jobs:
             os: windows-latest
             python-version: "3.11"
             BUILD_COMMAND: --wheel
+            ARCH_COMMAND: ""
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
@@ -85,6 +134,7 @@ jobs:
             os: windows-latest
             python-version: "3.10"
             BUILD_COMMAND: --wheel
+            ARCH_COMMAND: ""
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
@@ -92,6 +142,7 @@ jobs:
             os: windows-latest
             python-version: "3.9"
             BUILD_COMMAND: --wheel
+            ARCH_COMMAND: ""
             QT_BINDING: PyQt5
             XVFB_RUN: ""
 
@@ -157,16 +208,16 @@ jobs:
            python ./ci/info_platform.py
            pip list
 
-      - name: Set environment for 10.9 compatibility
+      - name: Set environment for 10.13 compatibility
         if: runner.os == 'macOS'
         run: |
-          echo "MACOSX_DEPLOYMENT_TARGET=10.9" >> $GITHUB_ENV
-          echo "CFLAGS=-mmacosx-version-min=10.9" >> $GITHUB_ENV
-          echo "LDFLAGS=-mmacosx-version-min=10.9" >> $GITHUB_ENV
+          echo "MACOSX_DEPLOYMENT_TARGET=10.13" >> $GITHUB_ENV
+          echo "CFLAGS=-mmacosx-version-min=10.13" >> $GITHUB_ENV
+          echo "LDFLAGS=-mmacosx-version-min=10.13" >> $GITHUB_ENV
 
       - name: Generate source package or wheel
         run: |
-          python -m build ${{ matrix.BUILD_COMMAND }}
+          ${{ matrix.ARCH_COMMAND }} python -m build ${{ matrix.BUILD_COMMAND }}
           ls dist
 
       - name: Install
@@ -200,7 +251,7 @@ jobs:
         if: runner.os != 'Linux'
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ runner.os }}-python${{ matrix.python-version }}-${{ matrix.QT_BINDING }}-dist
+          name: ${{ runner.os }}-python${{ matrix.python-version }}-${{ matrix.QT_BINDING }}-${{ matrix.ARCH_COMMAND }}dist
           path: dist/*.whl
           retention-days: 1
 

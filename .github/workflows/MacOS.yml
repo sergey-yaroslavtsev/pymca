@@ -114,32 +114,44 @@ jobs:
       - name: Run the app to check it launches
         run: |
           set -e
-
+          
           echo "Launching PyMcaMain..."
-
+          LOGFILE=$(mktemp)
+          
           # Start the app in the background
-          /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain &
+          /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain > "$LOGFILE" 2>&1 &
           APP_PID=$!
-
+          
           echo "App started with PID $APP_PID"
-
+          
           # Wait up to 120 seconds for it to crash or hang
           for i in {1..120}; do
             if ! ps -p $APP_PID > /dev/null; then
               echo "App exited early. Checking exit code..."
               wait $APP_PID
               EXIT_CODE=$?
+              cat "$LOGFILE"
               if [ $EXIT_CODE -ne 0 ]; then
                 echo "App exited with error code $EXIT_CODE"
                 exit $EXIT_CODE
               else
                 echo "App exited cleanly before 2 minutes."
-                exit 1
+                exit 0
               fi
             fi
+          
+            if grep -qE 'ImportError|Traceback|ERROR:' "$LOGFILE"; then
+              echo "Detected error in application output:"
+              cat "$LOGFILE"
+              echo "Failing due to runtime error."
+              kill $APP_PID || true
+              wait $APP_PID || true
+              exit 1
+            fi
+          
             sleep 1
           done
-
+          
           echo "App ran for 2 minutes without crashing. Killing it now..."
           kill $APP_PID || true
           wait $APP_PID || true
