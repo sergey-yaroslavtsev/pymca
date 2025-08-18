@@ -199,16 +199,20 @@ jobs:
       - name: Setup MacOS x86_64 Python
         if: matrix.ARCH == 'x86_64' && runner.os == 'macOS'
         run: |
-          export ARCHFLAGS='-arch x86_64'
           arch -x86_64 python -m venv venv-x86
+          lipo venv-x86/bin/python -remove arm64 -output venv-x86/bin/python_x86
+          sudo mv venv-x86/bin/python_x86 venv-x86/bin/python
+          chmod +x venv-x86/bin/python
           file venv-x86/bin/python
           source venv-x86/bin/activate
 
       - name: Setup MacOS x86_64 Python
         if: matrix.ARCH == 'arm64' && runner.os == 'macOS'
         run: |
-          export ARCHFLAGS='-arch arm64'
           arch -arm64 python3 -m venv venv-arm64
+          lipo venv-arm64/bin/python -remove x86_64 -output venv-arm64/bin/python_arm64
+          sudo mv venv-arm64/bin/python_arm64 venv-arm64/bin/python
+          chmod +x venv-arm64/bin/python
           file venv-arm64/bin/python
           source venv-arm64/bin/activate
 
