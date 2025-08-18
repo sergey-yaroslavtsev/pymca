@@ -8,7 +8,7 @@ on:
       force:
         description: 'Force release even if version was not changed'
         required: false
-        default: 'true'
+        default: 'false'
         # change to 'true' for manual release
   push:
     branches:

@@ -250,8 +250,15 @@ jobs:
           ${{ matrix.ARCH_COMMAND }} python ./ci/info_platform.py
           ${{ matrix.ARCH_COMMAND }} pip list
 
+      - name: Set environment for 11.0 compatibility
+        if: matrix.ARCH_COMMAND == 'arch -arm64' && runner.os == 'macOS'
+        run: |
+          echo "MACOSX_DEPLOYMENT_TARGET=11.0" >> $GITHUB_ENV
+          echo "CFLAGS=-mmacosx-version-min=11.0" >> $GITHUB_ENV
+          echo "LDFLAGS=-mmacosx-version-min=11.0" >> $GITHUB_ENV
+
       - name: Set environment for 10.13 compatibility
-        if: runner.os == 'macOS'
+        if: matrix.ARCH_COMMAND == 'arch -x86_64' && runner.os == 'macOS'
         run: |
           echo "MACOSX_DEPLOYMENT_TARGET=10.13" >> $GITHUB_ENV
           echo "CFLAGS=-mmacosx-version-min=10.13" >> $GITHUB_ENV
@@ -308,13 +315,11 @@ jobs:
         if: runner.os != 'Linux'
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ runner.os }}${
-            {
-            contains(matrix.ARCH_COMMAND, 'arm64') && 'arm64' ||
-            contains(matrix.ARCH_COMMAND, 'x86_64') && 'x86_64' ||
-            ''
-            }
-            }-python${{ matrix.python-version }}-${{ matrix.QT_BINDING }}-dist
+          name: >-
+            ${{ runner.os }}
+            ${{ contains(matrix.ARCH_COMMAND, 'arm64') && 'arm64' || contains(matrix.ARCH_COMMAND, 'x86_64') && 'x86_64' || '' }}
+            -python${{ matrix.python-version }}
+            -${{ matrix.QT_BINDING }}-dist
           path: dist/*.whl
           retention-days: 1
 
