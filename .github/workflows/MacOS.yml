@@ -346,8 +346,10 @@ jobs:
           for i in {1..120}; do
             if ! ps -p $APP_PID > /dev/null; then
               echo "App exited early. Checking exit code..."
-              wait $APP_PID
+              wait $APP_PID || true
               EXIT_CODE=$?
+              echo "Exit code: $EXIT_CODE"
+              echo "App output log:"
               cat "$LOGFILE"
               if [ $EXIT_CODE -ne 0 ]; then
                 echo "App exited with error code $EXIT_CODE"
