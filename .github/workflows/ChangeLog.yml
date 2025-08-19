@@ -31,62 +31,54 @@ jobs:
             echo "tag=$TAG" >> $GITHUB_OUTPUT
           fi
 
-      - name: Get previous tag
-        id: previous_tag
-        run: |
-          PREV_TAG=$(git tag --sort=-creatordate | grep -v "^${{ steps.current_tag.outputs.tag }}$" | head -n 1)
-          echo "previous=$PREV_TAG" >> $GITHUB_OUTPUT
-
-      - name: Get previous tag commit date
-        id: prev_tag_date
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PREV_TAG: ${{ steps.tags.outputs.previous }}
-        run: |
-          REF_DATA=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
-            "${{ github.api_url }}/repos/${{ github.repository }}/git/ref/tags/${PREV_TAG}")
-
-          TAG_SHA=$(echo "$REF_DATA" | jq -r '.object.sha')
-          TAG_TYPE=$(echo "$REF_DATA" | jq -r '.object.type')
-
-          if [ "$TAG_TYPE" = "tag" ]; then
-            # Annotated tag, get commit SHA from tag object
-            COMMIT_SHA=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
-              "${{ github.api_url }}/repos/${{ github.repository }}/git/tags/${TAG_SHA}" | jq -r '.object.sha')
-          else
-            # Lightweight tag
-            COMMIT_SHA="$TAG_SHA"
-          fi
-
-          COMMIT_DATE=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
-            "${{ github.api_url }}/repos/${{ github.repository }}/commits/${COMMIT_SHA}" \
-            | jq -r '.commit.committer.date')
-
-          echo "date=$COMMIT_DATE" >> $GITHUB_OUTPUT
-
-      - name: Get merged PRs since previous tag
+      - name: Get current release info
+        id: current_release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          QUERY="repo:${{ github.repository }} is:pr is:merged merged:>${{ steps.prev_tag_date.outputs.date }}"
-          PRS=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
-            "${{ github.api_url }}/search/issues?q=$(echo "$QUERY" | jq -s -R -r @uri)")
+          TAG=${{ steps.current_tag.outputs.tag }}
+          RELEASE=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "${{ github.api_url }}/repos/${{ github.repository }}/releases/tags/${TAG}")
 
-          echo "$PRS" > prs.json
+          echo "release_id=$(echo "$RELEASE" | jq -r '.id')" >> $GITHUB_OUTPUT
+          echo "published_at=$(echo "$RELEASE" | jq -r '.published_at')" >> $GITHUB_OUTPUT
 
-      - name: Print raw PR search result
+      - name: Get previous release info
+        id: previous_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "Raw PR search result:"
-          cat prs.json | jq .
+          # Get all releases sorted descending by published date
+          ALL_RELEASES=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "${{ github.api_url }}/repos/${{ github.repository }}/releases?per_page=100")
+
+          # Find the one that comes before the current release
+          PREV_RELEASE=$(echo "$ALL_RELEASES" | jq -r --arg id "${{ steps.current_release.outputs.release_id }}" '
+            . | sort_by(.published_at) | reverse | map(select(.id != ($id | tonumber))) | .[0]
+          ')
+
+          echo "prev_tag=$(echo "$PREV_RELEASE" | jq -r '.tag_name')" >> $GITHUB_OUTPUT
+          echo "published_at=$(echo "$PREV_RELEASE" | jq -r '.published_at')" >> $GITHUB_OUTPUT
+
+      - name: Get merged PRs since previous release date
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SINCE=${{ steps.previous_release.outputs.published_at }}
+          echo "Fetching PRs merged after $SINCE"
+
+          QUERY="repo:${{ github.repository }} is:pr is:merged merged:>${SINCE}"
+          curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "${{ github.api_url }}/search/issues?q=$(echo "$QUERY" | jq -s -R -r @uri)" > prs.json
 
       - name: Generate changelog notes
         run: |
           if jq -e '.items | type == "array" and length > 0' prs.json > /dev/null; then
             jq -r '.items[] | "- " + (.title | gsub("^\\[(?<tag>[^\\]]+)\\]\\s*(?<rest>.+)"; "\(.tag). \(.rest)")) + " (#" + (.number|tostring) + ")"' prs.json > changelog_notes.txt
           else
-            echo "No merged PRs found since previous tag." > changelog_notes.txt
+            echo "No merged PRs found since previous release." > changelog_notes.txt
           fi
-      
+
           echo "--- Generated changelog ---"
           cat changelog_notes.txt
 
@@ -94,30 +86,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG=${{ steps.tags.outputs.current }}
-          RELEASE_ID=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
-            "${{ github.api_url }}/repos/${{ github.repository }}/releases/tags/${TAG}" \
-            | jq -r '.id')
-
+          RELEASE_ID=${{ steps.current_release.outputs.release_id }}
           BODY=$(jq -Rs . changelog_notes.txt)
 
           curl -s -X PATCH -H "Authorization: Bearer $GITHUB_TOKEN" \
             -H "Content-Type: application/json" \
             -d "{\"body\": $BODY}" \
             "${{ github.api_url }}/repos/${{ github.repository }}/releases/${RELEASE_ID}"
-
-#      - name: Generate changelog notes from merged PRs
-#        id: changelog
-#        run: |
-#          gh pr list --state merged --search "merged:>${{ steps.tags.outputs.previous }}" \
-#            --json title,number \
-#            --jq '.[] | "- " + (try (.title | capture("^\\[(?<tag>.*?)\\]\\s*(?<rest>.*)") | "\(.tag). \(.rest)") catch .title) + " (#\(.number))"' > changelog_notes.txt
-#        env:
-#          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#
-#      - name: Update GitHub release notes
-#        run: |
-#          gh release edit "${{ steps.tags.outputs.current }}" \
-#            --notes-file changelog_notes.txt
-#        env:
-#          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
