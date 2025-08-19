@@ -15,17 +15,25 @@ jobs:
           name: ${{ runner.os }}-dist
           path: dist
 
-      - name: Download Mac artifact
+      - name: Download Mac arm64 artifact
         uses: actions/download-artifact@v4
         with:
-          name: macos-arm-pyinstaller-artifacts-dashdotfix
+          name: macos-arm-pyinstaller-artifacts-dmg
           path: dist
 
-      - name: Download Mac artifact
+      - name: Rename Mac arm64 artifact
+        run: |
+          sudo mv dist/PyMca5*.dmg dist/PyMca_arm64.dmg
+
+      - name: Download Mac x86 artifact
         uses: actions/download-artifact@v4
         with:
           name: macos-x86(intel)-pyinstaller-artifacts-dmg
           path: dist
+
+      - name: Rename Mac x86 artifact
+        run: |
+          sudo mv dist/PyMca5*.dmg dist/PyMca_x86.dmg
 
       - name: Download Windows artifact
         uses: actions/download-artifact@v4
