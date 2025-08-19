@@ -2,6 +2,11 @@ name: Update Changelog on Tag
 
 on:
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to update changelog for (e.g., v1.2.3)'
+        required: true
+        type: string
   workflow_call:
 
 jobs:
@@ -14,29 +19,95 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up GitHub CLI
-        uses: actions/setup-gh-cli@v2
-
-      - name: Extract current and previous tag
-        id: tags
+      - name: Determine current tag
+        id: current_tag
         run: |
-          CURRENT_TAG="${GITHUB_REF#refs/tags/}"
-          PREV_TAG=$(git tag --sort=-creatordate | grep -v "^$CURRENT_TAG$" | head -n 1)
-          echo "current=$CURRENT_TAG" >> $GITHUB_OUTPUT
+          if [ -n "${{ github.event.inputs.tag }}" ]; then
+            echo "Using input tag: ${{ github.event.inputs.tag }}"
+            echo "tag=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
+          else
+            TAG="${GITHUB_REF#refs/tags/}"
+            echo "Using tag from ref: $TAG"
+            echo "tag=$TAG" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Get previous tag
+        id: previous_tag
+        run: |
+          PREV_TAG=$(git tag --sort=-creatordate | grep -v "^${{ steps.current_tag.outputs.tag }}$" | head -n 1)
           echo "previous=$PREV_TAG" >> $GITHUB_OUTPUT
 
-      - name: Generate changelog notes from merged PRs
-        id: changelog
-        run: |
-          gh pr list --state merged --search "merged:>${{ steps.tags.outputs.previous }}" \
-            --json title,number \
-            --jq '.[] | "- " + (try (.title | capture("^\\[(?<tag>.*?)\\]\\s*(?<rest>.*)") | "\(.tag). \(.rest)") catch .title) + " (#\(.number))"' > changelog_notes.txt
+      - name: Get previous tag commit date
+        id: prev_tag_date
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PREV_TAG: ${{ steps.tags.outputs.previous }}
+        run: |
+          REF_DATA=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "${{ github.api_url }}/repos/${{ github.repository }}/git/ref/tags/${PREV_TAG}")
 
-      - name: Update GitHub release notes
-        run: |
-          gh release edit "${{ steps.tags.outputs.current }}" \
-            --notes-file changelog_notes.txt
+          TAG_SHA=$(echo "$REF_DATA" | jq -r '.object.sha')
+          TAG_TYPE=$(echo "$REF_DATA" | jq -r '.object.type')
+
+          if [ "$TAG_TYPE" = "tag" ]; then
+            # Annotated tag, get commit SHA from tag object
+            COMMIT_SHA=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+              "${{ github.api_url }}/repos/${{ github.repository }}/git/tags/${TAG_SHA}" | jq -r '.object.sha')
+          else
+            # Lightweight tag
+            COMMIT_SHA="$TAG_SHA"
+          fi
+
+          COMMIT_DATE=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "${{ github.api_url }}/repos/${{ github.repository }}/commits/${COMMIT_SHA}" \
+            | jq -r '.commit.committer.date')
+
+          echo "date=$COMMIT_DATE" >> $GITHUB_OUTPUT
+
+      - name: Get merged PRs since previous tag
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          QUERY="repo:${{ github.repository }} is:pr is:merged merged:>${{ steps.prev_tag_date.outputs.date }}"
+          PRS=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "${{ github.api_url }}/search/issues?q=$(echo "$QUERY" | jq -s -R -r @uri)")
+
+          echo "$PRS" > prs.json
+
+      - name: Generate changelog notes
+        run: |
+          jq -r '.items[] | "- " + (.title | gsub("^\\[(?<tag>[^\\]]+)\\]\\s*(?<rest>.+)"; "\(.tag). \(.rest)")) + " (#" + (.number|tostring) + ")"' prs.json > changelog_notes.txt
+          echo "--- Generated changelog ---"
+          cat changelog_notes.txt
+
+      - name: Update GitHub release notes via API
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG=${{ steps.tags.outputs.current }}
+          RELEASE_ID=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "${{ github.api_url }}/repos/${{ github.repository }}/releases/tags/${TAG}" \
+            | jq -r '.id')
+
+          BODY=$(jq -Rs . changelog_notes.txt)
+
+          curl -s -X PATCH -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"body\": $BODY}" \
+            "${{ github.api_url }}/repos/${{ github.repository }}/releases/${RELEASE_ID}"
+
+#      - name: Generate changelog notes from merged PRs
+#        id: changelog
+#        run: |
+#          gh pr list --state merged --search "merged:>${{ steps.tags.outputs.previous }}" \
+#            --json title,number \
+#            --jq '.[] | "- " + (try (.title | capture("^\\[(?<tag>.*?)\\]\\s*(?<rest>.*)") | "\(.tag). \(.rest)") catch .title) + " (#\(.number))"' > changelog_notes.txt
+#        env:
+#          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#
+#      - name: Update GitHub release notes
+#        run: |
+#          gh release edit "${{ steps.tags.outputs.current }}" \
+#            --notes-file changelog_notes.txt
+#        env:
+#          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
