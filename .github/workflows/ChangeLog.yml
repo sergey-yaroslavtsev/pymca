@@ -15,7 +15,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up GitHub CLI
-        uses: cli/cli@v2
+        uses: actions/setup-gh-cli@v2
 
       - name: Extract current and previous tag
         id: tags
