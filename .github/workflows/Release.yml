@@ -23,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          fetch-depth: 2 #to have previous commit
+          fetch-depth: 0 #to have all commits
 
       - name: Get version from file
         id: check-change
