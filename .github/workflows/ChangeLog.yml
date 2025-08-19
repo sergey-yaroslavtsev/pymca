@@ -74,9 +74,19 @@ jobs:
 
           echo "$PRS" > prs.json
 
+      - name: Print raw PR search result
+        run: |
+          echo "Raw PR search result:"
+          cat prs.json | jq .
+
       - name: Generate changelog notes
         run: |
-          jq -r '.items[] | "- " + (.title | gsub("^\\[(?<tag>[^\\]]+)\\]\\s*(?<rest>.+)"; "\(.tag). \(.rest)")) + " (#" + (.number|tostring) + ")"' prs.json > changelog_notes.txt
+          if jq -e '.items | type == "array" and length > 0' prs.json > /dev/null; then
+            jq -r '.items[] | "- " + (.title | gsub("^\\[(?<tag>[^\\]]+)\\]\\s*(?<rest>.+)"; "\(.tag). \(.rest)")) + " (#" + (.number|tostring) + ")"' prs.json > changelog_notes.txt
+          else
+            echo "No merged PRs found since previous tag." > changelog_notes.txt
+          fi
+      
           echo "--- Generated changelog ---"
           cat changelog_notes.txt
 
