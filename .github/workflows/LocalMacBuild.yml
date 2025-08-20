@@ -182,6 +182,9 @@ jobs:
           name: macOS-11-arm64-python3.12-dist
           path: dist
 
+      - name: list downloads
+        run: ls -l dist
+
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
@@ -195,11 +198,14 @@ jobs:
         run: |
           python3 -m pip install --upgrade pip wheel delocate
 
-      - name: Unzip wheels
+      - name: Unzip wheels safely
         run: |
           mkdir wheel_x86 wheel_arm wheel_universal
-          unzip dist/*x86_64.whl -d wheel_x86
-          unzip dist/*arm64.whl -d wheel_arm
+          X86_WHEEL=$(ls dist/*x86_64.whl)
+          ARM_WHEEL=$(ls dist/*arm64.whl)
+          echo "Using $X86_WHEEL and $ARM_WHEEL"
+          unzip "$X86_WHEEL" -d wheel_x86
+          unzip "$ARM_WHEEL" -d wheel_arm
           cp -R wheel_x86/* wheel_universal/
 
       - name: Create universal binaries
@@ -241,7 +247,7 @@ jobs:
 
 
   build_with_cibuildwheel:
-    name: "Python ${{ matrix.python-version }} on MacOS ${{ matrix.name-suffix }}"
+    name: "cibuildwheel"
     runs-on: macos-latest
 
     steps:
@@ -259,19 +265,6 @@ jobs:
           python -m pip install Pyside6
           python -m pip install cibuildwheel==3.1.4
 
-
-#      - name: Upgrade distribution modules and install build dependencies
-#        run: |
-#          ${{ matrix.SOURCE }}
-#          ${{ matrix.ARCH_COMMAND }} python -m pip install --upgrade pip
-#          ${{ matrix.ARCH_COMMAND }} pip install --upgrade setuptools wheel cython
-#          # if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-#          ${{ matrix.ARCH_COMMAND }} pip install --upgrade wheel
-#          ${{ matrix.ARCH_COMMAND }} pip install --upgrade numpy
-#          ${{ matrix.ARCH_COMMAND }} pip install --upgrade build
-#          ${{ matrix.ARCH_COMMAND }} pip install cython
-
-
       - name: Set environment for 10.13 compatibility
         run: |
           echo "MACOSX_DEPLOYMENT_TARGET=10.13" >> $GITHUB_ENV
@@ -282,6 +275,9 @@ jobs:
         run: |
           python -m cibuildwheel --output-dir dist
           ls dist
+        env:
+          CIBW_BUILD: "cp312-macosx_universal2"
+          CIBW_ARCHS_MACOS: "universal2"
 
       - name: Install
         run: |
