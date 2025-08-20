@@ -229,6 +229,7 @@ jobs:
       - name: Repack wheel
         run: |
           cd wheel_universal
+          mkdir -p ../final_wheel
           python -m wheel pack . -d ../final_wheel
 
       - name: Fix wheel (delocate)
