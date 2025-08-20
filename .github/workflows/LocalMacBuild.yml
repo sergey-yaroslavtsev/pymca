@@ -200,10 +200,29 @@ jobs:
 
       - name: Unzip wheels safely
         run: |
-          mkdir wheel_x86 wheel_arm wheel_universal
-          X86_WHEEL=$(ls dist/*x86_64.whl)
-          ARM_WHEEL=$(ls dist/*arm64.whl)
-          echo "Using $X86_WHEEL and $ARM_WHEEL"
+          mkdir -p wheel_x86 wheel_arm wheel_universal
+          
+          # Print wheel files for debugging
+          echo "Wheel files in dist:"
+          ls -l dist/*.whl || { echo "No wheel files found"; exit 1; }
+          
+          # Assign variables with proper globbing
+          X86_WHEEL=$(find dist -name '*x86_64.whl')
+          ARM_WHEEL=$(find dist -name '*arm64.whl')
+          
+          # Check if they were found
+          if [[ -z "$X86_WHEEL" || -z "$ARM_WHEEL" ]]; then
+            echo "Missing one of the wheel files:"
+            echo "X86_WHEEL: $X86_WHEEL"
+            echo "ARM_WHEEL: $ARM_WHEEL"
+            exit 1
+          fi
+          
+          echo "Using:"
+          echo "  X86: $X86_WHEEL"
+          echo "  ARM: $ARM_WHEEL"
+          
+          # Extract and merge
           unzip "$X86_WHEEL" -d wheel_x86
           unzip "$ARM_WHEEL" -d wheel_arm
           cp -R wheel_x86/* wheel_universal/
@@ -291,15 +310,17 @@ jobs:
           path: dist/*.whl
           retention-days: 1
 
+      - name: Run extra arm64 tests
+        run: |
+          cd ..
+          arch -arm64 python -m PyMca5.tests.TestAll
+
       - name: Run extra x86 tests
         run: |
           cd ..
           arch -x86_64 python -m PyMca5.tests.TestAll
 
-      - name: Run extra arm64 tests
-        run: |
-          cd ..
-          arch -arm64 python -m PyMca5.tests.TestAll
+
 
 
   macos_arm_pyinstaller_python312:
