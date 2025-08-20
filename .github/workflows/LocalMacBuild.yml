@@ -96,9 +96,9 @@ jobs:
 
       - name: Run extra x86 tests
         run: |
-          cd ..
           pip uninstall -y pymca-release-test
           arch -x86_64 pip install --pre "$(ls dist/*test-5.*)"
+          cd ..
           pip uninstall -y numpy
           arch -x86_64 pip install numpy
           pip uninstall -y cython
@@ -348,15 +348,15 @@ jobs:
 
       - name: Run arm64 tests
         run: |
-          cd ..
           arch -arm64 pip install --pre ./fixed_wheel/*.whl
+          cd ..
           arch -arm64 python -m PyMca5.tests.TestAll
 
       - name: Run x86 tests
         run: |
-          cd ..
           pip uninstall pymca-release-test
           arch -x86_64 pip install --pre ./fixed_wheel/*.whl
+          cd ..
           arch -x86_64 python -m PyMca5.tests.TestAll
 
 #          arch -x86_64 pip uninstall -y numpy
