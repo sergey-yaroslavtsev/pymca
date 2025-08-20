@@ -69,30 +69,17 @@ jobs:
           file venv-arm64/bin/python
           source venv-arm64/bin/activate
 
-      # Display the python version
-      - name: Display Python version
-        run:
-          ${{ matrix.SOURCE }}
-          ${{ matrix.ARCH_COMMAND }} python -c "import sys; print(sys.version)"
 
-      - name: Upgrade distribution modules
+      - name: Upgrade distribution modules and install build dependencies
         run: |
           ${{ matrix.SOURCE }}
           ${{ matrix.ARCH_COMMAND }} python -m pip install --upgrade pip
           ${{ matrix.ARCH_COMMAND }} pip install --upgrade setuptools wheel cython
           # if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-
-      - name: Install build dependencies
-        run: |
-          ${{ matrix.SOURCE }}
           ${{ matrix.ARCH_COMMAND }} pip install --upgrade wheel
           ${{ matrix.ARCH_COMMAND }} pip install --upgrade numpy
           ${{ matrix.ARCH_COMMAND }} pip install --upgrade build
           ${{ matrix.ARCH_COMMAND }} pip install cython
-
-      - name: Install runtime dependencies
-        run: |
-          ${{ matrix.SOURCE }}
           # ${{ matrix.ARCH_COMMAND }} pip install silx --pre --find-links https://silx.gitlab-pages.esrf.fr/bob/silx/
           ${{ matrix.ARCH_COMMAND }} pip install ${{ matrix.QT_BINDING }}
 
@@ -136,7 +123,7 @@ jobs:
         run: |
           for file in dist/*.whl; do
             base=$(basename "$file")
-            newname="${base/_universal2/_x86}"
+            newname="${base/_universal2/_x86_64}"
             sudo mv "$file" "dist/$newname"
           done
           ls dist
@@ -154,12 +141,15 @@ jobs:
           ${{ matrix.ARCH_COMMAND }} python -m PyMca5.tests.TestAll
 
       # run all tests for universal wheels
-      - name: Run the tests
+      - name: Run extra arm64 tests
         if: matrix.ARCH_COMMAND != 'arch -x86_64' && matrix.ARCH_COMMAND != 'arch -arm64'
         run: |
           cd ..
-          python -m PyMca5.tests.TestAll
           arch -arm64 python -m PyMca5.tests.TestAll
+      - name: Run extra x86 tests
+        if: matrix.ARCH_COMMAND != 'arch -x86_64' && matrix.ARCH_COMMAND != 'arch -arm64'
+        run: |
+          cd ..
           arch -x86_64 python -m PyMca5.tests.TestAll
 
       - name: Upload wheel as artifact
