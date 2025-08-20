@@ -4,6 +4,104 @@ on:
   workflow_dispatch:
 
 jobs:
+  build_test:
+    name: try again x86
+    runs-on: macos-latest
+    strategy:
+      # do not cancel tests after first fail
+      fail-fast: false
+      matrix:
+        include:
+
+          - python-version: "3.12"
+            BUILD_COMMAND: --wheel
+            ARCH_COMMAND: ""
+            SOURCE: ""
+            QT_BINDING: PySide6
+            MacOS_TARGET: 10.13
+
+#          - python-version: "3.12"
+#            BUILD_COMMAND: --wheel
+#            ARCH_COMMAND: "arch -x86_64"
+#            SOURCE: "source venv-x86/bin/activate"
+#            QT_BINDING: PySide6
+#            MacOS_TARGET: 10.13
+#
+##          - python-version: "3.12"
+##            BUILD_COMMAND: --wheel
+##            ARCH_COMMAND: "arch -arm64"
+##            SOURCE: "source venv-arm64/bin/activate"
+##            QT_BINDING: PySide6
+##            MacOS_TARGET: 10.13
+#
+#          - python-version: "3.12"
+#            BUILD_COMMAND: --wheel
+#            ARCH_COMMAND: "arch -arm64"
+#            SOURCE: "source venv-arm64/bin/activate"
+#            QT_BINDING: PySide6
+#            MacOS_TARGET: 11
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Upgrade distribution modules and install build dependencies
+        run: |
+          ${{ matrix.SOURCE }}
+          ${{ matrix.ARCH_COMMAND }} python -m pip install --upgrade pip
+          ${{ matrix.ARCH_COMMAND }} pip install --upgrade setuptools wheel cython
+          # if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          ${{ matrix.ARCH_COMMAND }} pip install --upgrade wheel
+          ${{ matrix.ARCH_COMMAND }} pip install --upgrade numpy
+          ${{ matrix.ARCH_COMMAND }} pip install --upgrade build
+          ${{ matrix.ARCH_COMMAND }} pip install cython
+          # ${{ matrix.ARCH_COMMAND }} pip install silx --pre --find-links https://silx.gitlab-pages.esrf.fr/bob/silx/
+          ${{ matrix.ARCH_COMMAND }} pip install ${{ matrix.QT_BINDING }}
+
+
+      - name: Set environment for ${{ matrix.MacOS_TARGET }} compatibility
+        run: |
+          echo "MACOSX_DEPLOYMENT_TARGET=${{ matrix.MacOS_TARGET }}" >> $GITHUB_ENV
+          echo "CFLAGS=-mmacosx-version-min=${{ matrix.MacOS_TARGET }}" >> $GITHUB_ENV
+          echo "LDFLAGS=-mmacosx-version-min=${{ matrix.MacOS_TARGET }}" >> $GITHUB_ENV
+
+      - name: Generate source package or wheel
+        run: |
+          ${{ matrix.SOURCE }}
+          ${{ matrix.ARCH_COMMAND }} python -m build ${{ matrix.BUILD_COMMAND }}
+          ls dist
+
+      - name: Install
+        run: |
+          ${{ matrix.SOURCE }}
+          ${{ matrix.ARCH_COMMAND }} pip install --pre "$(ls dist/*test-5.*)"
+#          pip install --pre "$(ls dist/*ca5-5.*)"
+
+      - name: Upload wheel as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: uni-test
+          path: dist/*.whl
+          retention-days: 1
+
+      - name: Run the tests
+        run: |
+          cd ..
+          python -m PyMca5.tests.TestAll
+
+      - name: Run extra x86 tests
+        run: |
+          cd ..
+          pip uninstall numpy
+          arch -x86_64 pip install numpy
+          arch -x86_64 python -m PyMca5.tests.TestAll
+
   build_and_test:
     name: "Python ${{ matrix.python-version }} on MacOS ${{ matrix.MacOS_TARGET }}"
     runs-on: macos-latest
@@ -246,14 +344,18 @@ jobs:
         run: |
           pip install --pre ./fixed_wheel/*.whl
 
-      - name: Run extra x86 tests
+      - name: Run x86 tests
         run: |
           cd ..
+          arch -x86_64 pip uninstall numpy
+          arch -x86_64 pip install numpy
           arch -x86_64 python -m PyMca5.tests.TestAll
 
-      - name: Run extra arm64 tests
+      - name: Run arm64 tests
         run: |
           cd ..
+          arch -arm64 pip uninstall numpy
+          arch -arm64 pip install numpy
           arch -arm64 python -m PyMca5.tests.TestAll
 
 
