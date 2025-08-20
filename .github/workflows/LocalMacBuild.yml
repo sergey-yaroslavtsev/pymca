@@ -96,13 +96,14 @@ jobs:
 
       - name: Run extra x86 tests
         run: |
-          pip uninstall -y pymca-release-test
+          arch -x86_64 python -m venv venv-x86
+          chmod +x venv-x86/bin/python
+          source venv-x86/bin/activate
+          
           arch -x86_64 pip install --pre "$(ls dist/*test-5.*)"
+          
           cd ..
-          pip uninstall -y numpy
-          arch -x86_64 pip install numpy
-          pip uninstall -y cython
-          arch -x86_64 pip install cython
+          
           arch -x86_64 python -m PyMca5.tests.TestAll
 
   build_and_test:
@@ -354,7 +355,10 @@ jobs:
 
       - name: Run x86 tests
         run: |
-          pip uninstall pymca-release-test
+          arch -x86_64 python -m venv venv-x86
+          chmod +x venv-x86/bin/python
+          source venv-x86/bin/activate
+          
           arch -x86_64 pip install --pre ./fixed_wheel/*.whl
           cd ..
           arch -x86_64 python -m PyMca5.tests.TestAll
