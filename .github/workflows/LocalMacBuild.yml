@@ -5,7 +5,7 @@ on:
 
 jobs:
   build_and_test:
-    name: "Python ${{ matrix.python-version }} on MacOS ${{ matrix.name-suffix }}"
+    name: "Python ${{ matrix.python-version }} on MacOS ${{ matrix.MacOS_TARGET }}"
     runs-on: macos-latest
     strategy:
       # do not cancel tests after first fail
@@ -196,31 +196,29 @@ jobs:
 
       - name: Install tools
         run: |
-          python3 -m pip install --upgrade pip wheel delocate
+          python -m pip install --upgrade pip wheel delocate
 
       - name: Unzip wheels safely
         run: |
+          echo "Listing files under dist/ for debugging:"
+          find dist -type f
+          
           mkdir -p wheel_x86 wheel_arm wheel_universal
           
-          # Print wheel files for debugging
-          echo "Wheel files in dist:"
-          ls -l dist/*.whl || { echo "No wheel files found"; exit 1; }
+          # Use find instead of ls for better compatibility
+          X86_WHEEL=$(find dist -type f -name '*x86_64.whl')
+          ARM_WHEEL=$(find dist -type f -name '*arm64.whl')
           
-          # Assign variables with proper globbing
-          X86_WHEEL=$(find dist -name '*x86_64.whl')
-          ARM_WHEEL=$(find dist -name '*arm64.whl')
+          # Debug output
+          echo "Found wheel files:"
+          echo "X86_WHEEL: $X86_WHEEL"
+          echo "ARM_WHEEL: $ARM_WHEEL"
           
-          # Check if they were found
+          # Check if both files exist
           if [[ -z "$X86_WHEEL" || -z "$ARM_WHEEL" ]]; then
-            echo "Missing one of the wheel files:"
-            echo "X86_WHEEL: $X86_WHEEL"
-            echo "ARM_WHEEL: $ARM_WHEEL"
+            echo "❌ Missing one of the required wheel files"
             exit 1
           fi
-          
-          echo "Using:"
-          echo "  X86: $X86_WHEEL"
-          echo "  ARM: $ARM_WHEEL"
           
           # Extract and merge
           unzip "$X86_WHEEL" -d wheel_x86
@@ -238,7 +236,7 @@ jobs:
       - name: Repack wheel
         run: |
           cd wheel_universal
-          python3 -m wheel pack . -d ../final_wheel
+          python -m wheel pack . -d ../final_wheel
 
       - name: Fix wheel (delocate)
         run: |
