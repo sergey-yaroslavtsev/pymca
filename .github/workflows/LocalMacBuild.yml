@@ -98,7 +98,7 @@ jobs:
       - name: Run extra x86 tests
         run: |
           cd ..
-          pip uninstall numpy
+          pip uninstall -y numpy
           arch -x86_64 pip install numpy
           arch -x86_64 python -m PyMca5.tests.TestAll
 
@@ -347,14 +347,14 @@ jobs:
       - name: Run x86 tests
         run: |
           cd ..
-          arch -x86_64 pip uninstall numpy
+          arch -x86_64 pip uninstall -y numpy
           arch -x86_64 pip install numpy
           arch -x86_64 python -m PyMca5.tests.TestAll
 
       - name: Run arm64 tests
         run: |
           cd ..
-          arch -arm64 pip uninstall numpy
+          arch -arm64 pip uninstall -y numpy
           arch -arm64 pip install numpy
           arch -arm64 python -m PyMca5.tests.TestAll
 
