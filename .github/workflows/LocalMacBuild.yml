@@ -228,11 +228,15 @@ jobs:
         run: |
           pip install --pre ./fixed_wheel/*.whl
 
+      - name: Run extra x86 tests
+        run: |
+          cd ..
+          arch -x86_64 python -m PyMca5.tests.TestAll
+
       - name: Run extra arm64 tests
         run: |
           cd ..
           arch -arm64 python -m PyMca5.tests.TestAll
-          arch -x86_64 python -m PyMca5.tests.TestAll
 
 
 
