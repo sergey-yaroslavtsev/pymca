@@ -97,6 +97,8 @@ jobs:
       - name: Run extra x86 tests
         run: |
           cd ..
+          pip uninstall -y pymca-release-test
+          arch -x86_64 pip install --pre "$(ls dist/*test-5.*)"
           pip uninstall -y numpy
           arch -x86_64 pip install numpy
           pip uninstall -y cython
@@ -340,27 +342,29 @@ jobs:
           name: universal-wheel
           path: fixed_wheel/*.whl
 
-      - name: Install
-        run: |
-          pip install --pre ./fixed_wheel/*.whl
-
-      - name: Run x86 tests
-        run: |
-          cd ..
-          arch -x86_64 pip uninstall -y numpy
-          arch -x86_64 pip install numpy
-          arch -x86_64 pip uninstall -y cython
-          arch -x86_64 pip install cython
-          arch -x86_64 python -m PyMca5.tests.TestAll
+#      - name: Install
+#        run: |
+#          pip install --pre ./fixed_wheel/*.whl
 
       - name: Run arm64 tests
         run: |
           cd ..
-          arch -arm64 pip uninstall -y numpy
-          arch -arm64 pip install numpy
-          arch -arm64 pip uninstall -y cython
-          arch -arm64 pip install cython
+          arch -arm64 pip install --pre ./fixed_wheel/*.whl
           arch -arm64 python -m PyMca5.tests.TestAll
+
+      - name: Run x86 tests
+        run: |
+          cd ..
+          pip uninstall pymca-release-test
+          arch -x86_64 pip install --pre ./fixed_wheel/*.whl
+          arch -x86_64 python -m PyMca5.tests.TestAll
+
+#          arch -x86_64 pip uninstall -y numpy
+#          arch -x86_64 pip install numpy
+#          arch -x86_64 pip uninstall -y cython
+#          arch -x86_64 pip install cython
+
+
 
 
 #  build_with_cibuildwheel:
