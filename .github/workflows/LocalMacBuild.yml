@@ -159,8 +159,9 @@ jobs:
 
 
   build_universal:
-    name: "Python ${{ matrix.python-version }} on ${{ matrix.os }} ${{ matrix.name-suffix }}"
-    runs-on: ${{ matrix.os }}
+    name: Universal wheels
+    needs: build_and_test
+    runs-on: macos-latest
     steps:
 
       - name: Download Mac x86 artifact
@@ -188,7 +189,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.12
 
       - name: Install tools
         run: |
