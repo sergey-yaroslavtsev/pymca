@@ -5,37 +5,42 @@ on:
 
 jobs:
   build_and_test:
-    name: "Python ${{ matrix.python-version }} on ${{ matrix.os }} ${{ matrix.name-suffix }}"
-    runs-on: ${{ matrix.os }}
+    name: "Python ${{ matrix.python-version }} on MacOS ${{ matrix.name-suffix }}"
+    runs-on: macos-latest
     strategy:
       # do not cancel tests after first fail
       fail-fast: false
       matrix:
         include:
 
-          - name-suffix: "not specified PySide6 wheel"
-            os: macos-latest
-            python-version: "3.12"
-            BUILD_COMMAND: --wheel
-            ARCH_COMMAND: ""
-            SOURCE: ""
-            QT_BINDING: PySide6
+#          - name-suffix: "not specified PySide6 wheel"
+#            os: macos-latest
+#            python-version: "3.12"
+#            BUILD_COMMAND: --wheel
+#            ARCH_COMMAND: ""
+#            SOURCE: ""
+#            QT_BINDING: PySide6
 
-          - name-suffix: "x86_64 PySide6 wheel"
-            os: macos-latest
-            python-version: "3.12"
+          - python-version: "3.12"
             BUILD_COMMAND: --wheel
             ARCH_COMMAND: "arch -x86_64"
             SOURCE: "source venv-x86/bin/activate"
             QT_BINDING: PySide6
+            MacOS_TARGET: 10.13
 
-          - name-suffix: "arm64 PySide6 wheel"
-            os: macos-latest
-            python-version: "3.12"
+#          - python-version: "3.12"
+#            BUILD_COMMAND: --wheel
+#            ARCH_COMMAND: "arch -arm64"
+#            SOURCE: "source venv-arm64/bin/activate"
+#            QT_BINDING: PySide6
+#            MacOS_TARGET: 10.13
+
+          - python-version: "3.12"
             BUILD_COMMAND: --wheel
             ARCH_COMMAND: "arch -arm64"
             SOURCE: "source venv-arm64/bin/activate"
             QT_BINDING: PySide6
+            MacOS_TARGET: 11
 
     steps:
       - uses: actions/checkout@v2
@@ -89,18 +94,11 @@ jobs:
           ${{ matrix.ARCH_COMMAND }} python ./ci/info_platform.py
           ${{ matrix.ARCH_COMMAND }} pip list
 
-      - name: Set environment for 10.13 compatibility
+      - name: Set environment for ${{ matrix.MacOS_TARGET }} compatibility
         run: |
-          echo "MACOSX_DEPLOYMENT_TARGET=10.13" >> $GITHUB_ENV
-          echo "CFLAGS=-mmacosx-version-min=10.13" >> $GITHUB_ENV
-          echo "LDFLAGS=-mmacosx-version-min=10.13" >> $GITHUB_ENV
-
-      - name: Set environment for 11.0 compatibility
-        if: matrix.ARCH_COMMAND == 'arch -arm64'
-        run: |
-          echo "MACOSX_DEPLOYMENT_TARGET=11.0" >> $GITHUB_ENV
-          echo "CFLAGS=-mmacosx-version-min=11.0" >> $GITHUB_ENV
-          echo "LDFLAGS=-mmacosx-version-min=11.0" >> $GITHUB_ENV
+          echo "MACOSX_DEPLOYMENT_TARGET=${{ matrix.MacOS_TARGET }}" >> $GITHUB_ENV
+          echo "CFLAGS=-mmacosx-version-min=${{ matrix.MacOS_TARGET }}" >> $GITHUB_ENV
+          echo "LDFLAGS=-mmacosx-version-min=${{ matrix.MacOS_TARGET }}" >> $GITHUB_ENV
 
       - name: Generate source package or wheel
         run: |
@@ -137,7 +135,7 @@ jobs:
       - name: Upload wheel as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ runner.os }}-${{ contains(matrix.ARCH_COMMAND, 'arm64') && 'arm64' || contains(matrix.ARCH_COMMAND, 'x86_64') && 'x86_64' || '' }}-python${{ matrix.python-version }}-dist
+          name: ${{ runner.os }}-${{ matrix.MacOS_TARGET }}-${{ contains(matrix.ARCH_COMMAND, 'arm64') && 'arm64' || contains(matrix.ARCH_COMMAND, 'x86_64') && 'x86_64' || '' }}-python${{ matrix.python-version }}-dist
           path: dist/*.whl
           retention-days: 1
 
@@ -160,11 +158,89 @@ jobs:
           arch -x86_64 python -m PyMca5.tests.TestAll
 
 
+  build_universal:
+    name: "Python ${{ matrix.python-version }} on ${{ matrix.os }} ${{ matrix.name-suffix }}"
+    runs-on: ${{ matrix.os }}
+    steps:
+
+      - name: Download Mac x86 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-10.13-x86_64-python3.12-dist
+          path: dist
+
+#      - name: Download Mac arm64 artifact
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: macos-10.13-arm64-python3.12-dist
+#          path: dist
+
+      - name: Download Mac arm64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-11-arm64-python3.12-dist
+          path: dist/MacOS11
+
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install tools
+        run: |
+          python3 -m pip install --upgrade pip wheel delocate
+
+      - name: Unzip wheels
+        run: |
+          mkdir wheel_x86 wheel_arm wheel_universal
+          unzip dist/*x86_64.whl -d wheel_x86
+          unzip dist/*arm64.whl -d wheel_arm
+          cp -R wheel_x86/* wheel_universal/
+
+      - name: Create universal binaries
+        run: |
+          find wheel_x86 -name "*.so" | while read sofile; do
+            base=$(basename "$sofile")
+            armfile="wheel_arm/$(find . -name "$base" | head -n1)"
+            lipo -create "$sofile" "$armfile" -output "wheel_universal/$(find . -name "$base" | head -n1)"
+          done
+
+      - name: Repack wheel
+        run: |
+          cd wheel_universal
+          python3 -m wheel pack . -d ../final_wheel
+
+      - name: Fix wheel (delocate)
+        run: |
+          delocate-wheel -w fixed_wheel final_wheel/*.whl
+
+      - name: Upload universal wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: universal-wheel
+          path: fixed_wheel/*.whl
+
+      - name: Install
+        run: |
+          pip install --pre ./fixed_wheel/*.whl
+
+      - name: Run extra arm64 tests
+        run: |
+          cd ..
+          arch -arm64 python -m PyMca5.tests.TestAll
+          arch -x86_64 python -m PyMca5.tests.TestAll
+
 
 
   macos_arm_pyinstaller_python312:
     runs-on: macos-latest
-    needs: build_and_test
+    needs:
+      - build_and_test
+      - build_universal
     strategy:
       # do not cancel tests after first fail
       fail-fast: false
@@ -206,7 +282,7 @@ jobs:
         if: matrix.MODE == ''
         uses: actions/download-artifact@v4
         with:
-          name: macos--python3.12-dist
+          name: universal-wheel
           path: dist
 
       - name: List all downloaded files
