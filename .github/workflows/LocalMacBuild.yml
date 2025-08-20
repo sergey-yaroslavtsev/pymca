@@ -227,8 +227,10 @@ jobs:
         run: |
           find wheel_x86 -name "*.so" | while read sofile; do
             base=$(basename "$sofile")
-            armfile="wheel_arm/$(find . -name "$base" | head -n1)"
-            lipo -create "$sofile" "$armfile" -output "wheel_universal/$(find . -name "$base" | head -n1)"
+            armfile=$(find wheel_arm -name "$base" | head -n1)
+            output=$(find wheel_universal -name "$base" | head -n1)
+            echo "Creating universal binary for $base"
+            lipo -create "$sofile" "$armfile" -output "$output"
           done
 
       - name: Repack wheel
