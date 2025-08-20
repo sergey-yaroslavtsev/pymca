@@ -134,6 +134,13 @@ jobs:
           ${{ matrix.ARCH_COMMAND }} pip install --pre "$(ls dist/*test-5.*)"
 #          pip install --pre "$(ls dist/*ca5-5.*)"
 
+      - name: Upload wheel as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ runner.os }}-${{ contains(matrix.ARCH_COMMAND, 'arm64') && 'arm64' || contains(matrix.ARCH_COMMAND, 'x86_64') && 'x86_64' || '' }}-python${{ matrix.python-version }}-dist
+          path: dist/*.whl
+          retention-days: 1
+
       - name: Run the tests
         run: |
           ${{ matrix.SOURCE }}
@@ -152,12 +159,7 @@ jobs:
           cd ..
           arch -x86_64 python -m PyMca5.tests.TestAll
 
-      - name: Upload wheel as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ runner.os }}-${{ contains(matrix.ARCH_COMMAND, 'arm64') && 'arm64' || contains(matrix.ARCH_COMMAND, 'x86_64') && 'x86_64' || '' }}-python${{ matrix.python-version }}-dist
-          path: dist/*.whl
-          retention-days: 1
+
 
 
   macos_arm_pyinstaller_python312:
