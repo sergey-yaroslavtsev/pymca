@@ -195,8 +195,8 @@ jobs:
       - name: Unzip wheels safely
         run: |
           mkdir wheel_x86 wheel_arm wheel_universal
-          unzip wheels/*x86_64.whl -d wheel_x86
-          unzip wheels/*arm64.whl -d wheel_arm
+          unzip dist/*x86_64.whl -d wheel_x86
+          unzip dist/*arm64.whl -d wheel_arm
           cp -R wheel_x86/* wheel_universal/
 #          echo "Listing files under dist/ for debugging:"
 #          find dist -type f
