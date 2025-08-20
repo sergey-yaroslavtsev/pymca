@@ -164,17 +164,20 @@ jobs:
     runs-on: macos-latest
     steps:
 
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.12
+
       - name: Download Mac x86 artifact
         uses: actions/download-artifact@v4
         with:
           name: macOS-10.13-x86_64-python3.12-dist
           path: dist
-
-#      - name: Download Mac arm64 artifact
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: macos-10.13-arm64-python3.12-dist
-#          path: dist
 
       - name: Download Mac arm64 artifact
         uses: actions/download-artifact@v4
@@ -185,45 +188,40 @@ jobs:
       - name: list downloads
         run: ls -l dist
 
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.12
-
       - name: Install tools
         run: |
           python -m pip install --upgrade pip wheel delocate
 
       - name: Unzip wheels safely
         run: |
-          echo "Listing files under dist/ for debugging:"
-          find dist -type f
-          
-          mkdir -p wheel_x86 wheel_arm wheel_universal
-          
-          # Use find instead of ls for better compatibility
-          X86_WHEEL=$(find dist -type f -name '*x86_64.whl')
-          ARM_WHEEL=$(find dist -type f -name '*arm64.whl')
-          
-          # Debug output
-          echo "Found wheel files:"
-          echo "X86_WHEEL: $X86_WHEEL"
-          echo "ARM_WHEEL: $ARM_WHEEL"
-          
-          # Check if both files exist
-          if [[ -z "$X86_WHEEL" || -z "$ARM_WHEEL" ]]; then
-            echo "❌ Missing one of the required wheel files"
-            exit 1
-          fi
-          
-          # Extract and merge
-          unzip "$X86_WHEEL" -d wheel_x86
-          unzip "$ARM_WHEEL" -d wheel_arm
+          mkdir wheel_x86 wheel_arm wheel_universal
+          unzip wheels/*x86_64.whl -d wheel_x86
+          unzip wheels/*arm64.whl -d wheel_arm
           cp -R wheel_x86/* wheel_universal/
+#          echo "Listing files under dist/ for debugging:"
+#          find dist -type f
+#
+#          mkdir -p wheel_x86 wheel_arm wheel_universal
+#
+#          # Use find instead of ls for better compatibility
+#          X86_WHEEL=$(find dist -type f -name '*x86_64.whl')
+#          ARM_WHEEL=$(find dist -type f -name '*arm64.whl')
+#
+#          # Debug output
+#          echo "Found wheel files:"
+#          echo "X86_WHEEL: $X86_WHEEL"
+#          echo "ARM_WHEEL: $ARM_WHEEL"
+#
+#          # Check if both files exist
+#          if [[ -z "$X86_WHEEL" || -z "$ARM_WHEEL" ]]; then
+#            echo "❌ Missing one of the required wheel files"
+#            exit 1
+#          fi
+#
+#          # Extract and merge
+#          unzip "$X86_WHEEL" -d wheel_x86
+#          unzip "$ARM_WHEEL" -d wheel_arm
+#          cp -R wheel_x86/* wheel_universal/
 
       - name: Create universal binaries
         run: |
@@ -263,60 +261,60 @@ jobs:
           arch -arm64 python -m PyMca5.tests.TestAll
 
 
-  build_with_cibuildwheel:
-    name: "cibuildwheel"
-    runs-on: macos-latest
-
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: 3.12
-
-      - name: Install cibuildwheel
-        run: |
-          python -m pip install Pyside6
-          python -m pip install cibuildwheel==3.1.4
-
-      - name: Set environment for 10.13 compatibility
-        run: |
-          echo "MACOSX_DEPLOYMENT_TARGET=10.13" >> $GITHUB_ENV
-          echo "CFLAGS=-mmacosx-version-min=10.13" >> $GITHUB_ENV
-          echo "LDFLAGS=-mmacosx-version-min=10.13" >> $GITHUB_ENV
-
-      - name: Generate source package or wheel
-        run: |
-          python -m cibuildwheel --output-dir dist
-          ls dist
-        env:
-          CIBW_BUILD: "cp312-macosx_universal2"
-          CIBW_ARCHS_MACOS: "universal2"
-
-      - name: Install
-        run: |
-           pip install --pre "$(ls dist/*test-5.*)"
-#          pip install --pre "$(ls dist/*ca5-5.*)"
-
-      - name: Upload wheel as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: cibuildwheel
-          path: dist/*.whl
-          retention-days: 1
-
-      - name: Run extra arm64 tests
-        run: |
-          cd ..
-          arch -arm64 python -m PyMca5.tests.TestAll
-
-      - name: Run extra x86 tests
-        run: |
-          cd ..
-          arch -x86_64 python -m PyMca5.tests.TestAll
+#  build_with_cibuildwheel:
+#    name: "cibuildwheel"
+#    runs-on: macos-latest
+#
+#    steps:
+#      - uses: actions/checkout@v5
+#        with:
+#          fetch-depth: 0
+#
+#      - name: Set up Python
+#        uses: actions/setup-python@v5
+#        with:
+#          python-version: 3.12
+#
+#      - name: Install cibuildwheel
+#        run: |
+#          python -m pip install Pyside6
+#          python -m pip install cibuildwheel==3.1.4
+#
+#      - name: Set environment for 10.13 compatibility
+#        run: |
+#          echo "MACOSX_DEPLOYMENT_TARGET=10.13" >> $GITHUB_ENV
+#          echo "CFLAGS=-mmacosx-version-min=10.13" >> $GITHUB_ENV
+#          echo "LDFLAGS=-mmacosx-version-min=10.13" >> $GITHUB_ENV
+#
+#      - name: Generate source package or wheel
+#        run: |
+#          python -m cibuildwheel --output-dir dist
+#          ls dist
+#        env:
+#          CIBW_BUILD: "cp312-macosx_universal2"
+#          CIBW_ARCHS_MACOS: "universal2"
+#
+#      - name: Install
+#        run: |
+#           pip install --pre "$(ls dist/*test-5.*)"
+##          pip install --pre "$(ls dist/*ca5-5.*)"
+#
+#      - name: Upload wheel as artifact
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: cibuildwheel
+#          path: dist/*.whl
+#          retention-days: 1
+#
+#      - name: Run extra arm64 tests
+#        run: |
+#          cd ..
+#          arch -arm64 python -m PyMca5.tests.TestAll
+#
+#      - name: Run extra x86 tests
+#        run: |
+#          cd ..
+#          arch -x86_64 python -m PyMca5.tests.TestAll
 
 
 
