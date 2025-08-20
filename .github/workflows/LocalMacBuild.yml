@@ -198,30 +198,11 @@ jobs:
           unzip dist/*x86_64.whl -d wheel_x86
           unzip dist/*arm64.whl -d wheel_arm
           cp -R wheel_x86/* wheel_universal/
-#          echo "Listing files under dist/ for debugging:"
-#          find dist -type f
-#
-#          mkdir -p wheel_x86 wheel_arm wheel_universal
-#
-#          # Use find instead of ls for better compatibility
-#          X86_WHEEL=$(find dist -type f -name '*x86_64.whl')
-#          ARM_WHEEL=$(find dist -type f -name '*arm64.whl')
-#
-#          # Debug output
-#          echo "Found wheel files:"
-#          echo "X86_WHEEL: $X86_WHEEL"
-#          echo "ARM_WHEEL: $ARM_WHEEL"
-#
-#          # Check if both files exist
-#          if [[ -z "$X86_WHEEL" || -z "$ARM_WHEEL" ]]; then
-#            echo "❌ Missing one of the required wheel files"
-#            exit 1
-#          fi
-#
-#          # Extract and merge
-#          unzip "$X86_WHEEL" -d wheel_x86
-#          unzip "$ARM_WHEEL" -d wheel_arm
-#          cp -R wheel_x86/* wheel_universal/
+
+      - name: check arch
+        run: |
+          lipo -info wheel_x86/PyMca5/spslut.cpython-312-darwin.so
+          lipo -info wheel_arm/PyMca5/spslut.cpython-312-darwin.so
 
       - name: Create universal binaries
         run: |
