@@ -210,8 +210,20 @@ jobs:
             base=$(basename "$sofile")
             armfile=$(find wheel_arm -name "$base" | head -n1)
             output=$(find wheel_universal -name "$base" | head -n1)
+          
+            if [[ -z "$armfile" || -z "$output" ]]; then
+              echo "Skipping $base: missing file"
+              continue
+            fi
+          
+            echo "Extracting slices for $base"
+          
+            mkdir -p tmp_slices
+            lipo -extract x86_64 "$sofile" -output tmp_slices/x86.dylib
+            lipo -extract arm64 "$armfile" -output tmp_slices/arm.dylib
+          
             echo "Creating universal binary for $base"
-            lipo -create "$sofile" "$armfile" -output "$output"
+            lipo -create tmp_slices/x86.dylib tmp_slices/arm.dylib -output "$output"
           done
 
       - name: Repack wheel
