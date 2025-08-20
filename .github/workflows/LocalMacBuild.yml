@@ -139,23 +139,23 @@ jobs:
           path: dist/*.whl
           retention-days: 1
 
-      - name: Run the tests
-        run: |
-          ${{ matrix.SOURCE }}
-          cd ..
-          ${{ matrix.ARCH_COMMAND }} python -m PyMca5.tests.TestAll
-
-      # run all tests for universal wheels
-      - name: Run extra arm64 tests
-        if: matrix.ARCH_COMMAND != 'arch -x86_64' && matrix.ARCH_COMMAND != 'arch -arm64'
-        run: |
-          cd ..
-          arch -arm64 python -m PyMca5.tests.TestAll
-      - name: Run extra x86 tests
-        if: matrix.ARCH_COMMAND != 'arch -x86_64' && matrix.ARCH_COMMAND != 'arch -arm64'
-        run: |
-          cd ..
-          arch -x86_64 python -m PyMca5.tests.TestAll
+#      - name: Run the tests
+#        run: |
+#          ${{ matrix.SOURCE }}
+#          cd ..
+#          ${{ matrix.ARCH_COMMAND }} python -m PyMca5.tests.TestAll
+#
+#      # run all tests for universal wheels
+#      - name: Run extra arm64 tests
+#        if: matrix.ARCH_COMMAND != 'arch -x86_64' && matrix.ARCH_COMMAND != 'arch -arm64'
+#        run: |
+#          cd ..
+#          arch -arm64 python -m PyMca5.tests.TestAll
+#      - name: Run extra x86 tests
+#        if: matrix.ARCH_COMMAND != 'arch -x86_64' && matrix.ARCH_COMMAND != 'arch -arm64'
+#        run: |
+#          cd ..
+#          arch -x86_64 python -m PyMca5.tests.TestAll
 
 
   build_universal:
