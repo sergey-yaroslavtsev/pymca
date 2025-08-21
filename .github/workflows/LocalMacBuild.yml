@@ -91,6 +91,11 @@ jobs:
 
       - name: Run the tests
         run: |
+          arch -arm64 python -m venv venv-arm64
+          chmod +x venv-arm64/bin/python
+          source venv-x86/bin/activate
+          
+          arch -arm64 pip install --pre "$(ls dist/*test-5.*)"
           cd ..
           python -m PyMca5.tests.TestAll
 
@@ -101,9 +106,7 @@ jobs:
           source venv-x86/bin/activate
           
           arch -x86_64 pip install --pre "$(ls dist/*test-5.*)"
-          
           cd ..
-          
           arch -x86_64 python -m PyMca5.tests.TestAll
 
   build_and_test:
@@ -418,12 +421,18 @@ jobs:
 
       - name: Run extra x86 tests
         run: |
+          arch -x86_64 python -m venv venv-x86
+          chmod +x venv-x86/bin/python
+          source venv-x86/bin/activate
           arch -x86_64 pip install --pre "$(ls dist/*test-5.*)"
           cd ..
           arch -x86_64 python -m PyMca5.tests.TestAll
 
       - name: Run extra arm64 tests
         run: |
+          arch -arm64 python -m venv venv-arm64
+          chmod +x venv-arm64/bin/python
+          source venv-arm64/bin/activate
           arch -arm64 pip install --pre "$(ls dist/*test-5.*)"
           cd ..
           arch -arm64 python -m PyMca5.tests.TestAll
