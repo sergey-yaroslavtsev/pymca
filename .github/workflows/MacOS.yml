@@ -448,13 +448,15 @@ jobs:
       - name: Mount arm64 dmg
         run: |
           hdiutil attach dist/PyMca_arm64.dmg -mountpoint /Volumes/PyMcaARM
-          cp -R "/Volumes/PyMcaARM/PyMca*.app" "PyMcaInstaller/PyMca-arm64.app"
+          app_path=$(ls /Volumes/PyMcaARM/PyMca*.app | head -n 1)
+          cp -R "$app_path" "PyMcaInstaller/PyMca-arm64.app"
           hdiutil detach /Volumes/PyMcaARM
 
       - name: Mount x86 dmg
         run: |
           hdiutil attach dist/PyMca_x86.dmg -mountpoint /Volumes/PyMcaX86
-          cp -R "/Volumes/PyMcaX86/PyMca*.app" "PyMcaInstaller/PyMca-x86_64.app"
+          app_path=$(ls /Volumes/PyMcaX86/PyMca*.app | head -n 1)
+          cp -R "$app_path" "PyMcaInstaller/PyMca-x86_64.app"
           hdiutil detach /Volumes/PyMcaX86
       
       - name: Create install.command
