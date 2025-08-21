@@ -28,7 +28,7 @@ jobs:
           pip install --pre --extra-index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
           pip install Cython
           pip install wheel
-          pip install numpy
+          pip install numpy==2.2.6
           pip install PySide6
           pip install h5py
           pip install fisx
