@@ -474,14 +474,14 @@ jobs:
         if: matrix.MODE == 'x86'
         uses: actions/download-artifact@v4
         with:
-          name: macos-10.13-x86_64-python3.12-dist
+          name: macOS-10.13-x86_64-python3.12-dist
           path: dist
 
       - name: Download Mac arm64 artifact
         if: matrix.MODE == 'arm64'
         uses: actions/download-artifact@v4
         with:
-          name: macos-11-arm64-python3.12-dist
+          name: macOS-11-arm64-python3.12-dist
           path: dist
 
       - name: Download Mac universal artifact
