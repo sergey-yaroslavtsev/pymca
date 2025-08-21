@@ -19,7 +19,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: "3.13" #was working with cp3.9 and pyqt5 numpy 1.24.4
+          python-version: "3.13" #was working with cp3.9 and pyqt5 numpy 1.24.4 cx_freeze 6.14.7
 
       - name: Install dependencies
         run: |          
@@ -27,7 +27,7 @@ jobs:
           pip install qtconsole==5.4.1
           pip install matplotlib==3.5.3
           pip install lief==0.12.3
-          pip install cx_Freeze==6.14.7
+          pip install cx_Freeze==8.3.0
           pip install --pre --extra-index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
           pip install Cython
           pip install numpy==2.2.6 
