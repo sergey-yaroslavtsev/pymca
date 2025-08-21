@@ -408,3 +408,230 @@ jobs:
           name: macos-x86(intel)-pyinstaller-artifacts-dmg
           path: dist/*.dmg
           retention-days: 1
+
+  macos_x86_arm64_in_one_python312:
+    runs-on: macos-latest
+    needs:
+      - macos_arm_pyinstaller_python312
+      - macos_x86_pyinstaller_python312
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.12"
+
+      - name: Download Mac arm64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-arm-pyinstaller-artifacts-dmg
+          path: dist
+
+      - name: rename dmg
+        run: sudo mv dist/PyMca5*.dmg dist/PyMca_arm64.dmg
+
+      - name: Download Mac x86 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-x86(intel)-pyinstaller-artifacts-dmg
+          path: dist
+
+      - name: rename dmg
+        run: sudo mv dist/PyMca5*.dmg dist/PyMca_x86.dmg
+
+      - name: Create working directory
+        run: |
+          sudo mkdir PyMca
+            
+      - name: Mount arm64 dmg
+        run: |
+          hdiutil attach dist/PyMca_arm64.dmg -mountpoint /Volumes/MyAppARM
+          cp -R "/Volumes/PyMcaARM/PyMca.app" "PyMcaInstaller/PyMca-arm64.app"
+          hdiutil detach /Volumes/PyMcaARM
+
+      - name: Mount x86 dmg
+        run: |
+          hdiutil attach dist/PyMca_x86.dmg -mountpoint /Volumes/PyMcaX86
+          cp -R "/Volumes/PyMcaX86/PyMca.app" "PyMcaInstaller/PyMca-x86_64.app"
+          hdiutil detach /Volumes/PyMcaX86
+      
+      - name: Create install.command
+        run: |
+          cat << 'EOF' > PyMcaInstaller/install.command
+          #!/bin/bash
+
+          ARCH=$(uname -m)
+          echo "Detected architecture: $ARCH"
+          
+          if [ "$ARCH" = "arm64" ]; then
+              APP_NAME="PyMca-arm64.app"
+          elif [ "$ARCH" = "x86_64" ]; then
+              APP_NAME="PyMca-x86_64.app"
+          else
+              echo "Unsupported architecture: $ARCH"
+              osascript -e 'display dialog "Unsupported architecture detected." buttons {"OK"}'
+              exit 1
+          fi
+          
+          SRC="$(cd "$(dirname "$0")"; pwd)/$APP_NAME"
+          DST="/Applications/PyMca.app"
+          
+          echo "Installing $APP_NAME to $DST"
+          
+          # Ask user for permission via AppleScript dialog
+          osascript <<EOF
+          tell application "System Events"
+              activate
+              display dialog "Install PyMca to /Applications?" buttons {"Cancel", "Install"} default button "Install"
+          end tell
+          EOF
+          
+          # Perform install
+          if cp -R "$SRC" "$DST"; then
+              echo "Installed successfully."
+              osascript -e 'display notification "PyMca installed to /Applications" with title "Installation Complete"'
+              open "$DST"
+          else
+              echo "Installation failed."
+              osascript -e 'display dialog "Failed to install PyMca. Check permissions." buttons {"OK"}'
+              exit 1
+          fi
+          
+          chmod +x PyMcaInstaller/install.command
+      
+      - name: Create final DMG
+        run: |
+          hdiutil create -volname "PyMcaInstaller" \
+                        -srcfolder "PyMcaInstaller" \
+                        -ov -format UDZO "PyMca-Universal.dmg"
+
+      - name: Upload final universal DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: PyMca-Universal
+          path: PyMca-Universal.dmg
+
+      - name: Mount final DMG
+        run: |
+          hdiutil attach PyMca-Universal.dmg -mountpoint /Volumes/PyMcaInstaller
+
+      - name: Test ARM64 install script
+        run: |
+          echo "Testing install on arm64..."
+          arch -arm64 bash -c 'cd "/Volumes/PyMcaInstaller" && ./install.command'
+        continue-on-error: true  # Optional: Avoid failing the job if test fails
+
+      - name: Run the app to check it launches
+        run: |
+          set -e
+
+          echo "Launching PyMcaMain..."
+          LOGFILE=$(mktemp)
+
+          # Start the app in the background
+          arch -arm64 /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain > "$LOGFILE" 2>&1 &
+          APP_PID=$!
+
+          echo "App started with PID $APP_PID"
+
+          # Wait up to 120 seconds for it to crash or hang
+          for i in {1..120}; do
+            if ! ps -p $APP_PID > /dev/null; then
+              echo "App exited early. Checking exit code..."
+              wait $APP_PID || true
+              EXIT_CODE=$?
+              echo "Exit code: $EXIT_CODE"
+              echo "App output log:"
+              cat "$LOGFILE"
+              if [ $EXIT_CODE -ne 0 ]; then
+                echo "App exited with error code $EXIT_CODE"
+                exit $EXIT_CODE
+              else
+                echo "App exited cleanly before 2 minutes."
+                exit 0
+              fi
+            fi
+
+            if grep -qE 'ImportError|Traceback|ERROR:' "$LOGFILE"; then
+              echo "Detected error in application output:"
+              cat "$LOGFILE"
+              echo "Failing due to runtime error."
+              kill $APP_PID || true
+              wait $APP_PID || true
+              exit 1
+            fi
+
+            sleep 1
+          done
+
+          echo "App ran for 2 minutes without crashing. Killing it now..."
+          kill $APP_PID || true
+          wait $APP_PID || true
+          echo "App test complete."
+
+      - name: Intermediate step between arm64 and x86_64
+        run: |
+          echo "Running cleanup or prep step between ARM64 and x86_64 tests"
+          # For example, remove the app if it was installed
+          sudo rm -rf /Applications/PyMca.app || true
+
+      - name: Test x86_64 install script
+        run: |
+          echo "Testing install on x86_64..."
+          arch -x86_64 bash -c 'cd "/Volumes/PyMcaInstaller" && ./install.command'
+        continue-on-error: true
+
+      - name: Run the app to check it launches
+        run: |
+          set -e
+
+          echo "Launching PyMcaMain..."
+          LOGFILE=$(mktemp)
+
+          # Start the app in the background
+          arch -x86_64 /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain > "$LOGFILE" 2>&1 &
+          APP_PID=$!
+
+          echo "App started with PID $APP_PID"
+
+          # Wait up to 120 seconds for it to crash or hang
+          for i in {1..120}; do
+            if ! ps -p $APP_PID > /dev/null; then
+              echo "App exited early. Checking exit code..."
+              wait $APP_PID || true
+              EXIT_CODE=$?
+              echo "Exit code: $EXIT_CODE"
+              echo "App output log:"
+              cat "$LOGFILE"
+              if [ $EXIT_CODE -ne 0 ]; then
+                echo "App exited with error code $EXIT_CODE"
+                exit $EXIT_CODE
+              else
+                echo "App exited cleanly before 2 minutes."
+                exit 0
+              fi
+            fi
+
+            if grep -qE 'ImportError|Traceback|ERROR:' "$LOGFILE"; then
+              echo "Detected error in application output:"
+              cat "$LOGFILE"
+              echo "Failing due to runtime error."
+              kill $APP_PID || true
+              wait $APP_PID || true
+              exit 1
+            fi
+
+            sleep 1
+          done
+
+          echo "App ran for 2 minutes without crashing. Killing it now..."
+          kill $APP_PID || true
+          wait $APP_PID || true
+          echo "App test complete."
+
+      - name: Unmount final DMG
+        run: |
+          hdiutil detach /Volumes/MyAppInstaller
+          

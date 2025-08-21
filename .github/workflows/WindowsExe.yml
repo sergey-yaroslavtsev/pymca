@@ -18,7 +18,7 @@ jobs:
 
       - uses: actions/setup-python@v2
         with:
-          python-version: "3.11"
+          python-version: "3.13" #was working with 3.11 and Pyside6
 
       - name: Install dependencies
         run: |

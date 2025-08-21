@@ -19,12 +19,12 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: "3.9"
+          python-version: "3.13" #was working with cp3.9 and pyqt5
 
       - name: Install dependencies
         run: |
           pip install numpy==1.24.4
-          pip install PyQt5
+          pip install Pyside6
           pip install h5py
           pip install fisx
           pip install matplotlib==3.5.3
