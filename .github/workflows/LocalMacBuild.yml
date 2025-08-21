@@ -93,7 +93,7 @@ jobs:
         run: |
           arch -arm64 python -m venv venv-arm64
           chmod +x venv-arm64/bin/python
-          source venv-x86/bin/activate
+          source venv-arm64/bin/activate
           
           arch -arm64 pip install --pre "$(ls dist/*test-5.*)"
           cd ..
