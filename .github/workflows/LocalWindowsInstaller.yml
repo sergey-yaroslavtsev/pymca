@@ -1,4 +1,4 @@
-name: Windows (cx_freeze - installer)
+name: Windows (cx_freeze - installer - local tests)
 
 on:
   workflow_dispatch:
