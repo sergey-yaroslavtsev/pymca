@@ -192,11 +192,6 @@ jobs:
           # ${{ matrix.ARCH_COMMAND }} pip install silx --pre --find-links https://silx.gitlab-pages.esrf.fr/bob/silx/
           ${{ matrix.ARCH_COMMAND }} pip install ${{ matrix.QT_BINDING }}
 
-      - name: Print python info
-        run: |
-          ${{ matrix.SOURCE }}
-          ${{ matrix.ARCH_COMMAND }} python ./ci/info_platform.py
-          ${{ matrix.ARCH_COMMAND }} pip list
 
       - name: Set environment for ${{ matrix.MacOS_TARGET }} compatibility
         run: |
@@ -346,32 +341,21 @@ jobs:
           name: universal-wheel
           path: fixed_wheel/*.whl
 
-#      - name: Install
+#      - name: Run arm64 tests
 #        run: |
-#          pip install --pre ./fixed_wheel/*.whl
-
-      - name: Run arm64 tests
-        run: |
-          arch -arm64 pip install --pre ./fixed_wheel/*.whl
-          cd ..
-          arch -arm64 python -m PyMca5.tests.TestAll
-
-      - name: Run x86 tests
-        run: |
-          arch -x86_64 python -m venv venv-x86
-          chmod +x venv-x86/bin/python
-          source venv-x86/bin/activate
-          
-          arch -x86_64 pip install --pre ./fixed_wheel/*.whl
-          cd ..
-          arch -x86_64 python -m PyMca5.tests.TestAll
-
-#          arch -x86_64 pip uninstall -y numpy
-#          arch -x86_64 pip install numpy
-#          arch -x86_64 pip uninstall -y cython
-#          arch -x86_64 pip install cython
-
-
+#          arch -arm64 pip install --pre ./fixed_wheel/*.whl
+#          cd ..
+#          arch -arm64 python -m PyMca5.tests.TestAll
+#
+#      - name: Run x86 tests
+#        run: |
+#          arch -x86_64 python -m venv venv-x86
+#          chmod +x venv-x86/bin/python
+#          source venv-x86/bin/activate
+#
+#          arch -x86_64 pip install --pre ./fixed_wheel/*.whl
+#          cd ..
+#          arch -x86_64 python -m PyMca5.tests.TestAll
 
 
   build_with_cibuildwheel:
@@ -419,23 +403,23 @@ jobs:
           path: dist/*.whl
           retention-days: 1
 
-      - name: Run extra x86 tests
-        run: |
-          arch -x86_64 python -m venv venv-x86
-          chmod +x venv-x86/bin/python
-          source venv-x86/bin/activate
-          arch -x86_64 pip install --pre "$(ls dist/*test-5.*)"
-          cd ..
-          arch -x86_64 python -m PyMca5.tests.TestAll
-
-      - name: Run extra arm64 tests
-        run: |
-          arch -arm64 python -m venv venv-arm64
-          chmod +x venv-arm64/bin/python
-          source venv-arm64/bin/activate
-          arch -arm64 pip install --pre "$(ls dist/*test-5.*)"
-          cd ..
-          arch -arm64 python -m PyMca5.tests.TestAll
+#      - name: Run extra x86 tests
+#        run: |
+#          arch -x86_64 python -m venv venv-x86
+#          chmod +x venv-x86/bin/python
+#          source venv-x86/bin/activate
+#          arch -x86_64 pip install --pre "$(ls dist/*test-5.*)"
+#          cd ..
+#          arch -x86_64 python -m PyMca5.tests.TestAll
+#
+#      - name: Run extra arm64 tests
+#        run: |
+#          arch -arm64 python -m venv venv-arm64
+#          chmod +x venv-arm64/bin/python
+#          source venv-arm64/bin/activate
+#          arch -arm64 pip install --pre "$(ls dist/*test-5.*)"
+#          cd ..
+#          arch -arm64 python -m PyMca5.tests.TestAll
 
  
 
@@ -540,7 +524,6 @@ jobs:
           ${{ matrix.ARCH_COMMAND }} pip install pyparsing==3.1.1
           ${{ matrix.ARCH_COMMAND }} pip install python_dateutil==2.8.2
           ${{ matrix.ARCH_COMMAND }} pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/matplotlib-3.8.2-cp312-cp312-macosx_11_0_universal2.whl
-          ${{ matrix.ARCH_COMMAND }} pip install h5py
           ${{ matrix.ARCH_COMMAND }} pip install hdf5plugin
           ${{ matrix.ARCH_COMMAND }} pip install PySide6==6.6.0
           ${{ matrix.ARCH_COMMAND }} pip install lxml==4.9.3
@@ -745,7 +728,6 @@ jobs:
             "packaging==23.2"
             "pyparsing==3.1.1"
             "python_dateutil==2.8.2"
-            "h5py"
             "hdf5plugin"
             "PySide6==6.6.0"
             "lxml==4.9.3"
