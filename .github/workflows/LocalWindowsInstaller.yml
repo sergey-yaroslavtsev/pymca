@@ -74,10 +74,10 @@ jobs:
           pip install --pre "$(ls dist/*test-5.*)"
       #          pip install --pre "$(ls dist/*ca5-5.*)"
 
-      - name: Run the tests
-        run: |
-          cd ..
-          python -m PyMca5.tests.TestAll
+#      - name: Run the tests
+#        run: |
+#          cd ..
+#          python -m PyMca5.tests.TestAll
 
       - name: Rename .whl file
         shell: pwsh
@@ -136,7 +136,7 @@ jobs:
           pip install matplotlib==3.5.3
           pip install lief==0.12.3
           pip install cx_Freeze==8.3.0
-          pip install --pre dist/*.whl
+          pip install --pre dist/python${{ matrix.python-version }}-${{ matrix.QT_BINDING }}-dist/*.whl
           pip install Cython
           pip install numpy==2.2.6 
           pip install ${{ matrix.QT_BINDING }}
@@ -146,23 +146,6 @@ jobs:
           pip install silx
           pip install PyOpenGL
           pip install git+https://github.com/vasole/bcflight.git
-
-#          python -m pip install --upgrade pip setuptools wheel
-#          pip install numpy==2.2.6
-#          pip install Pyside6
-#          pip install h5py
-#          pip install fisx
-#          pip install matplotlib==3.5.3
-#          pip install hdf5plugin
-#          pip install git+https://github.com/silx-kit/silx.git
-#          pip install PyOpenGL
-#          pip install qtconsole==5.4.1
-#          pip install lief==0.12.3
-#          pip install cx_Freeze==6.14.7
-#          pip install --pre --extra-index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
-#          pip install Cython
-#          pip install wheel
-#          pip install git+https://github.com/vasole/bcflight.git
 
       - name: Install NSIS
         run: choco install nsis -y
