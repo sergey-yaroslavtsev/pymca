@@ -84,7 +84,7 @@ jobs:
         run: |
           $pyver = '${{ matrix.python-version }}'
           $pep425tag = 'cp' + ($pyver -replace '\.', '')
-          $newName = "PyMca5${{ matrix.QT_BINDING }}-$pep425tag-win_amd64.whl"
+          $newName = "PyMca5${{ matrix.QT_BINDING }}-5.6.4-$pep425tag-$pep425tag-win_amd64.whl"
           $whlFile = Get-ChildItem -Path dist -Filter *.whl | Select-Object -First 1
           Rename-Item -Path $whlFile.FullName -NewName $newName
           Write-Host "Renamed $($whlFile.Name) to '$newName'"
