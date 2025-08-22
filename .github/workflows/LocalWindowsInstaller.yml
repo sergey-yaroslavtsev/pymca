@@ -135,7 +135,7 @@ jobs:
 
       - name: Install dependencies
         run: |       
-          $wheel = Get-ChildItem -Path "dist/python${{ matrix.python-version }}-${{ matrix.QT_BINDING }}-dist" -Filter *.whl | Select-Object -First 1
+          $wheel = Get-ChildItem -Path "dist" -Filter *.whl | Select-Object -First 1
           python -m pip install --upgrade pip setuptools wheel
           pip install qtconsole==5.6.1
           pip install matplotlib==3.10.5
