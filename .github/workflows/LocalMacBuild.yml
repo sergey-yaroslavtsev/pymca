@@ -534,7 +534,7 @@ jobs:
           # ${{ matrix.ARCH_COMMAND }} pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/matplotlib-3.8.2-cp312-cp312-macosx_11_0_universal2.whl
           ${{ matrix.ARCH_COMMAND }} pip install matplotlib==3.10.5
           ${{ matrix.ARCH_COMMAND }} pip install hdf5plugin
-          ${{ matrix.ARCH_COMMAND }} pip install PySide6==6.9.1
+          ${{ matrix.ARCH_COMMAND }} pip install PySide6==6.5.2
           ${{ matrix.ARCH_COMMAND }} pip install lxml==4.9.3
           ${{ matrix.ARCH_COMMAND }} pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/fabio-2023.10.0-cp312-cp312-macosx_10_9_universal2.whl
           ${{ matrix.ARCH_COMMAND }} pip install fisx==1.2.1
@@ -586,6 +586,28 @@ jobs:
           hdiutil attach "dist/$DMG_NAME" -mountpoint /Volumes/PyMcaApp
         env:
           APP_NAME: ${{ env.APP_NAME }}
+
+      - name: Check architecture of app binary
+        run: |
+          APP_BINARY="/Volumes/PyMcaApp/${APP_NAME}/Contents/MacOS/$(basename "${APP_NAME}" .app)"
+          echo "🔍 Checking binary at: $APP_BINARY"
+
+          if [ ! -f "$APP_BINARY" ]; then
+            echo "❌ Binary not found at expected path: $APP_BINARY"
+          else
+            ARCH_OUTPUT=$(file "$APP_BINARY")
+            echo "📦 Architecture Info: $ARCH_OUTPUT"
+
+            if [[ "$ARCH_OUTPUT" == *"x86_64"* && "$ARCH_OUTPUT" == *"arm64"* ]]; then
+              echo "✅ Binary is universal2 (x86_64 + arm64)"
+            elif [[ "$ARCH_OUTPUT" == *"arm64"* ]]; then
+              echo "ℹ️ Binary is arm64-only"
+            elif [[ "$ARCH_OUTPUT" == *"x86_64"* ]]; then
+              echo "ℹ️ Binary is x86_64-only"
+            else
+              echo "❓ Unknown architecture: $ARCH_OUTPUT"
+            fi
+          fi
 
       - name: Copy .app to /Applications
         run: |
@@ -765,9 +787,8 @@ jobs:
             "pyparsing==3.1.1"
             "python_dateutil==2.8.2"
             "hdf5plugin"
-            "PySide6==6.6.0"
+            "PySide6==6.5.2"
             "lxml==4.9.3"
-            "fisx==1.2.1"
             "PyOpenGL"
             "qtconsole==5.5.1"
             "PyInstaller==6.2.0"
@@ -794,6 +815,8 @@ jobs:
           pip install "$TMPDIR"/*.whl
           
           echo "🎉 All packages installed successfully with universal2 wheels only."
+          
+          pip install fisx==1.2.1
           
           WHEEL=$(ls dist/*.whl | head -n 1)
           echo "Installing wheel file: $WHEEL"
@@ -859,6 +882,28 @@ jobs:
           hdiutil attach "dist/$DMG_NAME" -mountpoint /Volumes/PyMcaApp
         env:
           APP_NAME: ${{ env.APP_NAME }}
+
+      - name: Check architecture of app binary
+        run: |
+          APP_BINARY="/Volumes/PyMcaApp/${APP_NAME}/Contents/MacOS/$(basename "${APP_NAME}" .app)"
+          echo "🔍 Checking binary at: $APP_BINARY"
+
+          if [ ! -f "$APP_BINARY" ]; then
+            echo "❌ Binary not found at expected path: $APP_BINARY"
+          else
+            ARCH_OUTPUT=$(file "$APP_BINARY")
+            echo "📦 Architecture Info: $ARCH_OUTPUT"
+
+            if [[ "$ARCH_OUTPUT" == *"x86_64"* && "$ARCH_OUTPUT" == *"arm64"* ]]; then
+              echo "✅ Binary is universal2 (x86_64 + arm64)"
+            elif [[ "$ARCH_OUTPUT" == *"arm64"* ]]; then
+              echo "ℹ️ Binary is arm64-only"
+            elif [[ "$ARCH_OUTPUT" == *"x86_64"* ]]; then
+              echo "ℹ️ Binary is x86_64-only"
+            else
+              echo "❓ Unknown architecture: $ARCH_OUTPUT"
+            fi
+          fi
 
       - name: Copy .app to /Applications
         run: |
