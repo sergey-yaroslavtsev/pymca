@@ -513,22 +513,26 @@ jobs:
 
       - name: Install dependencies # pyside 6.6.0
         run: |
-          pip install --upgrade pip wheel
-          pip install "setuptools<81"
+          ${{ matrix.ARCH_COMMAND }} pip install --upgrade pip wheel
+          ${{ matrix.ARCH_COMMAND }} pip install "setuptools<81"
           
-          ${{ matrix.ARCH_COMMAND }} pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/numpy-1.26.2-cp312-cp312-macosx_10_9_universal2.whl
-          ${{ matrix.ARCH_COMMAND }} pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/h5py-3.10.0-cp312-cp312-macosx_11_0_universal2.whl
+          # ${{ matrix.ARCH_COMMAND }} pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/numpy-1.26.2-cp312-cp312-macosx_10_9_universal2.whl
+          # ${{ matrix.ARCH_COMMAND }} pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/h5py-3.10.0-cp312-cp312-macosx_11_0_universal2.whl
           ${{ matrix.ARCH_COMMAND }} pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/psutil-5.9.6-cp312-abi3-macosx_10_9_universal2.whl
           ${{ matrix.ARCH_COMMAND }} pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/Pillow-10.1.0-cp312-cp312-macosx_11_0_universal2.whl
           ${{ matrix.ARCH_COMMAND }} pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/tornado-6.3.3-cp38-abi3-macosx_10_9_universal2.whl
           ${{ matrix.ARCH_COMMAND }} pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/contourpy-1.2.0-cp312-cp312-macosx_11_0_universal2.whl
           ${{ matrix.ARCH_COMMAND }} pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/kiwisolver-1.4.5-cp312-cp312-macosx_11_0_universal2.whl
+          ${{ matrix.ARCH_COMMAND }} pip install numpy==2.2.6
+          ${{ matrix.ARCH_COMMAND }} pip install h5py
+          
           ${{ matrix.ARCH_COMMAND }} pip install cycler==0.12.1
           ${{ matrix.ARCH_COMMAND }} pip install fonttools==4.45.1
           ${{ matrix.ARCH_COMMAND }} pip install packaging==23.2
           ${{ matrix.ARCH_COMMAND }} pip install pyparsing==3.1.1
           ${{ matrix.ARCH_COMMAND }} pip install python_dateutil==2.8.2
-          ${{ matrix.ARCH_COMMAND }} pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/matplotlib-3.8.2-cp312-cp312-macosx_11_0_universal2.whl
+          # ${{ matrix.ARCH_COMMAND }} pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/matplotlib-3.8.2-cp312-cp312-macosx_11_0_universal2.whl
+          ${{ matrix.ARCH_COMMAND }} pip install matplotlib==3.10.5
           ${{ matrix.ARCH_COMMAND }} pip install hdf5plugin
           ${{ matrix.ARCH_COMMAND }} pip install PySide6==6.9.1
           ${{ matrix.ARCH_COMMAND }} pip install lxml==4.9.3
