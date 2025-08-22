@@ -443,8 +443,8 @@ jobs:
 
       - name: Create working directory
         run: |
-          sudo mkdir -p PyMcaInstaller
-          sudo mkdir PyMca
+          mkdir -p PyMcaInstaller
+          mkdir PyMca
 
       - name: Mount arm64 dmg
         run: |
