@@ -508,9 +508,11 @@ jobs:
           echo "CFLAGS=-mmacosx-version-min=10.13" >> $GITHUB_ENV
           echo "LDFLAGS=-mmacosx-version-min=10.13" >> $GITHUB_ENV
 
-      - name: Install dependencies
+      - name: Install dependencies # pyside 6.6.0
         run: |
-          ${{ matrix.ARCH_COMMAND }} pip install "setuptools<81"
+          pip install --upgrade pip wheel
+          pip install "setuptools<81"
+          
           ${{ matrix.ARCH_COMMAND }} pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/numpy-1.26.2-cp312-cp312-macosx_10_9_universal2.whl
           ${{ matrix.ARCH_COMMAND }} pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/h5py-3.10.0-cp312-cp312-macosx_11_0_universal2.whl
           ${{ matrix.ARCH_COMMAND }} pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/psutil-5.9.6-cp312-abi3-macosx_10_9_universal2.whl
@@ -525,7 +527,7 @@ jobs:
           ${{ matrix.ARCH_COMMAND }} pip install python_dateutil==2.8.2
           ${{ matrix.ARCH_COMMAND }} pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/matplotlib-3.8.2-cp312-cp312-macosx_11_0_universal2.whl
           ${{ matrix.ARCH_COMMAND }} pip install hdf5plugin
-          ${{ matrix.ARCH_COMMAND }} pip install PySide6==6.6.0
+          ${{ matrix.ARCH_COMMAND }} pip install PySide6==6.9.1
           ${{ matrix.ARCH_COMMAND }} pip install lxml==4.9.3
           ${{ matrix.ARCH_COMMAND }} pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/fabio-2023.10.0-cp312-cp312-macosx_10_9_universal2.whl
           ${{ matrix.ARCH_COMMAND }} pip install fisx
@@ -534,9 +536,21 @@ jobs:
           ${{ matrix.ARCH_COMMAND }} pip install qtconsole==5.5.1
           ${{ matrix.ARCH_COMMAND }} pip install PyInstaller==6.2.0
           ${{ matrix.ARCH_COMMAND }} pip install Cython
-          ${{ matrix.ARCH_COMMAND }} pip install wheel
           ${{ matrix.ARCH_COMMAND }} pip install --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
           ${{ matrix.ARCH_COMMAND }} pip install git+https://github.com/vasole/bcflight.git
+
+
+      - name: check arch of libs
+        run: |
+          SITE_PACKAGES=$(python3 -c "import site; print(site.getsitepackages()[0])")
+          find "$SITE_PACKAGES" -type f \( -name "*.so" -o -name "*.dylib" \)
+          find "$SITE_PACKAGES" -type f \( -name "*.so" -o -name "*.dylib" \) -exec file {} \;
+
+      - name: check arch of libs by lipo
+        run: |
+          SITE_PACKAGES=$(python3 -c "import site; print(site.getsitepackages()[0])")
+          find "$SITE_PACKAGES" -type f \( -name "*.so" -o -name "*.dylib" \)
+          find "$SITE_PACKAGES" -type f \( -name "*.so" -o -name "*.dylib" \) -exec lipo -archs {} \; -exec echo "→ {}" \;
 
 
       - name: Build PyInstaller app
@@ -713,6 +727,18 @@ jobs:
           
           pip install --upgrade pip wheel
           pip install "setuptools<81"
+          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/numpy-1.26.2-cp312-cp312-macosx_10_9_universal2.whl
+          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/h5py-3.10.0-cp312-cp312-macosx_11_0_universal2.whl
+          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/psutil-5.9.6-cp312-abi3-macosx_10_9_universal2.whl
+          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/Pillow-10.1.0-cp312-cp312-macosx_11_0_universal2.whl
+          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/tornado-6.3.3-cp38-abi3-macosx_10_9_universal2.whl
+          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/contourpy-1.2.0-cp312-cp312-macosx_11_0_universal2.whl
+          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/kiwisolver-1.4.5-cp312-cp312-macosx_11_0_universal2.whl
+          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/matplotlib-3.8.2-cp312-cp312-macosx_11_0_universal2.whl
+          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/fabio-2023.10.0-cp312-cp312-macosx_10_9_universal2.whl
+          pip install git+https://github.com/silx-kit/silx.git
+          pip install --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
+          pip install git+https://github.com/vasole/bcflight.git
           
           # Target Python + wheel tags
           PYTHON_VERSION="3.11"
@@ -758,20 +784,6 @@ jobs:
           pip install "$TMPDIR"/*.whl
           
           echo "🎉 All packages installed successfully with universal2 wheels only."
-          
-          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/numpy-1.26.2-cp312-cp312-macosx_10_9_universal2.whl
-          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/h5py-3.10.0-cp312-cp312-macosx_11_0_universal2.whl
-          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/psutil-5.9.6-cp312-abi3-macosx_10_9_universal2.whl
-          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/Pillow-10.1.0-cp312-cp312-macosx_11_0_universal2.whl
-          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/tornado-6.3.3-cp38-abi3-macosx_10_9_universal2.whl
-          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/contourpy-1.2.0-cp312-cp312-macosx_11_0_universal2.whl
-          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/kiwisolver-1.4.5-cp312-cp312-macosx_11_0_universal2.whl
-          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/matplotlib-3.8.2-cp312-cp312-macosx_11_0_universal2.whl
-          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/fabio-2023.10.0-cp312-cp312-macosx_10_9_universal2.whl
-          pip install git+https://github.com/silx-kit/silx.git
-          pip install --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
-          pip install git+https://github.com/vasole/bcflight.git
-
 
       - name: Build PyInstaller app
         run: |
