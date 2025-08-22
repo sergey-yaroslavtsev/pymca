@@ -23,13 +23,12 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip setuptools wheel
-          pip install qtconsole==5.4.1
-          pip install matplotlib
+          pip install qtconsole==5.6.1
+          pip install matplotlib==3.10.5
           pip install --pre --extra-index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
           pip install Cython
-          pip install wheel
-          pip install numpy==2.2.6
-          pip install PySide6
+          pip install numpy==2.2.6 
+          pip install Pyside6
           pip install h5py
           pip install fisx
           pip install hdf5plugin

@@ -4,110 +4,110 @@ on:
   workflow_dispatch:
 
 jobs:
-  build_test:
-    name: try again x86
-    runs-on: macos-latest
-    strategy:
-      # do not cancel tests after first fail
-      fail-fast: false
-      matrix:
-        include:
-
-          - python-version: "3.12"
-            BUILD_COMMAND: --wheel
-            ARCH_COMMAND: ""
-            SOURCE: ""
-            QT_BINDING: PySide6
-            MacOS_TARGET: 10.13
-
+#  build_test:
+#    name: try again x86
+#    runs-on: macos-latest
+#    strategy:
+#      # do not cancel tests after first fail
+#      fail-fast: false
+#      matrix:
+#        include:
+#
 #          - python-version: "3.12"
 #            BUILD_COMMAND: --wheel
-#            ARCH_COMMAND: "arch -x86_64"
-#            SOURCE: "source venv-x86/bin/activate"
+#            ARCH_COMMAND: ""
+#            SOURCE: ""
 #            QT_BINDING: PySide6
 #            MacOS_TARGET: 10.13
 #
 ##          - python-version: "3.12"
 ##            BUILD_COMMAND: --wheel
+##            ARCH_COMMAND: "arch -x86_64"
+##            SOURCE: "source venv-x86/bin/activate"
+##            QT_BINDING: PySide6
+##            MacOS_TARGET: 10.13
+##
+###          - python-version: "3.12"
+###            BUILD_COMMAND: --wheel
+###            ARCH_COMMAND: "arch -arm64"
+###            SOURCE: "source venv-arm64/bin/activate"
+###            QT_BINDING: PySide6
+###            MacOS_TARGET: 10.13
+##
+##          - python-version: "3.12"
+##            BUILD_COMMAND: --wheel
 ##            ARCH_COMMAND: "arch -arm64"
 ##            SOURCE: "source venv-arm64/bin/activate"
 ##            QT_BINDING: PySide6
-##            MacOS_TARGET: 10.13
+##            MacOS_TARGET: 11
 #
-#          - python-version: "3.12"
-#            BUILD_COMMAND: --wheel
-#            ARCH_COMMAND: "arch -arm64"
-#            SOURCE: "source venv-arm64/bin/activate"
-#            QT_BINDING: PySide6
-#            MacOS_TARGET: 11
-
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Upgrade distribution modules and install build dependencies
-        run: |
-          ${{ matrix.SOURCE }}
-          ${{ matrix.ARCH_COMMAND }} python -m pip install --upgrade pip
-          ${{ matrix.ARCH_COMMAND }} pip install --upgrade setuptools wheel cython
-          # if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          ${{ matrix.ARCH_COMMAND }} pip install --upgrade wheel
-          ${{ matrix.ARCH_COMMAND }} pip install --upgrade numpy
-          ${{ matrix.ARCH_COMMAND }} pip install --upgrade build
-          # ${{ matrix.ARCH_COMMAND }} pip install silx --pre --find-links https://silx.gitlab-pages.esrf.fr/bob/silx/
-          ${{ matrix.ARCH_COMMAND }} pip install ${{ matrix.QT_BINDING }}
-
-
-      - name: Set environment for ${{ matrix.MacOS_TARGET }} compatibility
-        run: |
-          echo "MACOSX_DEPLOYMENT_TARGET=${{ matrix.MacOS_TARGET }}" >> $GITHUB_ENV
-          echo "CFLAGS=-mmacosx-version-min=${{ matrix.MacOS_TARGET }}" >> $GITHUB_ENV
-          echo "LDFLAGS=-mmacosx-version-min=${{ matrix.MacOS_TARGET }}" >> $GITHUB_ENV
-
-      - name: Generate source package or wheel
-        run: |
-          ${{ matrix.SOURCE }}
-          ${{ matrix.ARCH_COMMAND }} python -m build ${{ matrix.BUILD_COMMAND }}
-          ls dist
-
-      - name: Install
-        run: |
-          ${{ matrix.SOURCE }}
-          ${{ matrix.ARCH_COMMAND }} pip install --pre "$(ls dist/*test-5.*)"
-#          pip install --pre "$(ls dist/*ca5-5.*)"
-
-      - name: Upload wheel as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: uni-test
-          path: dist/*.whl
-          retention-days: 1
-
-      - name: Run the tests
-        run: |
-          arch -arm64 python -m venv venv-arm64
-          chmod +x venv-arm64/bin/python
-          source venv-arm64/bin/activate
-          
-          arch -arm64 pip install --pre "$(ls dist/*test-5.*)"
-          cd ..
-          python -m PyMca5.tests.TestAll
-
-      - name: Run extra x86 tests
-        run: |
-          arch -x86_64 python -m venv venv-x86
-          chmod +x venv-x86/bin/python
-          source venv-x86/bin/activate
-          
-          arch -x86_64 pip install --pre "$(ls dist/*test-5.*)"
-          cd ..
-          arch -x86_64 python -m PyMca5.tests.TestAll
+#    steps:
+#      - uses: actions/checkout@v2
+#        with:
+#          fetch-depth: 0
+#
+#      - name: Set up Python
+#        uses: actions/setup-python@v2
+#        with:
+#          python-version: ${{ matrix.python-version }}
+#
+#      - name: Upgrade distribution modules and install build dependencies
+#        run: |
+#          ${{ matrix.SOURCE }}
+#          ${{ matrix.ARCH_COMMAND }} python -m pip install --upgrade pip
+#          ${{ matrix.ARCH_COMMAND }} pip install --upgrade setuptools wheel cython
+#          # if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+#          ${{ matrix.ARCH_COMMAND }} pip install --upgrade wheel
+#          ${{ matrix.ARCH_COMMAND }} pip install --upgrade numpy
+#          ${{ matrix.ARCH_COMMAND }} pip install --upgrade build
+#          # ${{ matrix.ARCH_COMMAND }} pip install silx --pre --find-links https://silx.gitlab-pages.esrf.fr/bob/silx/
+#          ${{ matrix.ARCH_COMMAND }} pip install ${{ matrix.QT_BINDING }}
+#
+#
+#      - name: Set environment for ${{ matrix.MacOS_TARGET }} compatibility
+#        run: |
+#          echo "MACOSX_DEPLOYMENT_TARGET=${{ matrix.MacOS_TARGET }}" >> $GITHUB_ENV
+#          echo "CFLAGS=-mmacosx-version-min=${{ matrix.MacOS_TARGET }}" >> $GITHUB_ENV
+#          echo "LDFLAGS=-mmacosx-version-min=${{ matrix.MacOS_TARGET }}" >> $GITHUB_ENV
+#
+#      - name: Generate source package or wheel
+#        run: |
+#          ${{ matrix.SOURCE }}
+#          ${{ matrix.ARCH_COMMAND }} python -m build ${{ matrix.BUILD_COMMAND }}
+#          ls dist
+#
+#      - name: Install
+#        run: |
+#          ${{ matrix.SOURCE }}
+#          ${{ matrix.ARCH_COMMAND }} pip install --pre "$(ls dist/*test-5.*)"
+##          pip install --pre "$(ls dist/*ca5-5.*)"
+#
+#      - name: Upload wheel as artifact
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: uni-test
+#          path: dist/*.whl
+#          retention-days: 1
+#
+#      - name: Run the tests
+#        run: |
+#          arch -arm64 python -m venv venv-arm64
+#          chmod +x venv-arm64/bin/python
+#          source venv-arm64/bin/activate
+#
+#          arch -arm64 pip install --pre "$(ls dist/*test-5.*)"
+#          cd ..
+#          python -m PyMca5.tests.TestAll
+#
+#      - name: Run extra x86 tests
+#        run: |
+#          arch -x86_64 python -m venv venv-x86
+#          chmod +x venv-x86/bin/python
+#          source venv-x86/bin/activate
+#
+#          arch -x86_64 pip install --pre "$(ls dist/*test-5.*)"
+#          cd ..
+#          arch -x86_64 python -m PyMca5.tests.TestAll
 
   build_and_test:
     name: "Python ${{ matrix.python-version }} on MacOS ${{ matrix.MacOS_TARGET }}"
@@ -445,8 +445,8 @@ jobs:
   macos_pyinstaller_python312:
     runs-on: macos-latest
     needs:
-      - build_and_test
       - build_universal
+      - build_with_cibuildwheel
     strategy:
       # do not cancel tests after first fail
       fail-fast: false
@@ -468,6 +468,10 @@ jobs:
           - ARCH_COMMAND: ""
             ARCH_RUN: "arch -arm64"
             MODE: ""
+
+          - ARCH_COMMAND: ""
+            ARCH_RUN: "arch -x86_64"
+            MODE: "cibuildwheel"
     steps:
 
       - name: Download Mac x86 artifact
@@ -490,6 +494,14 @@ jobs:
         with:
           name: universal-wheel
           path: dist
+
+      - name: Download Mac universal artifact
+        if: matrix.MODE == 'cibuildwheel'
+        uses: actions/download-artifact@v4
+        with:
+          name: cibuildwheel
+          path: dist
+
 
       - name: List all downloaded files
         run: ls -R dist
@@ -631,5 +643,276 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: macos-${{ matrix.MODE }}-mode-${{ contains(matrix.ARCH_RUN, 'arm64') && 'arm64' || contains(matrix.ARCH_RUN, 'x86_64') && 'x86_64' || '' }}-run
+          path: dist/*.dmg
+          retention-days: 1
+
+  macos_uni_pyinstaller_python312:
+    runs-on: macos-latest
+    needs:
+      - build_universal
+      - build_with_cibuildwheel
+    strategy:
+      # do not cancel tests after first fail
+      fail-fast: false
+      matrix:
+        include:
+
+          - ARCH_COMMAND: ""
+            ARCH_RUN: "arch -x86_64"
+            MODE: ""
+
+          - ARCH_COMMAND: ""
+            ARCH_RUN: "arch -arm64"
+            MODE: ""
+
+          - ARCH_COMMAND: ""
+            ARCH_RUN: "arch -x86_64"
+            MODE: "cibuildwheel"
+
+          - ARCH_COMMAND: ""
+            ARCH_RUN: "arch -arm64"
+            MODE: "cibuildwheel"
+    steps:
+
+      - name: Download Mac x86 artifact
+        if: matrix.MODE == 'x86'
+        uses: actions/download-artifact@v4
+        with:
+          name: macOS-10.13-x86_64-python3.12-dist
+          path: dist
+
+      - name: Download Mac arm64 artifact
+        if: matrix.MODE == 'arm64'
+        uses: actions/download-artifact@v4
+        with:
+          name: macOS-11-arm64-python3.12-dist
+          path: dist
+
+      - name: Download Mac universal artifact
+        if: matrix.MODE == ''
+        uses: actions/download-artifact@v4
+        with:
+          name: universal-wheel
+          path: dist
+
+      - name: Download Mac universal artifact
+        if: matrix.MODE == 'cibuildwheel'
+        uses: actions/download-artifact@v4
+        with:
+          name: cibuildwheel
+          path: dist
+
+
+      - name: List all downloaded files
+        run: ls -R dist
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.12"
+
+      - name: Install Rosetta
+        run: |
+          sudo softwareupdate --install-rosetta --agree-to-license
+
+      - name: Set environment for 10.13 compatibility #10.13 is a minimum - setting 10.9 do not actually work
+        run: |
+          echo "MACOSX_DEPLOYMENT_TARGET=10.13" >> $GITHUB_ENV
+          echo "CFLAGS=-mmacosx-version-min=10.13" >> $GITHUB_ENV
+          echo "LDFLAGS=-mmacosx-version-min=10.13" >> $GITHUB_ENV
+
+      - name: Install dependencies
+        run: |
+          set -euo pipefail
+          
+          pip install --upgrade pip wheel
+          pip install "setuptools<81"
+          
+          # Target Python + wheel tags
+          PYTHON_VERSION="3.11"
+          ABI_TAG="cp311"
+          PLATFORM_TAG="macosx_11_0_universal2"
+          TMPDIR="wheelhouse"
+          
+          mkdir -p "$TMPDIR"
+
+          PACKAGES=(
+            "cycler==0.12.1"
+            "fonttools==4.45.1"
+            "packaging==23.2"
+            "pyparsing==3.1.1"
+            "python_dateutil==2.8.2"
+            "h5py"
+            "hdf5plugin"
+            "PySide6==6.6.0"
+            "lxml==4.9.3"
+            "fisx"
+            "PyOpenGL"
+            "qtconsole==5.5.1"
+            "PyInstaller==6.2.0"
+            "Cython"
+          )
+                    
+          for pkg in "${PACKAGES[@]}"; do
+            echo "🔍 Downloading $pkg for universal2..."
+          
+            pip download "$pkg" \
+              --only-binary=:all: \
+              --platform="$PLATFORM_TAG" \
+              --python-version="$PYTHON_VERSION" \
+              --abi="$ABI_TAG" \
+              --implementation=cp \
+              -d "$TMPDIR" || {
+                echo "❌ No universal2 wheel found for $pkg"
+                exit 1
+              }
+          done
+  
+          echo "✅ All packages have universal2 wheels. Proceeding with installation..."
+          
+          pip install "$TMPDIR"/*.whl
+          
+          echo "🎉 All packages installed successfully with universal2 wheels only."
+          
+          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/numpy-1.26.2-cp312-cp312-macosx_10_9_universal2.whl
+          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/h5py-3.10.0-cp312-cp312-macosx_11_0_universal2.whl
+          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/psutil-5.9.6-cp312-abi3-macosx_10_9_universal2.whl
+          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/Pillow-10.1.0-cp312-cp312-macosx_11_0_universal2.whl
+          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/tornado-6.3.3-cp38-abi3-macosx_10_9_universal2.whl
+          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/contourpy-1.2.0-cp312-cp312-macosx_11_0_universal2.whl
+          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/kiwisolver-1.4.5-cp312-cp312-macosx_11_0_universal2.whl
+          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/matplotlib-3.8.2-cp312-cp312-macosx_11_0_universal2.whl
+          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/fabio-2023.10.0-cp312-cp312-macosx_10_9_universal2.whl
+          pip install git+https://github.com/silx-kit/silx.git
+          pip install --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
+          pip install git+https://github.com/vasole/bcflight.git
+
+
+      - name: Build PyInstaller app
+        run: |
+          ${{ matrix.ARCH_COMMAND }} python build-pyinstaller.py
+          ls dist
+          find dist/ -type f -perm +111 | while read -r file; do
+            version=$(otool -l "$file" 2>/dev/null | awk '/LC_VERSION_MIN_MACOSX/ {show=1} show && /version / {print $2; show=0}' | head -n 1)
+            if [ -n "$version" ]; then
+              echo "$version  <-  $file"
+            fi
+          done | sort
+
+#      - name: Build PyInstaller app for arm64
+#        run: |
+#          # Build for arm64
+#          arch -arm64 python build-pyinstaller.py --distpath dist/arm64
+#          # Build for x86_64
+#          arch -x86_64 python build-pyinstaller.py --distpath dist/x86_64
+#
+#          mkdir -p dist/universal2
+#
+#          find dist/arm64 -type f -perm +111 | while read -r arm_file; do
+#            rel_path="${arm_file#dist/arm64/}"
+#            x86_file="dist/x86_64/$rel_path"
+#            out_file="dist/universal2/$rel_path"
+#            mkdir -p "$(dirname "$out_file")"
+#            if [ -f "$x86_file" ]; then
+#              lipo -create "$arm_file" "$x86_file" -output "$out_file"
+#            else
+#              cp "$arm_file" "$out_file"
+#            fi
+#          done
+#
+#          echo "✅ Checking binary architectures:"
+#          find dist/universal2 -type f -perm +111 | while read -r f; do
+#            lipo -info "$f"
+#          done
+#
+#          ls dist/universal2
+#          python build-pyinstaller.py --distpath dist/arm64
+#
+#          find dist/universal2/ -type f -perm +111 | while read -r file; do
+#            version=$(otool -l "$file" 2>/dev/null | awk '/LC_VERSION_MIN_MACOSX/ {show=1} show && /version / {print $2; show=0}' | head -n 1)
+#            if [ -n "$version" ]; then
+#              echo "$version  <-  $file"
+#            fi
+#          done | sort
+
+      - name: Set app name variable
+        run: |
+          APP_NAME=$(find dist -maxdepth 1 -name 'PyMca*.app' | head -n 1 | xargs -n 1 basename)
+          echo "APP_NAME=$APP_NAME" >> $GITHUB_ENV
+
+      - name: Mount the DMG
+        run: |
+          DMG_NAME="${APP_NAME/.app/.dmg}"
+          hdiutil attach "dist/$DMG_NAME" -mountpoint /Volumes/PyMcaApp
+        env:
+          APP_NAME: ${{ env.APP_NAME }}
+
+      - name: Copy .app to /Applications
+        run: |
+          sudo cp -R "/Volumes/PyMcaApp/${{ env.APP_NAME }}" /Applications/
+
+      - name: Make main binary executable
+        run: chmod +x /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain
+
+      - name: Run the app to check it launches
+        run: |
+          set -e
+          
+          echo "Launching PyMcaMain..."
+          LOGFILE=$(mktemp)
+          
+          # Start the app in the background
+          ${{ matrix.ARCH_RUN }} /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain > "$LOGFILE" 2>&1 &
+          APP_PID=$!
+          
+          echo "App started with PID $APP_PID"
+          
+          # Wait up to 120 seconds for it to crash or hang
+          for i in {1..120}; do
+            if ! ps -p $APP_PID > /dev/null; then
+              echo "App exited early. Checking exit code..."
+              wait $APP_PID || true
+              EXIT_CODE=$?
+              echo "Exit code: $EXIT_CODE"
+              echo "App output log:"
+              cat "$LOGFILE"
+              if [ $EXIT_CODE -ne 0 ]; then
+                echo "App exited with error code $EXIT_CODE"
+                exit $EXIT_CODE
+              else
+                echo "App exited cleanly before 2 minutes."
+                exit 0
+              fi
+            fi
+          
+            if grep -qE 'ImportError|Traceback|ERROR:' "$LOGFILE"; then
+              echo "Detected error in application output:"
+              cat "$LOGFILE"
+              echo "Failing due to runtime error."
+              kill $APP_PID || true
+              wait $APP_PID || true
+              exit 1
+            fi
+          
+            sleep 1
+          done
+          
+          echo "App ran for 2 minutes without crashing. Killing it now..."
+          kill $APP_PID || true
+          wait $APP_PID || true
+          echo "App test complete."
+
+      - name: Cleanup
+        run: |
+          sudo rm -rf /Applications/${{ env.APP_NAME }}
+
+      # upload .dmg
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-UNI-${{ matrix.MODE }}-mode-${{ contains(matrix.ARCH_RUN, 'arm64') && 'arm64' || contains(matrix.ARCH_RUN, 'x86_64') && 'x86_64' || '' }}-run
           path: dist/*.dmg
           retention-days: 1

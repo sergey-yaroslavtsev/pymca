@@ -19,14 +19,15 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: "3.13" #was working with cp3.9 and pyqt5 numpy 1.24.4 cx_freeze 6.14.7
+          python-version: "3.13" #was working with cp3.9 and pyqt5 numpy==1.24.4 cx_freeze==6.14.7 qtconsole==5.4.1 lief==0.12.3 matplotlib==3.5.3
 
       - name: Install dependencies
         run: |          
+          
           python -m pip install --upgrade pip setuptools wheel
-          pip install qtconsole==5.4.1
-          pip install matplotlib==3.5.3
-          pip install lief==0.12.3
+          pip install qtconsole==5.6.1
+          pip install matplotlib==3.10.5
+          pip install lief==0.16.6
           pip install cx_Freeze==8.3.0
           pip install --pre --extra-index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
           pip install Cython
@@ -38,23 +39,6 @@ jobs:
           pip install silx
           pip install PyOpenGL
           pip install git+https://github.com/vasole/bcflight.git
-
-#          python -m pip install --upgrade pip setuptools wheel
-#          pip install numpy==2.2.6
-#          pip install Pyside6
-#          pip install h5py
-#          pip install fisx
-#          pip install matplotlib==3.5.3
-#          pip install hdf5plugin
-#          pip install git+https://github.com/silx-kit/silx.git
-#          pip install PyOpenGL
-#          pip install qtconsole==5.4.1
-#          pip install lief==0.12.3
-#          pip install cx_Freeze==6.14.7
-#          pip install --pre --extra-index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
-#          pip install Cython
-#          pip install wheel
-#          pip install git+https://github.com/vasole/bcflight.git
 
       - name: Install NSIS
         run: choco install nsis -y
