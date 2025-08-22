@@ -130,7 +130,8 @@ jobs:
           path: dist
 
       - name: List downloaded files
-        run: dir dist /s
+        shell: pwsh
+        run: Get-ChildItem -Path dist -Recurse
 
       - name: Install dependencies
         run: |       
