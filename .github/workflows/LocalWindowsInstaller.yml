@@ -19,11 +19,11 @@ jobs:
         include:
           # python 3.8 leads to errors with cython\
 
-          - name-suffix: "PyQt6 wheel"
-            os: windows-latest
-            python-version: "3.13"
-            BUILD_COMMAND: --wheel
-            QT_BINDING: PyQt6
+#          - name-suffix: "PyQt6 wheel"
+#            os: windows-latest
+#            python-version: "3.13"
+#            BUILD_COMMAND: --wheel
+#            QT_BINDING: PyQt6
 
           - name-suffix: "PySide6 wheel"
             os: windows-latest
@@ -31,11 +31,11 @@ jobs:
             BUILD_COMMAND: --wheel
             QT_BINDING: PySide6
 
-          - name-suffix: "PyQt6 wheel"
-            os: windows-latest
-            python-version: "3.12"
-            BUILD_COMMAND: --wheel
-            QT_BINDING: PyQt6
+#          - name-suffix: "PyQt6 wheel"
+#            os: windows-latest
+#            python-version: "3.12"
+#            BUILD_COMMAND: --wheel
+#            QT_BINDING: PyQt6
 
           - name-suffix: "PySide6 wheel"
             os: windows-latest
@@ -79,15 +79,15 @@ jobs:
 #          cd ..
 #          python -m PyMca5.tests.TestAll
 
-      - name: Rename .whl file
-        shell: pwsh
-        run: |
-          $pyver = '${{ matrix.python-version }}'
-          $pep425tag = 'cp' + ($pyver -replace '\.', '')
-          $newName = "PyMca5${{ matrix.QT_BINDING }}-5.6.4-$pep425tag-$pep425tag-win_amd64.whl"
-          $whlFile = Get-ChildItem -Path dist -Filter *.whl | Select-Object -First 1
-          Rename-Item -Path $whlFile.FullName -NewName $newName
-          Write-Host "Renamed $($whlFile.Name) to '$newName'"
+#      - name: Rename .whl file
+#        shell: pwsh
+#        run: |
+#          $pyver = '${{ matrix.python-version }}'
+#          $pep425tag = 'cp' + ($pyver -replace '\.', '')
+#          $newName = "PyMca5${{ matrix.QT_BINDING }}-5.6.4-$pep425tag-$pep425tag-win_amd64.whl"
+#          $whlFile = Get-ChildItem -Path dist -Filter *.whl | Select-Object -First 1
+#          Rename-Item -Path $whlFile.FullName -NewName $newName
+#          Write-Host "Renamed $($whlFile.Name) to '$newName'"
 
       - name: Upload wheel as artifact
         uses: actions/upload-artifact@v4
@@ -104,14 +104,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - QT_BINDING: PyQt6
-            python-version: "3.12"
+#          - QT_BINDING: PyQt6
+#            python-version: "3.12"
 
           - QT_BINDING: PySide6
             python-version: "3.12"
 
-          - QT_BINDING: PyQt6
-            python-version: "3.13"
+#          - QT_BINDING: PyQt6
+#            python-version: "3.13"
 
           - QT_BINDING: PySide6
             python-version: "3.13"
