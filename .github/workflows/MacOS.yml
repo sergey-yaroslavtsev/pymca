@@ -465,7 +465,7 @@ jobs:
           hdiutil detach /Volumes/PyMcaX86
 
       - name: List PyMcaInstaller contents
-        run: ls -lR PyMcaInstaller
+        run: ls -l PyMcaInstaller
 
       - name: Create install.command
         run: |
@@ -481,7 +481,7 @@ jobs:
               APP_NAME="PyMca-x86_64.app"
           else
               echo "Unsupported architecture: $ARCH"
-              osascript -e 'display dialog "Unsupported architecture detected." buttons {"OK"}'
+          #    osascript -e 'display dialog "Unsupported architecture detected." buttons {"OK"}'
               exit 1
           fi
           
@@ -491,23 +491,24 @@ jobs:
           echo "Installing $APP_NAME to $DST"
           
           # Ask user for permission via AppleScript dialog
-          osascript <<EOF
+          osascript <<EOA
           tell application "System Events"
               activate
               display dialog "Install PyMca to /Applications?" buttons {"Cancel", "Install"} default button "Install"
           end tell
-          EOF
+          EOA
           
           # Perform install
           if cp -R "$SRC" "$DST"; then
               echo "Installed successfully."
-              osascript -e 'display notification "PyMca installed to /Applications" with title "Installation Complete"'
+          #    osascript -e 'display notification "PyMca installed to /Applications" with title "Installation Complete"'
               open "$DST"
           else
               echo "Installation failed."
-              osascript -e 'display dialog "Failed to install PyMca. Check permissions." buttons {"OK"}'
+          #    osascript -e 'display dialog "Failed to install PyMca. Check permissions." buttons {"OK"}'
               exit 1
           fi
+          EOF
           
       - name: Make install.command executable
         run: chmod +x PyMcaInstaller/install.command
