@@ -121,7 +121,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }} #was working with cp3.9 and pyqt5 numpy 1.24.4 cx_freeze 6.14.7
+          python-version: ${{ matrix.python-version }} #was working with cp3.9 and pyqt5 numpy 1.24.4 cx_freeze 6.14.7 matplotlib 3.5.3
 
       - name: Download wheels artifact
         uses: actions/download-artifact@v4
@@ -129,14 +129,18 @@ jobs:
           name: python${{ matrix.python-version }}-${{ matrix.QT_BINDING }}-dist
           path: dist
 
+      - name: List downloaded files
+        run: dir dist /s
+
       - name: Install dependencies
-        run: |          
+        run: |       
+          $wheel = Get-ChildItem -Path "dist/python${{ matrix.python-version }}-${{ matrix.QT_BINDING }}-dist" -Filter *.whl | Select-Object -First 1
           python -m pip install --upgrade pip setuptools wheel
-          pip install qtconsole==5.4.1
-          pip install matplotlib==3.5.3
-          pip install lief==0.12.3
+          pip install qtconsole==5.6.1
+          pip install matplotlib==3.10.5
+          pip install lief==0.16.6
           pip install cx_Freeze==8.3.0
-          pip install --pre dist/python${{ matrix.python-version }}-${{ matrix.QT_BINDING }}-dist/*.whl
+          pip install --pre $wheel.FullName
           pip install Cython
           pip install numpy==2.2.6 
           pip install ${{ matrix.QT_BINDING }}

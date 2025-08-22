@@ -443,8 +443,9 @@ jobs:
 
       - name: Create working directory
         run: |
+          sudo mkdir -p PyMcaInstaller
           sudo mkdir PyMca
-            
+
       - name: Mount arm64 dmg
         run: |
           hdiutil attach dist/PyMca_arm64.dmg -mountpoint /Volumes/PyMcaARM
@@ -462,7 +463,10 @@ jobs:
           rm -rf PyMcaInstaller/PyMca-x86_64.app
           ditto "$app_path" "PyMcaInstaller/PyMca-x86_64.app"
           hdiutil detach /Volumes/PyMcaX86
-      
+
+      - name: List PyMcaInstaller contents
+        run: ls -lR PyMcaInstaller
+
       - name: Create install.command
         run: |
           cat << 'EOF' > PyMcaInstaller/install.command
@@ -505,7 +509,8 @@ jobs:
               exit 1
           fi
           
-          chmod +x PyMcaInstaller/install.command
+      - name: Make install.command executable
+        run: chmod +x PyMcaInstaller/install.command
       
       - name: Create final DMG
         run: |
