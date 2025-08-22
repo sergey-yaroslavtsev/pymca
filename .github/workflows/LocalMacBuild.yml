@@ -120,27 +120,27 @@ jobs:
 
 #          - name-suffix: "not specified PySide6 wheel"
 #            os: macos-latest
-#            python-version: "3.12"
+#            python-version: "3.10"
 #            BUILD_COMMAND: --wheel
 #            ARCH_COMMAND: ""
 #            SOURCE: ""
 #            QT_BINDING: PySide6
 
-          - python-version: "3.12"
+          - python-version: "3.10"
             BUILD_COMMAND: --wheel
             ARCH_COMMAND: "arch -x86_64"
             SOURCE: "source venv-x86/bin/activate"
             QT_BINDING: PySide6
             MacOS_TARGET: 10.13
 
-#          - python-version: "3.12"
+#          - python-version: "3.10"
 #            BUILD_COMMAND: --wheel
 #            ARCH_COMMAND: "arch -arm64"
 #            SOURCE: "source venv-arm64/bin/activate"
 #            QT_BINDING: PySide6
 #            MacOS_TARGET: 10.13
 
-          - python-version: "3.12"
+          - python-version: "3.10"
             BUILD_COMMAND: --wheel
             ARCH_COMMAND: "arch -arm64"
             SOURCE: "source venv-arm64/bin/activate"
@@ -190,7 +190,7 @@ jobs:
           ${{ matrix.ARCH_COMMAND }} pip install --upgrade numpy
           ${{ matrix.ARCH_COMMAND }} pip install --upgrade build
           # ${{ matrix.ARCH_COMMAND }} pip install silx --pre --find-links https://silx.gitlab-pages.esrf.fr/bob/silx/
-          ${{ matrix.ARCH_COMMAND }} pip install ${{ matrix.QT_BINDING }}
+          ${{ matrix.ARCH_COMMAND }} pip install ${{ matrix.QT_BINDING }}==6.5.2
 
 
       - name: Set environment for ${{ matrix.MacOS_TARGET }} compatibility
@@ -270,18 +270,18 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.12
+          python-version: 3.10
 
       - name: Download Mac x86 artifact
         uses: actions/download-artifact@v4
         with:
-          name: macOS-10.13-x86_64-python3.12-dist
+          name: macOS-10.13-x86_64-python3.10-dist
           path: dist
 
       - name: Download Mac arm64 artifact
         uses: actions/download-artifact@v4
         with:
-          name: macOS-11-arm64-python3.12-dist
+          name: macOS-11-arm64-python3.10-dist
           path: dist
 
       - name: list downloads
@@ -300,8 +300,8 @@ jobs:
 
       - name: check arch
         run: |
-          lipo -info wheel_x86/PyMca5/spslut.cpython-312-darwin.so
-          lipo -info wheel_arm/PyMca5/spslut.cpython-312-darwin.so
+          lipo -info wheel_x86/PyMca5/spslut.cpython-310-darwin.so
+          lipo -info wheel_arm/PyMca5/spslut.cpython-310-darwin.so
 
       - name: Create universal binaries
         run: |
@@ -370,11 +370,11 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.12
+          python-version: 3.10
 
       - name: Install cibuildwheel
         run: |
-          python -m pip install Pyside6
+          python -m pip install Pyside6==6.5.2
           python -m pip install cibuildwheel==3.1.4
 
       - name: Set environment for 10.13 compatibility
@@ -388,7 +388,7 @@ jobs:
           python -m cibuildwheel --output-dir dist
           ls dist
         env:
-          CIBW_BUILD: "cp312-macosx_universal2"
+          CIBW_BUILD: "cp310-macosx_universal2"
           CIBW_ARCHS_MACOS: "universal2"
 
 #      - name: Install
@@ -468,7 +468,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: "3.12"
+          python-version: "3.10"
 
       - name: Download Mac x86 artifact
         if: matrix.MODE == 'x86'
@@ -566,6 +566,7 @@ jobs:
 
       - name: Build PyInstaller app
         run: |
+          lipo -info $(which python)
           ${{ matrix.ARCH_COMMAND }} python build-pyinstaller.py
           ls dist
           find dist/ -type f -perm +111 | while read -r file; do
