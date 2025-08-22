@@ -138,7 +138,7 @@ jobs:
         run: |       
           $wheel = Get-ChildItem -Path "dist" -Filter *.whl | Select-Object -First 1
           Write-Host "Installing wheel file: $($wheel.FullName)"
-          
+           
           python -m pip install --upgrade pip setuptools wheel
           pip install qtconsole==5.6.1
           pip install matplotlib==3.10.5
