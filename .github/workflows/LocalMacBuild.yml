@@ -536,7 +536,11 @@ jobs:
           ${{ matrix.ARCH_COMMAND }} pip install qtconsole==5.5.1
           ${{ matrix.ARCH_COMMAND }} pip install PyInstaller==6.2.0
           ${{ matrix.ARCH_COMMAND }} pip install Cython
-          ${{ matrix.ARCH_COMMAND }} pip install --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
+          
+          WHEEL=$(ls dist/*.whl | head -n 1)
+          echo "Installing wheel file: $WHEEL"
+          ${{ matrix.ARCH_COMMAND }} pip install --pre "$WHEEL"
+          
           ${{ matrix.ARCH_COMMAND }} pip install git+https://github.com/vasole/bcflight.git
 
 
@@ -737,8 +741,6 @@ jobs:
           pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/matplotlib-3.8.2-cp312-cp312-macosx_11_0_universal2.whl
           pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/fabio-2023.10.0-cp312-cp312-macosx_10_9_universal2.whl
           pip install git+https://github.com/silx-kit/silx.git
-          pip install --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
-          pip install git+https://github.com/vasole/bcflight.git
           
           # Target Python + wheel tags
           PYTHON_VERSION="3.11"
@@ -784,6 +786,12 @@ jobs:
           pip install "$TMPDIR"/*.whl
           
           echo "🎉 All packages installed successfully with universal2 wheels only."
+          
+          WHEEL=$(ls dist/*.whl | head -n 1)
+          echo "Installing wheel file: $WHEEL"
+          ${{ matrix.ARCH_COMMAND }} pip install --pre "$WHEEL"
+          
+          pip install git+https://github.com/vasole/bcflight.git
 
       - name: Build PyInstaller app
         run: |
