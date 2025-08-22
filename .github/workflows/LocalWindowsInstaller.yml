@@ -82,7 +82,9 @@ jobs:
       - name: Rename .whl file
         shell: pwsh
         run: |
-          $newName = "Win_cp${{ matrix.python-version }}_${{ matrix.QT_BINDING }}.whl"
+          $pyver = '${{ matrix.python-version }}'
+          $pep425tag = 'cp' + ($pyver -replace '\.', '')
+          $newName = "PyMca5${{ matrix.QT_BINDING }}-$pep425tag-win_amd64.whl"
           $whlFile = Get-ChildItem -Path dist -Filter *.whl | Select-Object -First 1
           Rename-Item -Path $whlFile.FullName -NewName $newName
           Write-Host "Renamed $($whlFile.Name) to '$newName'"
