@@ -51,10 +51,8 @@ jobs:
           CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-*"
           # MacOS: only universal2
           CIBW_ARCHS_MACOS: universal2
-          # Linux: skip wheels
-          CIBW_SKIP: "cp3?-manylinux* cp3?-musllinux*"
-          # Optional: Skip 32-bit Windows
-          CIBW_SKIP_WINDOWS: "*-win32"
+          # skip wheels for linux and win32
+          CIBW_SKIP: "cp3?-manylinux* cp3?-musllinux* *-win32"
 
       - name: Show output files
         run: ls dist
