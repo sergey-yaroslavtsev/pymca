@@ -63,7 +63,7 @@ jobs:
         if: matrix.os != 'ubuntu-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: ${{ matrix.os }}-wheels
           path: dist/*.whl
           retention-days: 1
 
@@ -134,7 +134,7 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          name: wheels
+          name: ${{ matrix.os }}-wheels
           path: dist
 
       - name: Install correct wheel
