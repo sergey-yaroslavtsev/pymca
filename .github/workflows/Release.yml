@@ -57,11 +57,11 @@ jobs:
     secrets:
       TESTPYPI_PASSWORD: ${{ secrets.TESTPYPI_PASSWORD }}
 
-  trigger-windows1:
+  trigger-windows-pyinstaller:
     needs: run-build-upload
     uses: ./.github/workflows/WindowsExe.yml
 
-  trigger-windows2:
+  trigger-windows-cx:
     needs: run-build-upload
     uses: ./.github/workflows/WindowsInstaller.yml
 
@@ -71,8 +71,7 @@ jobs:
 
   tag-release:
     needs:
-      - trigger-windows1
-      - trigger-windows2
+      - trigger-windows-cx
       - trigger-mac
     uses: ./.github/workflows/TagRelease.yml
 

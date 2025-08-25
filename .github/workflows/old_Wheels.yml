@@ -1,0 +1,379 @@
+name: Create and upload wheels
+
+on:
+  workflow_dispatch:
+  workflow_call:
+    secrets:
+      TESTPYPI_PASSWORD:
+        required: true
+
+jobs:
+  build_and_test:
+    name: "Python ${{ matrix.python-version }} on ${{ matrix.os }} ${{ matrix.name-suffix }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # do not cancel tests after first fail
+      fail-fast: false
+      matrix:
+        include:
+          # python 3.8 leads to errors with cython\
+
+          - name-suffix: "(Minimum Versions)"
+            os: ubuntu-latest
+            python-version: "3.9"
+            BUILD_COMMAND: --sdist
+            ARCH_COMMAND: ""
+            SOURCE: ""
+            QT_BINDING: PyQt5==5.14.1
+            XVFB_RUN: xvfb-run -a
+
+### does not work with castration - potential issue later
+#          - name-suffix: "x86_64 PySide6 wheel"
+#            os: macos-latest
+#            python-version: "3.13"
+#            BUILD_COMMAND: --wheel
+#            ARCH_COMMAND: "arch -x86_64"
+#            SOURCE: "source venv-x86/bin/activate"
+#            QT_BINDING: PySide6
+#            XVFB_RUN: ""
+
+          - name-suffix: "x86_64 PySide6 wheel"
+            os: macos-latest
+            python-version: "3.12"
+            BUILD_COMMAND: --wheel
+            ARCH_COMMAND: "arch -x86_64"
+            SOURCE: "source venv-x86/bin/activate"
+            QT_BINDING: PySide6
+            XVFB_RUN: ""
+
+          - name-suffix: "x86_64 PySide6 wheel"
+            os: macos-latest
+            python-version: "3.11"
+            BUILD_COMMAND: --wheel
+            ARCH_COMMAND: "arch -x86_64"
+            SOURCE: "source venv-x86/bin/activate"
+            QT_BINDING: PySide6
+            XVFB_RUN: ""
+
+          - name-suffix: "x86_64 PySide6 wheel"
+            os: macos-latest
+            python-version: "3.10"
+            BUILD_COMMAND: --wheel
+            ARCH_COMMAND: "arch -x86_64"
+            SOURCE: "source venv-x86/bin/activate"
+            QT_BINDING: PySide6
+            XVFB_RUN: ""
+
+          - name-suffix: "x86_64 PySide6 wheel"
+            os: macos-latest
+            python-version: "3.9"
+            BUILD_COMMAND: --wheel
+            ARCH_COMMAND: "arch -x86_64"
+            SOURCE: "source venv-x86/bin/activate"
+            QT_BINDING: PySide6
+            XVFB_RUN: ""
+
+          - name-suffix: "arm64 PySide6 wheel"
+            os: macos-latest
+            python-version: "3.13"
+            BUILD_COMMAND: --wheel
+            ARCH_COMMAND: "arch -arm64"
+            SOURCE: "source venv-arm64/bin/activate"
+            QT_BINDING: PySide6
+            XVFB_RUN: ""
+
+          - name-suffix: "arm64 PySide6 wheel"
+            os: macos-latest
+            python-version: "3.12"
+            BUILD_COMMAND: --wheel
+            ARCH_COMMAND: "arch -arm64"
+            SOURCE: "source venv-arm64/bin/activate"
+            QT_BINDING: PySide6
+            XVFB_RUN: ""
+
+          - name-suffix: "arm64 PySide6 wheel"
+            os: macos-latest
+            python-version: "3.11"
+            BUILD_COMMAND: --wheel
+            ARCH_COMMAND: "arch -arm64"
+            SOURCE: "source venv-arm64/bin/activate"
+            QT_BINDING: PySide6
+            XVFB_RUN: ""
+
+          - name-suffix: "arm64 PySide6 wheel"
+            os: macos-latest
+            python-version: "3.10"
+            BUILD_COMMAND: --wheel
+            ARCH_COMMAND: "arch -arm64"
+            SOURCE: "source venv-arm64/bin/activate"
+            QT_BINDING: PySide6
+            XVFB_RUN: ""
+
+          - name-suffix: "arm64 PySide6 wheel"
+            os: macos-latest
+            python-version: "3.9"
+            BUILD_COMMAND: --wheel
+            ARCH_COMMAND: "arch -arm64"
+            SOURCE: "source venv-arm64/bin/activate"
+            QT_BINDING: PySide6
+            XVFB_RUN: ""
+
+          - name-suffix: "PySide6 wheel"
+            os: windows-latest
+            python-version: "3.13"
+            BUILD_COMMAND: --wheel
+            ARCH_COMMAND: ""
+            SOURCE: ""
+            QT_BINDING: PySide6
+            XVFB_RUN: ""
+
+          - name-suffix: "PySide6 wheel"
+            os: windows-latest
+            python-version: "3.12"
+            BUILD_COMMAND: --wheel
+            ARCH_COMMAND: ""
+            SOURCE: ""
+            QT_BINDING: PySide6
+            XVFB_RUN: ""
+
+          - name-suffix: "PySide6 wheel"
+            os: windows-latest
+            python-version: "3.11"
+            BUILD_COMMAND: --wheel
+            ARCH_COMMAND: ""
+            SOURCE: ""
+            QT_BINDING: PySide6
+            XVFB_RUN: ""
+
+          - name-suffix: "PySide6 wheel"
+            os: windows-latest
+            python-version: "3.10"
+            BUILD_COMMAND: --wheel
+            ARCH_COMMAND: ""
+            SOURCE: ""
+            QT_BINDING: PySide6
+            XVFB_RUN: ""
+
+          - name-suffix: "PyQt5 wheel"
+            os: windows-latest
+            python-version: "3.9"
+            BUILD_COMMAND: --wheel
+            ARCH_COMMAND: ""
+            SOURCE: ""
+            QT_BINDING: PyQt5
+            XVFB_RUN: ""
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Install OS dependencies
+        if: runner.os == 'Linux'
+        run: |
+            sudo apt-get update -yy
+            sudo apt-get install -yy \
+              libxkbcommon-x11-0 \
+              libxkbcommon0 \
+              libxkbcommon-dev \
+              libxcb-icccm4 \
+              libxcb-image0 \
+              libxcb-shm0 \
+              libxcb-keysyms1 \
+              libxcb-randr0 \
+              libxcb-render-util0 \
+              libxcb-render0 \
+              libxcb-shape0 \
+              libxcb-sync1 \
+              libxcb-xfixes0 \
+              libxcb-xinerama0 \
+              libxcb-xkb1 \
+              libxcb1
+            #export QT_QPA_PLATFORM=offscreen
+            export DISPLAY=:99.0
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # to "castrate" interpreter to be sure it is run on required architecture
+      - name: Setup MacOS x86_64 Python
+        if: matrix.ARCH_COMMAND == 'arch -x86_64' && runner.os == 'macOS'
+        run: |
+          arch -x86_64 python -m venv venv-x86
+          lipo venv-x86/bin/python -remove arm64 -output venv-x86/bin/python_x86
+          sudo mv venv-x86/bin/python_x86 venv-x86/bin/python
+          chmod +x venv-x86/bin/python
+          file venv-x86/bin/python
+          source venv-x86/bin/activate
+
+      # to "castrate" interpreter to be sure it is run on required architecture
+      - name: Setup MacOS arm64 Python
+        if: matrix.ARCH_COMMAND == 'arch -arm64' && runner.os == 'macOS'
+        run: |
+          arch -arm64 python -m venv venv-arm64
+          lipo venv-arm64/bin/python -remove x86_64 -output venv-arm64/bin/python_arm64
+          sudo mv venv-arm64/bin/python_arm64 venv-arm64/bin/python
+          chmod +x venv-arm64/bin/python
+          file venv-arm64/bin/python
+          source venv-arm64/bin/activate
+
+      # Display the python version
+      - name: Display Python version
+        run:
+          ${{ matrix.SOURCE }}
+          ${{ matrix.ARCH_COMMAND }} python -c "import sys; print(sys.version)"
+
+      - name: Upgrade distribution modules
+        run: |
+          ${{ matrix.SOURCE }}
+          ${{ matrix.ARCH_COMMAND }} python -m pip install --upgrade pip
+          ${{ matrix.ARCH_COMMAND }} pip install --upgrade setuptools wheel cython
+          # if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Install build dependencies
+        run: |
+          ${{ matrix.SOURCE }}
+          ${{ matrix.ARCH_COMMAND }} pip install --upgrade wheel
+          ${{ matrix.ARCH_COMMAND }} pip install --upgrade numpy
+          ${{ matrix.ARCH_COMMAND }} pip install --upgrade build
+          ${{ matrix.ARCH_COMMAND }} pip install cython
+
+      - name: Install runtime dependencies
+        run: |
+          ${{ matrix.SOURCE }}
+          # ${{ matrix.ARCH_COMMAND }} pip install silx --pre --find-links https://silx.gitlab-pages.esrf.fr/bob/silx/
+          ${{ matrix.ARCH_COMMAND }} pip install ${{ matrix.QT_BINDING }}
+
+      - name: Print python info
+        run: |
+          ${{ matrix.SOURCE }}
+          ${{ matrix.ARCH_COMMAND }} python ./ci/info_platform.py
+          ${{ matrix.ARCH_COMMAND }} pip list
+
+      - name: Set environment for 11.0 compatibility
+        if: matrix.ARCH_COMMAND == 'arch -arm64' && runner.os == 'macOS'
+        run: |
+          echo "MACOSX_DEPLOYMENT_TARGET=11.0" >> $GITHUB_ENV
+          echo "CFLAGS=-mmacosx-version-min=11.0" >> $GITHUB_ENV
+          echo "LDFLAGS=-mmacosx-version-min=11.0" >> $GITHUB_ENV
+
+      - name: Set environment for 10.13 compatibility
+        if: matrix.ARCH_COMMAND == 'arch -x86_64' && runner.os == 'macOS'
+        run: |
+          echo "MACOSX_DEPLOYMENT_TARGET=10.13" >> $GITHUB_ENV
+          echo "CFLAGS=-mmacosx-version-min=10.13" >> $GITHUB_ENV
+          echo "LDFLAGS=-mmacosx-version-min=10.13" >> $GITHUB_ENV
+
+      - name: Generate source package or wheel
+        run: |
+          ${{ matrix.SOURCE }}
+          ${{ matrix.ARCH_COMMAND }} python -m build ${{ matrix.BUILD_COMMAND }}
+          ls dist
+
+      # even if interpreter is "castrated" system still see it as "universal2"
+      - name: Rename wheels on macOS
+        if: runner.os == 'macOS'
+        run: |
+          arch_suffix=$(echo "${{ matrix.ARCH_COMMAND }}" | awk '{print $2}' | tr -d '-')
+          echo "Architecture is $arch_suffix"
+          for file in dist/*.whl; do
+            base=$(basename "$file")
+            newname="${base/_universal2/_$arch_suffix}"
+            sudo mv "$file" "dist/$newname"
+          done
+          ls dist
+
+      - name: Install
+        run: |
+          ${{ matrix.SOURCE }}
+          ${{ matrix.ARCH_COMMAND }} pip install --pre "$(ls dist/*test-5.*)"
+#          pip install --pre "$(ls dist/*ca5-5.*)"
+
+      - name: Run the tests
+        run: |
+          ${{ matrix.SOURCE }}
+          cd ..
+          ${{ matrix.ARCH_COMMAND }} ${{ matrix.XVFB_RUN }} python -m PyMca5.tests.TestAll
+
+      - name: Upload wheel as artifact
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ runner.os }}-dist
+          path: dist/*.tar.gz
+          retention-days: 1
+
+      # also upload to release
+#      - name: Upload dmg to GitHub Release
+#        if: github.event_name == 'release' && runner.os == 'Linux'
+#        uses: softprops/action-gh-release@v1
+#        with:
+#          files: dist/*.tar.gz
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload wheel as artifact
+        if: runner.os != 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ runner.os }}-${{ contains(matrix.ARCH_COMMAND, 'arm64') && 'arm64' || contains(matrix.ARCH_COMMAND, 'x86_64') && 'x86_64' || '' }}-python${{ matrix.python-version }}-${{ matrix.QT_BINDING }}-dist
+          path: dist/*.whl
+          retention-days: 1
+
+  upload_to_testpypi:
+    name: Upload all wheels to TestPyPI
+    runs-on: macos-latest
+    needs: build_and_test
+    if: ${{ success() }}
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist-artifacts
+
+      - name: List all downloaded files
+        run: ls -R dist-artifacts
+
+#      - name: Verify package names before upload
+#        run: |
+#          EXPECTED_NAME="Pymca_release_test"
+#          shopt -s nullglob
+#          for file in dist/*.whl; do
+#            if [[ $file == *.whl ]]; then
+#              NAME=$(unzip -p "$file" "*.dist-info/METADATA" | grep ^Name: | awk '{print $2}')
+#            else
+#              NAME=$(tar -xOzf "$file" */PKG-INFO | grep ^Name: | awk '{print $2}')
+#            fi
+#            if [[ "$NAME" != "$EXPECTED_NAME" ]]; then
+#              echo "ERROR: Package name mismatch in $file. Found: $NAME, expected: $EXPECTED_NAME"
+#              exit 1
+#            else
+#              echo "Verified package name: $NAME in $file"
+#            fi
+#          done
+
+      - name: Upgrade
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade twine
+
+      - name: List files to be uploaded
+        run: |
+          find dist-artifacts -type f \( -name '*.whl' -o -name '*.tar.gz' \)
+
+      - name: Upload wheels to TestPyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TESTPYPI_PASSWORD }}
+        run: |
+          files=$(find dist-artifacts -type f \( -name '*.whl' -o -name '*.tar.gz' \))
+          echo "Uploading files:"
+          echo "$files"
+          python -m twine upload --verbose --repository testpypi $files
+
+        
+
+
+

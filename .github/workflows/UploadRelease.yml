@@ -6,13 +6,13 @@ on:
 jobs:
   upload_release:
     name: Upload all packages
-    runs-on: ubuntu-latest # do switch to anything else
+    runs-on: ubuntu-latest
     steps:
 
       - name: Download Linux artifact
         uses: actions/download-artifact@v4
         with:
-          name: ${{ runner.os }}-dist
+          name: Linux-sdist
           path: dist
 
       - name: Download Mac arm64 artifact
