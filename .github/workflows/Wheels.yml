@@ -140,7 +140,8 @@ jobs:
       - name: Install correct wheel
         shell: bash
         run: |
-          PYTAG="cp${{ join(split(matrix.python-version, '.'), '') }}"
+          pv="${{ matrix.python-version }}"
+          PYTAG="cp${pv//./}"
           case "${{ matrix.os }}" in
             ubuntu-latest)
               PLATFORM_TAG="manylinux"
