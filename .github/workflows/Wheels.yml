@@ -138,6 +138,7 @@ jobs:
 
       - name: Install correct wheel
         shell: bash
+        id: install_wheel
         run: |
           pv="${{ matrix.python-version }}"
           PYTAG="cp${pv//./}"
@@ -167,6 +168,9 @@ jobs:
       
           echo "✅ Installing: $WHL_PATH"
           pip install "$WHL_PATH"
+          
+          # Set output for the step
+          echo "wheel-path=$WHL_PATH" >> $GITHUB_OUTPUT
 
       - name: Run the tests
         run: |
@@ -176,6 +180,10 @@ jobs:
       - name: Run extra x86 tests
         if: matrix.os == 'macos-latest'
         run: |
+          arch -x86_64 python -m venv venv-x86
+          chmod +x venv-x86/bin/python
+          source venv-x86/bin/activate
+          arch -x86_64 pip install --pre ${{ steps.install_wheel.outputs.wheel-path }}
           cd ..
           arch -x86_64 python -m PyMca5.tests.TestAll
 
