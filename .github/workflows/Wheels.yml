@@ -112,6 +112,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs: build_and_test
     strategy:
+      fail-fast: false
       matrix:
         os: [ windows-latest, macos-latest ]
         python-version: [ "3.9", "3.10", "3.11", "3.12", "3.13" ]
@@ -175,10 +176,6 @@ jobs:
       - name: Run extra x86 tests
         if: matrix.os == 'macos-latest'
         run: |
-          arch -x86_64 python -m venv venv-x86
-          chmod +x venv-x86/bin/python
-          source venv-x86/bin/activate
-          arch -x86_64 pip install --pre "$(ls dist/*test-5.*)"
           cd ..
           arch -x86_64 python -m PyMca5.tests.TestAll
 
