@@ -92,7 +92,7 @@ jobs:
           # MacOS: only universal2
           CIBW_ARCHS_MACOS: universal2
           # Linux: only x86_64
-          CIBW_ARCHS_LINUX: x86_6
+          CIBW_ARCHS_LINUX: x86_64
           # Windows: only 64-bit (win_amd64)
           CIBW_ARCHS_WINDOWS: AMD64
           #CIBW_SKIP: "*-musllinux* *-win32"
