@@ -37,16 +37,16 @@ jobs:
           python -m pip install cython
           python -m pip install cibuildwheel
 
-      - name: Install Qt
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          python -m pip install Pyside6 
-          #PyQt5==5.14.1
-
-      - name: Install Qt
-        if: matrix.os != 'ubuntu-latest'
-        run: |
-          python -m pip install Pyside6==6.9.1
+#      - name: Install Qt
+#        if: matrix.os == 'ubuntu-latest'
+#        run: |
+#          python -m pip install Pyside6
+#          #PyQt5==5.14.1
+#
+#      - name: Install Qt
+#        if: matrix.os != 'ubuntu-latest'
+#        run: |
+#          python -m pip install Pyside6==6.9.1
 
       - name: Set environment for 10.13 compatibility
         run: |
@@ -126,9 +126,22 @@ jobs:
               libxcb-xfixes0 \
               libxcb-xinerama0 \
               libxcb-xkb1 \
-              libxcb1
-            #export QT_QPA_PLATFORM=offscreen
-            export DISPLAY=:99.0
+              libxcb1 \
+              libxcb-util1 \
+              libglu1-mesa \
+              libgl1 \
+              libx11-xcb1 \
+              libxi6 \
+              libxrender1 \
+              libsm6 \
+              x11-utils \
+              xvfb
+            export QT_QPA_PLATFORM=offscreen
+
+      - name: Start virtual display
+        run: |
+          /usr/bin/Xvfb :99 -screen 0 1920x1080x24 &
+          export DISPLAY=:99
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -150,7 +163,8 @@ jobs:
       - name: Install Qt
         if: matrix.python-version != '3.9'
         run: |
-          python -m pip install Pyside6==6.9.1
+          python -m pip install PyQt6
+          #Pyside6==6.9.1
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -200,9 +214,22 @@ jobs:
               libxcb-xfixes0 \
               libxcb-xinerama0 \
               libxcb-xkb1 \
-              libxcb1
-            #export QT_QPA_PLATFORM=offscreen
-            export DISPLAY=:99.0
+              libxcb1 \
+              libxcb-util1 \
+              libglu1-mesa \
+              libgl1 \
+              libx11-xcb1 \
+              libxi6 \
+              libxrender1 \
+              libsm6 \
+              x11-utils \
+              xvfb
+            export QT_QPA_PLATFORM=offscreen
+
+      - name: Start virtual display
+        run: |
+          /usr/bin/Xvfb :99 -screen 0 1920x1080x24 &
+          export DISPLAY=:99
 
       - name: Set up Python
         uses: actions/setup-python@v2
@@ -224,7 +251,8 @@ jobs:
       - name: Install Qt
         if: matrix.os != 'ubuntu-latest' || matrix.python-version != '3.9'
         run: |
-          python -m pip install Pyside6==6.9.1
+          python -m pip install PyQt6
+          #Pyside6==6.9.1
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
