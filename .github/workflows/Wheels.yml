@@ -16,11 +16,11 @@ jobs:
           - os: ubuntu-latest
             python-version: "3.12"
 
-          - os: macos-latest
-            python-version: "3.12"
-
-          - os: windows-latest
-            python-version: "3.12"
+#          - os: macos-latest
+#            python-version: "3.12"
+#
+#          - os: windows-latest
+#            python-version: "3.12"
 
     steps:
 
@@ -31,8 +31,8 @@ jobs:
         run: |
           sudo apt-get update -yy
           sudo apt-get install -yy \
-              libegl1-mesa \
-              libgl1-mesa-glx \
+              libegl-mesa0 \
+              libglx-mesa0 \
               libxkbcommon-x11-0 \
               libxkbcommon0 \
               libxcb-icccm4 \
@@ -135,8 +135,8 @@ jobs:
         run: |
           sudo apt-get update -yy
           sudo apt-get install -yy \
-              libegl1-mesa \
-              libgl1-mesa-glx \
+              libegl-mesa0 \
+              libglx-mesa0 \
               libxkbcommon-x11-0 \
               libxkbcommon0 \
               libxcb-icccm4 \
@@ -202,8 +202,8 @@ jobs:
         run: |
           sudo apt-get update -yy
           sudo apt-get install -yy \
-              libegl1-mesa \
-              libgl1-mesa-glx \
+              libegl-mesa0 \
+              libglx-mesa0 \
               libxkbcommon-x11-0 \
               libxkbcommon0 \
               libxcb-icccm4 \
