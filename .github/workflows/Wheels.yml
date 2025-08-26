@@ -44,7 +44,6 @@ jobs:
 
       # Build wheels using cibuildwheel
       - name: Build wheels
-        if: matrix.os != 'ubuntu-latest'
         run: python -m cibuildwheel --output-dir dist
         env:
           # Python versions
