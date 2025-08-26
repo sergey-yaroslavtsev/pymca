@@ -24,7 +24,7 @@ jobs:
             BUILD_COMMAND: --sdist
             ARCH_COMMAND: ""
             SOURCE: ""
-            QT_BINDING: PyQt5==5.14.1
+            QT_BINDING: Pyside6
             XVFB_RUN: xvfb-run -a
 
 ### does not work with castration - potential issue later
