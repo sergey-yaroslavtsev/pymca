@@ -31,24 +31,7 @@ jobs:
         run: |
           sudo apt-get update -yy
           sudo apt-get install -yy \
-              libegl-mesa0 \
-              libglx-mesa0 \
-              libxkbcommon-x11-0 \
-              libxkbcommon0 \
-              libxcb-icccm4 \
-              libxcb-image0 \
-              libxcb-shm0 \
-              libxcb-keysyms1 \
-              libxcb-randr0 \
-              libxcb-render-util0 \
-              libxcb-render0 \
-              libxcb-shape0 \
-              libxcb-sync1 \
-              libxcb-xfixes0 \
-              libxcb-xinerama0 \
-              libxcb-xkb1 \
-              libxcb1
-          export DISPLAY=:99.0
+              libgl1-mesa-dev
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -135,24 +118,7 @@ jobs:
         run: |
           sudo apt-get update -yy
           sudo apt-get install -yy \
-              libegl-mesa0 \
-              libglx-mesa0 \
-              libxkbcommon-x11-0 \
-              libxkbcommon0 \
-              libxcb-icccm4 \
-              libxcb-image0 \
-              libxcb-shm0 \
-              libxcb-keysyms1 \
-              libxcb-randr0 \
-              libxcb-render-util0 \
-              libxcb-render0 \
-              libxcb-shape0 \
-              libxcb-sync1 \
-              libxcb-xfixes0 \
-              libxcb-xinerama0 \
-              libxcb-xkb1 \
-              libxcb1
-          export DISPLAY=:99.0
+              libgl1-mesa-dev
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -202,24 +168,25 @@ jobs:
         run: |
           sudo apt-get update -yy
           sudo apt-get install -yy \
-              libegl-mesa0 \
-              libglx-mesa0 \
-              libxkbcommon-x11-0 \
-              libxkbcommon0 \
-              libxcb-icccm4 \
-              libxcb-image0 \
-              libxcb-shm0 \
-              libxcb-keysyms1 \
-              libxcb-randr0 \
-              libxcb-render-util0 \
-              libxcb-render0 \
-              libxcb-shape0 \
-              libxcb-sync1 \
-              libxcb-xfixes0 \
-              libxcb-xinerama0 \
-              libxcb-xkb1 \
-              libxcb1
-          export DISPLAY=:99.0
+              libgl1-mesa-dev
+#              libegl-mesa0 \
+#              libglx-mesa0 \
+#              libxkbcommon-x11-0 \
+#              libxkbcommon0 \
+#              libxcb-icccm4 \
+#              libxcb-image0 \
+#              libxcb-shm0 \
+#              libxcb-keysyms1 \
+#              libxcb-randr0 \
+#              libxcb-render-util0 \
+#              libxcb-render0 \
+#              libxcb-shape0 \
+#              libxcb-sync1 \
+#              libxcb-xfixes0 \
+#              libxcb-xinerama0 \
+#              libxcb-xkb1 \
+#              libxcb1
+#          export DISPLAY=:99.0
 
       - name: Set up Python
         uses: actions/setup-python@v5
