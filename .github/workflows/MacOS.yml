@@ -50,9 +50,9 @@ jobs:
           pip install hdf5plugin
           pip install PySide6==6.6.0
           pip install lxml==4.9.3
-          pip install fabio
           pip install fisx
-          pip install git+https://github.com/silx-kit/silx.git
+          pip install silx==2.2.2
+          pip install fabio
           pip install PyOpenGL
           pip install qtconsole==5.5.1
           pip install PyInstaller==6.2.0
@@ -303,9 +303,9 @@ jobs:
           arch -x86_64 pip install hdf5plugin
           arch -x86_64 pip install PySide6==6.9.1
           arch -x86_64 pip install lxml==4.9.3
-          arch -x86_64 pip install fabio
           arch -x86_64 pip install fisx
-          arch -x86_64 pip install git+https://github.com/silx-kit/silx.git
+          arch -x86_64 pip install silx==2.2.2
+          arch -x86_64 pip install fabio
           arch -x86_64 pip install PyOpenGL
           arch -x86_64 pip install qtconsole==5.5.1
           arch -x86_64 pip install PyInstaller==6.2.0
