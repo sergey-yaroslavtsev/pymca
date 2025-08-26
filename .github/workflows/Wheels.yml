@@ -26,13 +26,6 @@ jobs:
 
       - uses: actions/checkout@v5
 
-      - name: Install OS dependencies
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          sudo apt-get update -yy
-          sudo apt-get install -yy \
-              libgl1-mesa-dev
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -116,9 +109,26 @@ jobs:
       - name: Install OS dependencies
         if: matrix.os == 'ubuntu-latest'
         run: |
-          sudo apt-get update -yy
-          sudo apt-get install -yy \
-              libgl1-mesa-dev
+            sudo apt-get update -yy
+            sudo apt-get install -yy \
+              libxkbcommon-x11-0 \
+              libxkbcommon0 \
+              libxkbcommon-dev \
+              libxcb-icccm4 \
+              libxcb-image0 \
+              libxcb-shm0 \
+              libxcb-keysyms1 \
+              libxcb-randr0 \
+              libxcb-render-util0 \
+              libxcb-render0 \
+              libxcb-shape0 \
+              libxcb-sync1 \
+              libxcb-xfixes0 \
+              libxcb-xinerama0 \
+              libxcb-xkb1 \
+              libxcb1
+            #export QT_QPA_PLATFORM=offscreen
+            export DISPLAY=:99.0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -127,13 +137,20 @@ jobs:
 
       - name: Install
         run: |
-          python -m pip install --upgrade pip setuptools build setuptools wheel cython numpy
+          python -m pip install --upgrade pip
+          python -m pip install cython
+          python -m pip install numpy
           python -m pip install silx
 
       - name: Install Qt
+        if: matrix.python-version == '3.9'
         run: |
-          python -m pip install Pyside6 
-          #PyQt5==5.14.1
+          python -m pip install PyQt5==5.14.1
+
+      - name: Install Qt
+        if: matrix.python-version != '3.9'
+        run: |
+          python -m pip install Pyside6==6.9.1
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -143,7 +160,7 @@ jobs:
 
       - name: Install
         run: |
-          pip install --pre "$(ls dist/*test-5.*)"
+          python -m pip install --pre "$(ls dist/*test-5.*)"
     #          pip install --pre "$(ls dist/*ca5-5.*)"
 
       - name: Run the tests
@@ -161,35 +178,34 @@ jobs:
         python-version: [ "3.9", "3.10", "3.11", "3.12", "3.13" ]
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v2
 
       - name: Install OS dependencies
         if: matrix.os == 'ubuntu-latest'
         run: |
-          sudo apt-get update -yy
-          sudo apt-get install -yy \
-              libgl1-mesa-dev
-#              libegl-mesa0 \
-#              libglx-mesa0 \
-#              libxkbcommon-x11-0 \
-#              libxkbcommon0 \
-#              libxcb-icccm4 \
-#              libxcb-image0 \
-#              libxcb-shm0 \
-#              libxcb-keysyms1 \
-#              libxcb-randr0 \
-#              libxcb-render-util0 \
-#              libxcb-render0 \
-#              libxcb-shape0 \
-#              libxcb-sync1 \
-#              libxcb-xfixes0 \
-#              libxcb-xinerama0 \
-#              libxcb-xkb1 \
-#              libxcb1
-#          export DISPLAY=:99.0
+            sudo apt-get update -yy
+            sudo apt-get install -yy \
+              libxkbcommon-x11-0 \
+              libxkbcommon0 \
+              libxkbcommon-dev \
+              libxcb-icccm4 \
+              libxcb-image0 \
+              libxcb-shm0 \
+              libxcb-keysyms1 \
+              libxcb-randr0 \
+              libxcb-render-util0 \
+              libxcb-render0 \
+              libxcb-shape0 \
+              libxcb-sync1 \
+              libxcb-xfixes0 \
+              libxcb-xinerama0 \
+              libxcb-xkb1 \
+              libxcb1
+            #export QT_QPA_PLATFORM=offscreen
+            export DISPLAY=:99.0
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -198,15 +214,15 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install silx
           python -m pip install PyOpenGL
+          python -m pip install cython
 
       - name: Install Qt
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.9'
         run: |
-          python -m pip install Pyside6
-          #PyQt5==5.14.1
+          python -m pip install PyQt5==5.14.1
 
       - name: Install Qt
-        if: matrix.os != 'ubuntu-latest'
+        if: matrix.os != 'ubuntu-latest' || matrix.python-version != '3.9'
         run: |
           python -m pip install Pyside6==6.9.1
 
