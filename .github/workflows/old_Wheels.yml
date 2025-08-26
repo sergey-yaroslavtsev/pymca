@@ -20,7 +20,7 @@ jobs:
 
           - name-suffix: "(Minimum Versions)"
             os: ubuntu-latest
-            python-version: "3.12"
+            python-version: "3.9"
             BUILD_COMMAND: --sdist
             ARCH_COMMAND: ""
             SOURCE: ""
