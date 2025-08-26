@@ -20,11 +20,11 @@ jobs:
 
           - name-suffix: "(Minimum Versions)"
             os: ubuntu-latest
-            python-version: "3.9"
+            python-version: "3.12"
             BUILD_COMMAND: --sdist
             ARCH_COMMAND: ""
             SOURCE: ""
-            QT_BINDING: Pyside6
+            QT_BINDING: PyQt5==5.14.1
             XVFB_RUN: xvfb-run -a
 
 ### does not work with castration - potential issue later
