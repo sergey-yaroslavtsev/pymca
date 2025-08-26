@@ -52,7 +52,7 @@ jobs:
           # MacOS: only universal2
           CIBW_ARCHS_MACOS: universal2
           # skip wheels for linux and win32
-          CIBW_SKIP: "cp3?-manylinux* cp3?-musllinux* *-win32"
+          CIBW_SKIP: "cp3?-musllinux* *-win32"
 
       - name: Show output files
         run: ls dist
@@ -91,6 +91,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install Pyside6
+          python -m pip install silx
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -114,7 +115,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ windows-latest, macos-latest ]
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
         python-version: [ "3.9", "3.10", "3.11", "3.12", "3.13" ]
 
     steps:
@@ -129,6 +130,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install Pyside6
+          python -m pip install silx
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -183,7 +185,9 @@ jobs:
           arch -x86_64 python -m venv venv-x86
           chmod +x venv-x86/bin/python
           source venv-x86/bin/activate
-          arch -x86_64 pip install --pre ${{ steps.install_wheel.outputs.wheel-path }}
+          arch -x86_64 python -m pip install Pyside6
+          arch -x86_64 python -m pip install silx
+          arch -x86_64 python -m pip install --pre ${{ steps.install_wheel.outputs.wheel-path }}
           cd ..
           arch -x86_64 python -m PyMca5.tests.TestAll
 
