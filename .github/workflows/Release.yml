@@ -13,6 +13,8 @@ on:
   push:
     branches:
       - master
+    paths:
+      - 'src/PyMca5/__init__.py'
 
 jobs:
   version-change:
