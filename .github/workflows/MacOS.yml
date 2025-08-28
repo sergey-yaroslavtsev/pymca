@@ -54,7 +54,8 @@ jobs:
           pip install silx==2.2.2
           pip install fabio
           pip install PyOpenGL
-          pip install qtconsole==5.5.1
+          pip install ipython
+          pip install qtconsole==5.6.1
           pip install PyInstaller==6.2.0
           pip install Cython
           pip install wheel
@@ -307,7 +308,8 @@ jobs:
           arch -x86_64 pip install silx==2.2.2
           arch -x86_64 pip install fabio
           arch -x86_64 pip install PyOpenGL
-          arch -x86_64 pip install qtconsole==5.5.1
+          arch -x86_64 pip install ipython
+          arch -x86_64 pip install qtconsole==5.6.1
           arch -x86_64 pip install PyInstaller==6.2.0
           arch -x86_64 pip install Cython
           arch -x86_64 pip install wheel

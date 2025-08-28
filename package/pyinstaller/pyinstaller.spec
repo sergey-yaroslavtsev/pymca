@@ -60,8 +60,8 @@ if sys.platform.startswith("win"):
     my_binaries += collect_dynamic_libs('numpy')
 
 else:
-    import h5py
-
+#    import h5py
+#
 #    possible_dirs = [
 #        os.path.join(os.path.dirname(h5py.__file__), '.dylibs'),
 #        '/usr/local/lib',  # Homebrew typical location
