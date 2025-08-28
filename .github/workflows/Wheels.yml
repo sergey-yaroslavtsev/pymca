@@ -201,6 +201,8 @@ jobs:
               libxcb-util1 \
               libglu1-mesa \
               libgl1 \
+              libegl1 \
+              libegl-dev \
               libx11-xcb1 \
               libxi6 \
               libxrender1 \
