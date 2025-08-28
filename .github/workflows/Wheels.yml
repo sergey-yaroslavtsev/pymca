@@ -117,8 +117,11 @@ jobs:
               libxcb-xkb1 \
               libxcb1 \
               libxcb-util1 \
+              libxcb-cursor0 \
               libglu1-mesa \
               libgl1 \
+              libegl1 \
+              libegl-dev \
               libx11-xcb1 \
               libxi6 \
               libxrender1 \
@@ -126,6 +129,7 @@ jobs:
               x11-utils \
               xvfb
             export QT_QPA_PLATFORM=offscreen
+            export QT_OPENGL=software
 
       - name: Start virtual display
         run: |
@@ -199,6 +203,7 @@ jobs:
               libxcb-xkb1 \
               libxcb1 \
               libxcb-util1 \
+              libxcb-cursor0 \
               libglu1-mesa \
               libgl1 \
               libegl1 \
@@ -210,6 +215,7 @@ jobs:
               x11-utils \
               xvfb
             export QT_QPA_PLATFORM=offscreen
+            export QT_OPENGL=software
 
       - name: Start virtual display
         if: matrix.os == 'ubuntu-latest'
