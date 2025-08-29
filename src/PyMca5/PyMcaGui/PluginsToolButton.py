@@ -123,7 +123,7 @@ class PluginsToolButton(qt.QToolButton, PluginLoader):
                 # Can we just assume it has the proper signature?
                 self.plot.sigActiveImageChanged.disconnect(plugin.activeImageChanged)
 
-    def getPlugins(self, method=None, directoryList=None, exceptions=False):
+    def getPlugins(self, method=None, directoryList=None, exceptions=True):
         """method overloaded to update signal connections when loading plugins"""
         self._disconnectPlotSignals()
         PluginLoader.getPlugins(self, method, directoryList, exceptions)

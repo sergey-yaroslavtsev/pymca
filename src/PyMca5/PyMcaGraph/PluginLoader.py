@@ -71,7 +71,7 @@ class PluginLoader(object):
         """
         return self._pluginDirList
 
-    def getPlugins(self, method=None, directoryList=None, exceptions=False):
+    def getPlugins(self, method=None, directoryList=None, exceptions=True):
         """
         Import or reloads all the available plugins with the target method
 
