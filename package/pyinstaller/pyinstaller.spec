@@ -429,7 +429,7 @@ import collections
 special_modules += [os.path.dirname(collections.__file__)]
 
 # no scipy (huge package not used by PyMca)
-# excludes += ["scipy"]
+excludes += ["scipy"]
 
 # give some time to read the output
 time.sleep(2)
