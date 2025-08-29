@@ -52,14 +52,10 @@ hiddenimports += collect_submodules('PyMca5.PyMcaGui.pymca')
 
 my_binaries = []
 
-try:
-    from PySide6.QtTest import QTest
-except:
-    print("!!! issue with PySide6.QtTest !!!")
-    continue
-
 hiddenimports += collect_submodules('PySide6.QtTest')
 binaries += collect_dynamic_libs('PySide6')
+
+
 
 if sys.platform.startswith("win"):
     # hiddenimports += collect_submodules('multiprocessing')
@@ -295,6 +291,15 @@ special_modules = [os.path.dirname(PyMca5.__file__),
                    #os.path.dirname(ctypes.__file__),
                    os.path.dirname(hdf5plugin.__file__),
                    ]
+
+#try:
+#    import Pyside6
+#    # from PySide6.QtTest import QTest
+#    special_modules.append(os.path.dirname(Pyside6.__file__))
+#except:
+#    print("!!! issue with PySide6 !!!")
+#    pass
+
 
 # this block  can be needed for matplotlib
 MATPLOTLIB_FROM_PYINSTALLER = True
