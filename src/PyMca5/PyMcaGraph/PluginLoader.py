@@ -71,7 +71,7 @@ class PluginLoader(object):
         """
         return self._pluginDirList
 
-    def getPlugins(self, method=None, directoryList=None, exceptions=True):
+    def getPlugins(self, method=None, directoryList=None, exceptions=False):
         """
         Import or reloads all the available plugins with the target method
 
@@ -147,6 +147,10 @@ class PluginLoader(object):
                     exceptionMessage += "%s\n" % sys.exc_info()[0]
                     exceptionMessage += "%s\n" % sys.exc_info()[1]
                     exceptionMessage += "%s\n" % sys.exc_info()[2]
+
+        print('loader: ', self.pluginList)
+        _logger.debug('loader: ')
+        _logger.debug(self.pluginList)
 
         if len(exceptionMessage) and _logger.getEffectiveLevel() == logging.DEBUG:
             raise IOError(exceptionMessage)

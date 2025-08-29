@@ -123,7 +123,7 @@ class PluginsToolButton(qt.QToolButton, PluginLoader):
                 # Can we just assume it has the proper signature?
                 self.plot.sigActiveImageChanged.disconnect(plugin.activeImageChanged)
 
-    def getPlugins(self, method=None, directoryList=None, exceptions=True):
+    def getPlugins(self, method=None, directoryList=None, exceptions=False):
         """method overloaded to update signal connections when loading plugins"""
         self._disconnectPlotSignals()
         PluginLoader.getPlugins(self, method, directoryList, exceptions)
@@ -147,6 +147,9 @@ class PluginsToolButton(qt.QToolButton, PluginLoader):
         actionNames.append(text)
         callableKeys = ["Dummy0", "Dummy1", "Dummy2"]
         pluginInstances = self.pluginInstanceDict
+        print('toolbutton: ', self.pluginList)
+        _logger.debug('toolbutton: ')
+        _logger.debug(self.pluginList)
         for pluginName in self.pluginList:
             if pluginName in ["PyMcaPlugins.Plugin1DBase", "Plugin1DBase"]:
                 continue
@@ -186,6 +189,8 @@ class PluginsToolButton(qt.QToolButton, PluginLoader):
         idx = actionNames.index(a.text())
         if a.text() == "Reload Plugins":
             n, message = self.getPlugins(exceptions=True)
+            _logger.debug('toolbutton: ')
+            _logger.debug(self.pluginList)
             if n < 1:
                 msg = qt.QMessageBox(self)
                 msg.setIcon(qt.QMessageBox.Information)
