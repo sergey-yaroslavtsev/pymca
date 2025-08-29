@@ -54,39 +54,14 @@ jobs:
           pip install silx==2.2.2
           pip install fabio
           pip install PyOpenGL
+          pip install ipython
           pip install qtconsole==5.6.1
           pip install PyInstaller==6.2.0
           pip install Cython
           pip install wheel
           pip install --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
           pip install git+https://github.com/vasole/bcflight.git
-          pip install IPython
-          pip install pygments
-          pip install qtconsole
-          pip install ipykernel
-          pip install zmq
-          pip install asttokens
-          pip install backports
-          pip install colorama
           pip install ipywidgets
-          pip install debugpy
-          pip install executing
-          pip install fontTools
-          pip install importlib_metadata
-          pip install jupyter_client
-          pip install jupyter_core
-          pip install matplotlib_inline
-          pip install packaging
-          pip install platformdirs
-          pip install pure_eval
-          pip install pyparsing
-          pip install stack_data
-          pip install traitlets
-          pip install wcwidth
-          pip install zipp
-          pip install cycler
-          pip install python-dateutil
-
 
       - name: Build PyInstaller app for arm64
         run: |
@@ -340,32 +315,7 @@ jobs:
           arch -x86_64 pip install wheel
           arch -x86_64 pip install --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
           arch -x86_64 pip install git+https://github.com/vasole/bcflight.git
-          arch -x86_64 pip install IPython
-          arch -x86_64 pip install pygments
-          arch -x86_64 pip install qtconsole
-          arch -x86_64 pip install ipykernel
-          arch -x86_64 pip install zmq
-          arch -x86_64 pip install asttokens
-          arch -x86_64 pip install backports
-          arch -x86_64 pip install colorama
           arch -x86_64 pip install ipywidgets
-          arch -x86_64 pip install debugpy
-          arch -x86_64 pip install executing
-          arch -x86_64 pip install fontTools
-          arch -x86_64 pip install importlib_metadata
-          arch -x86_64 pip install jupyter_client
-          arch -x86_64 pip install jupyter_core
-          arch -x86_64 pip install matplotlib_inline
-          arch -x86_64 pip install packaging
-          arch -x86_64 pip install platformdirs
-          arch -x86_64 pip install pure_eval
-          arch -x86_64 pip install pyparsing
-          arch -x86_64 pip install stack_data
-          arch -x86_64 pip install traitlets
-          arch -x86_64 pip install wcwidth
-          arch -x86_64 pip install zipp
-          arch -x86_64 pip install cycler
-          arch -x86_64 pip install python-dateutil
 
 #          arch -x86_64 pip install PySide6==6.6.0
 #          arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/numpy-1.26.2-cp312-cp312-macosx_10_9_universal2.whl

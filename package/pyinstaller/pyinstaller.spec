@@ -52,6 +52,15 @@ hiddenimports += collect_submodules('PyMca5.PyMcaGui.pymca')
 
 my_binaries = []
 
+try:
+    from PySide6.QtTest import QTest
+except:
+    print("!!! issue with PySide6.QtTest !!!")
+    continue
+
+hiddenimports += collect_submodules('PySide6.QtTest')
+binaries += collect_dynamic_libs('PySide6')
+
 if sys.platform.startswith("win"):
     # hiddenimports += collect_submodules('multiprocessing')
     hiddenimports += collect_submodules('numpy')
