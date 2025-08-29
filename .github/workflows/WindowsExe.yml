@@ -42,6 +42,27 @@ jobs:
           pip install zmq
           pip install PyInstaller
           pip install git+https://github.com/vasole/bcflight.git
+          pip install asttokens
+          pip install backports
+          pip install colorama
+          pip install ipywidgets
+          pip install debugpy
+          pip install executing
+          pip install fontTools
+          pip install importlib_metadata
+          pip install jupyter_client
+          pip install jupyter_core
+          pip install matplotlib_inline
+          pip install packaging
+          pip install platformdirs
+          pip install pure_eval
+          pip install pyparsing
+          pip install stack_data
+          pip install traitlets
+          pip install wcwidth
+          pip install zipp
+          pip install cycler
+          pip install python-dateutil
 
       - name: Install NSIS
         run: choco install nsis -y
