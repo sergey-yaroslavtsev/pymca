@@ -53,7 +53,7 @@ hiddenimports += collect_submodules('PyMca5.PyMcaGui.pymca')
 my_binaries = []
 
 hiddenimports += collect_submodules('PySide6.QtTest')
-binaries += collect_dynamic_libs('PySide6')
+my_binaries += collect_dynamic_libs('PySide6')
 
 
 
