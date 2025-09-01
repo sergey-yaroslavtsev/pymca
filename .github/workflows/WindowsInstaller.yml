@@ -57,7 +57,7 @@ jobs:
           }
 
       - name: Install PyMca from installer
-        shell: pwsh
+        shell: powershell
         run: |
           # Find the installer
           $installer = Get-Item dist\pymca*.exe
@@ -115,34 +115,78 @@ jobs:
           $process.StartInfo = $startInfo
           $process.Start() | Out-Null
           
+          # Async read output and error streams into the log file
+          $outputWriter = [System.IO.StreamWriter]::new($logFile, $true)
+          $process.BeginOutputReadLine()
+          $process.BeginErrorReadLine()
+          
+          # Capture output events
+          $process.add_OutputDataReceived({ 
+              param($sender, $args) 
+              if ($args.Data) {
+                  $outputWriter.WriteLine($args.Data)
+                  $outputWriter.Flush()
+              }
+          })
+          $process.add_ErrorDataReceived({ 
+              param($sender, $args) 
+              if ($args.Data) {
+                  $outputWriter.WriteLine($args.Data)
+                  $outputWriter.Flush()
+              }
+          })
+          
           Write-Host "App started with PID $($process.Id)"
-      
-          # Read output synchronously
-          $stdout = $process.StandardOutput.ReadToEnd()
-          $stderr = $process.StandardError.ReadToEnd()
-          $process.WaitForExit()
-      
-          # Write output to log
-          $stdout | Out-File -FilePath $logFile -Append
-          $stderr | Out-File -FilePath $logFile -Append
-      
-          # Check for error patterns
-          if ($stdout -match 'ImportError|Traceback|ERROR:' -or $stderr -match 'ImportError|Traceback|ERROR:') {
-              Write-Error "Detected runtime error in application output:"
-              Write-Error $stdout
-              Write-Error $stderr
-              exit 1
+          $timeoutSeconds = 120
+          $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
+          
+          while (-not $process.HasExited -and $stopWatch.Elapsed.TotalSeconds -lt $timeoutSeconds) {
+              Start-Sleep -Seconds 1
+          
+              # Check log file for error patterns
+              $output = Get-Content $logFile -Raw -ErrorAction SilentlyContinue
+              if ($output -match 'ImportError|Traceback|ERROR:') {
+                  Write-Error "Detected runtime error in application output:"
+                  Write-Error $output
+          
+                  try {
+                      $process.Kill()
+                      $process.WaitForExit()
+                  } catch {
+                      Write-Warning "Failed to kill the process: $_"
+                  }
+          
+                  $outputWriter.Close()
+                  exit 1
+              }
           }
+          
+          # Close output writer cleanly
+          $outputWriter.Close()
       
-          # Check if the app ran long enough
-          $exitCode = $process.ExitCode
-          if ($exitCode -ne 0) {
-              Write-Error "App exited with error code $exitCode"
-              exit $exitCode
+          if (-not $process.HasExited) {
+            Write-Host "App ran for $timeoutSeconds seconds without crashing. Killing it now..."
+            try {
+              $process.Kill()
+              $process.WaitForExit()
+            }
+            catch {
+              Write-Warning "Failed to kill the process: $_"
+            }
+            Write-Host "App test complete."
+            exit 0
           }
           else {
-              Write-Host "App exited cleanly — test passed."
-              exit 0
+            # Process exited early — check exit code
+            $exitCode = $process.ExitCode
+            if ($exitCode -ne 0) {
+              Write-Error "App exited with error code $exitCode"
+              exit $exitCode
+            }
+            else {
+              Write-Error "App exited cleanly before $timeoutSeconds seconds, marking as failure."
+              exit 1
+            }
           }
 
       - name: Upload artifacts
