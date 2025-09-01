@@ -107,51 +107,32 @@ jobs:
       
           Write-Host "Launching installed PyMcaMain..."
       
-          # Create a temporary log file for stdout and stderr
+          # Create a temp log file
           $logFile = [System.IO.Path]::GetTempFileName()
+          Write-Host "Logging output to $logFile"
           
-          # Start the app redirecting stdout and stderr to the log file
-          $startInfo = New-Object System.Diagnostics.ProcessStartInfo
-          $startInfo.FileName = $appPath
-          $startInfo.RedirectStandardOutput = $true
-          $startInfo.RedirectStandardError = $true
-          $startInfo.UseShellExecute = $false
-          $startInfo.CreateNoWindow = $true
-          
-          $process = New-Object System.Diagnostics.Process
-          $process.StartInfo = $startInfo
-          $process.Start() | Out-Null
-          
-          # Async read output and error streams into the log file
-          $outputWriter = [System.IO.StreamWriter]::new($logFile, $true)
-          $process.BeginOutputReadLine()
-          $process.BeginErrorReadLine()
-          
-          # Capture output events
-          $process.add_OutputDataReceived({ 
-              param($sender, $args) 
-              if ($args.Data) {
-                  $outputWriter.WriteLine($args.Data)
-                  $outputWriter.Flush()
-              }
-          })
-          $process.add_ErrorDataReceived({ 
-              param($sender, $args) 
-              if ($args.Data) {
-                  $outputWriter.WriteLine($args.Data)
-                  $outputWriter.Flush()
-              }
-          })
+          # Start process with stdout and stderr redirected to log file
+          $process = Start-Process -FilePath $appPath `
+                                   -RedirectStandardOutput $logFile `
+                                   -RedirectStandardError $logFile `
+                                   -NoNewWindow `
+                                   -PassThru
           
           Write-Host "App started with PID $($process.Id)"
+          
           $timeoutSeconds = 120
           $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
           
           while (-not $process.HasExited -and $stopWatch.Elapsed.TotalSeconds -lt $timeoutSeconds) {
               Start-Sleep -Seconds 1
           
-              # Check log file for error patterns
-              $output = Get-Content $logFile -Raw -ErrorAction SilentlyContinue
+              # Read log file contents safely
+              try {
+                  $output = Get-Content -Path $logFile -Raw -ErrorAction SilentlyContinue
+              } catch {
+                  $output = ""
+              }
+          
               if ($output -match 'ImportError|Traceback|ERROR:') {
                   Write-Error "Detected runtime error in application output:"
                   Write-Error $output
@@ -163,33 +144,39 @@ jobs:
                       Write-Warning "Failed to kill the process: $_"
                   }
           
-                  $outputWriter.Close()
                   exit 1
               }
           }
           
-          # Close output writer cleanly
-          $outputWriter.Close()
-      
           if (-not $process.HasExited) {
-            Write-Host "App ran for $timeoutSeconds seconds without crashing. Killing it now..."
-            try {
-              $process.Kill()
-              $process.WaitForExit()
-            } catch {
-              Write-Warning "Failed to kill the process: $_"
-            }
-            Write-Host "App test complete."
-            exit 0
+              Write-Host "App ran for $timeoutSeconds seconds without crashing. Killing it now..."
+              try {
+                  $process.Kill()
+                  $process.WaitForExit()
+              } catch {
+                  Write-Warning "Failed to kill the process: $_"
+              }
+              Write-Host "App test complete."
+              exit 0
           } else {
-            $exitCode = $process.ExitCode
-            if ($exitCode -ne 0) {
-              Write-Error "App exited with error code $exitCode"
-              exit $exitCode
-            } else {
-              Write-Error "App exited cleanly before $timeoutSeconds seconds, marking as failure."
-              exit 1
-            }
+              $exitCode = $process.ExitCode
+              $finalOutput = ""
+              try {
+                  $finalOutput = Get-Content -Path $logFile -Raw -ErrorAction SilentlyContinue
+              } catch {}
+          
+              if ($finalOutput) {
+                  Write-Host "Application output before exit:"
+                  Write-Host $finalOutput
+              }
+          
+              if ($exitCode -ne 0) {
+                  Write-Error "App exited with error code $exitCode"
+                  exit $exitCode
+              } else {
+                  Write-Error "App exited cleanly before $timeoutSeconds seconds, marking as failure."
+                  exit 1
+              }
           }
 
       - name: Upload artifacts
