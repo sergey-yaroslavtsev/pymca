@@ -54,7 +54,7 @@ my_binaries = []
 
 hiddenimports += collect_submodules('PySide6.QtTest')
 # my_binaries += collect_dynamic_libs('PySide6')
-hiddenimports += collect_submodules('multiprocessing')
+# hiddenimports += collect_submodules('multiprocessing')
 
 
 if sys.platform.startswith("win"):
@@ -104,7 +104,7 @@ excludes = []
 excludes.append("debugpy")
 
 # This module basically does not work with frozen versions
-# excludes.append("multiprocessing")
+excludes.append("multiprocessing")
 
 
 # get the script list
