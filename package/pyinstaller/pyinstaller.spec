@@ -58,10 +58,8 @@ hiddenimports += collect_submodules('PySide6.QtTest')
 
 
 if sys.platform.startswith("win"):
-    # hiddenimports += collect_submodules('multiprocessing')
     hiddenimports += collect_submodules('numpy')
     hiddenimports += ['numpy.core._multiarray_umath', 'numpy.core.multiarray']
-
     my_binaries += collect_dynamic_libs('numpy')
 
 else:
