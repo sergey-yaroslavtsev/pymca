@@ -91,7 +91,7 @@ else:
 #    my_binaries += collect_dynamic_libs('hdf5')
 #    my_binaries += [('/usr/local/opt/hdf5/lib/libhdf5.200.dylib', 'h5py/.dylibs')]
 
-    hiddenimports=+[
+    hiddenimports +=[
     'ipykernel.datapub',
     'ipykernel.pylab.config',
     'ipykernel.pylab.backend_inline',
