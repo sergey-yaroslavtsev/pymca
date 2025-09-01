@@ -51,12 +51,12 @@ jobs:
         shell: pwsh
         run: |      
           # Find the exe (naming have version)
-          $exePath = Get-ChildItem -Path "dist" -Filter "PyMcaMain.exe" -Recurse | Select-Object -First 1 -ExpandProperty FullName
-          if ($null -eq $exePath) {
+          $appPath = Get-ChildItem -Path "dist" -Filter "PyMcaMain.exe" -Recurse | Select-Object -First 1 -ExpandProperty FullName
+          if ($null -eq $appPath) {
               Write-Error "Executable not found."
               exit 1
           }
-          Write-Host "Found executable at $exePath"
+          Write-Host "Found executable at $appPath"
           
           # Create a temporary log file for stdout and stderr
           $logFile = [System.IO.Path]::GetTempFileName()
