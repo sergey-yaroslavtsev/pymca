@@ -53,8 +53,8 @@ hiddenimports += collect_submodules('PyMca5.PyMcaGui.pymca')
 my_binaries = []
 
 hiddenimports += collect_submodules('PySide6.QtTest')
-my_binaries += collect_dynamic_libs('PySide6')
-
+# my_binaries += collect_dynamic_libs('PySide6')
+hiddenimports += collect_submodules('multiprocessing')
 
 
 if sys.platform.startswith("win"):
@@ -98,13 +98,13 @@ else:
 excludes = []
 
 # they will be added in full
-excludes += ["fabio", "hdf5plugin", "silx"]
+# excludes += ["fabio", "hdf5plugin", "silx"]
 
 # if this module is included, the interactive console does not work
 excludes.append("debugpy")
 
 # This module basically does not work with frozen versions
-excludes.append("multiprocessing")
+# excludes.append("multiprocessing")
 
 
 # get the script list
