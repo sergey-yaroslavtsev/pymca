@@ -33,7 +33,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install "setuptools<81"
+          pip install "setuptools<80"
           pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/psutil-5.9.6-cp312-abi3-macosx_10_9_universal2.whl
           pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/Pillow-10.1.0-cp312-cp312-macosx_11_0_universal2.whl
           pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/tornado-6.3.3-cp38-abi3-macosx_10_9_universal2.whl
@@ -56,7 +56,7 @@ jobs:
           pip install PyOpenGL
           pip install ipython
           pip install qtconsole==5.6.1
-          pip install PyInstaller==6.2.0
+          pip install PyInstaller==6.15.0
           pip install Cython
           pip install wheel
           pip install --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
