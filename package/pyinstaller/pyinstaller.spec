@@ -97,7 +97,7 @@ else:
     'ipykernel.pylab.backend_inline',
     'traitlets.config',
     'qtconsole.styles'
-    ],
+    ]
     datas += collect_data_files('PySide6')
 
 excludes = []
