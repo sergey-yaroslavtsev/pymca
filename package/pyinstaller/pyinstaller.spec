@@ -91,7 +91,14 @@ else:
 #    my_binaries += collect_dynamic_libs('hdf5')
 #    my_binaries += [('/usr/local/opt/hdf5/lib/libhdf5.200.dylib', 'h5py/.dylibs')]
 
-    print('this is a Mac, so shut up and listen')
+    hiddenimports=+[
+    'ipykernel.datapub',
+    'ipykernel.pylab.config',
+    'ipykernel.pylab.backend_inline',
+    'traitlets.config',
+    'qtconsole.styles'
+    ],
+    datas += collect_data_files('PySide6')
 
 excludes = []
 
@@ -102,7 +109,7 @@ excludes = []
 excludes.append("debugpy")
 
 # This module basically does not work with frozen versions
-excludes.append("multiprocessing")
+# excludes.append("multiprocessing")
 
 
 # get the script list
