@@ -85,10 +85,11 @@ jobs:
 
       - name: Generate changelog notes
         run: |
+          echo -e "Please select the right version for MacOS - arm64 is for M-processor based, x86 is for Intel based." > changelog_notes.txt
           if jq -e '.items | type == "array" and length > 0' prs.json > /dev/null; then
-            jq -r '.items[] | "- " + (.title | gsub("^\\[(?<tag>[^\\]]+)\\]\\s*(?<rest>.+)"; "\(.tag). \(.rest)")) + " (#" + (.number|tostring) + ")"' prs.json > changelog_notes.txt
+            jq -r '.items[] | "- " + (.title | gsub("^\\[(?<tag>[^\\]]+)\\]\\s*(?<rest>.+)"; "\(.tag). \(.rest)")) + " (#" + (.number|tostring) + ")"' prs.json >> changelog_notes.txt
           else
-            echo "No merged PRs found since previous release." > changelog_notes.txt
+            echo "No merged PRs found since previous release." >> changelog_notes.txt
           fi
 
           echo "--- Generated changelog ---"
