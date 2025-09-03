@@ -360,3 +360,72 @@ jobs:
           echo "Uploading files:"
           echo "$files"
           python -m twine upload --verbose --repository testpypi $files
+
+  Wait_for_upload:
+    runs-on: macos-latest
+    needs: upload_to_testpypi
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+
+      - name: Extract version from __init__.py
+        id: extract_version
+        shell: python
+        run: |
+          import os
+          path = 'src/PyMca5/__init__.py'
+
+          version = None
+          with open(path, 'r') as f:
+              for line in f:
+                  if line.startswith('__version__'):
+                      version = line.replace(' ', '').split('=')[-1].strip().strip('"\'')
+                      break
+          assert version is not None, "Version not found in __init__.py"
+          print(version)
+          # Save version to GitHub output
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f"version={version}\n")
+
+      - name: Wait for version to be available on TestPyPI
+        id: wait_testpypi
+        shell: python
+        env:
+          PACKAGE_NAME: ${{ env.PROJECT_LOWER }}
+          VERSION: ${{ steps.extract_version.outputs.version }}
+        run: |
+          import requests
+          import time
+          import sys
+          
+          version = "${{ env.VERSION }}"
+          pkg_name = "${{ env.PACKAGE_NAME }}"
+          index_url = f"https://test.pypi.org/pypi/{pkg_name}/json"
+          
+          max_retries = 20
+          delay_seconds = 60
+          
+          for attempt in range(1, max_retries + 1):
+              print(f"Attempt {attempt}: Checking {index_url} for version {version}")
+              response = requests.get(index_url)
+              if response.status_code != 200:
+                  print(f"Failed to fetch metadata (status {response.status_code})")
+              else:
+                  data = response.json()
+                  if version in data.get("releases", {}):
+                      print(f"✅ Version {version} found on TestPyPI")
+                      break
+                  else:
+                      print(f"⏳ Version {version} not yet on TestPyPI")
+
+              if attempt < max_retries:
+                  print(f"Waiting {delay_seconds} seconds before retrying...")
+                  time.sleep(delay_seconds)
+              else:
+                  print(f"❌ Version {version} not available on TestPyPI after {max_retries} attempts.")
+                  sys.exit(1)
