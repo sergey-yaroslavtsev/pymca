@@ -310,7 +310,7 @@ jobs:
           arch -x86_64 pip install PyOpenGL
           arch -x86_64 pip install ipython
           arch -x86_64 pip install qtconsole==5.6.1
-          arch -x86_64 pip install PyInstaller==6.2.0
+          arch -x86_64 pip install PyInstaller==6.15.0
           arch -x86_64 pip install Cython
           arch -x86_64 pip install wheel
           arch -x86_64 pip install --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
