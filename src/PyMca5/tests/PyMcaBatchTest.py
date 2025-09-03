@@ -153,7 +153,7 @@ class testPyMcaBatch(TestCaseQt):
         self._assertSlowFitMap('edf', roiwidth=100, outputdir='fitresulta')
         self._assertSlowGuiFitMap('edf', roiwidth=100, outputdir='fitresultb')
 
-    @unittest.skipIf(numpy.version.version == '1.17.0', "skipped numpy issue 13715")
+    @unittest.skipIf(hasattr(sys, 'frozen') or numpy.version.version == '1.17.0', "skipped running as frozen binary or numpy issue 13715")
     def testSlowMultiFitEdfMap(self):
         self._assertSlowMultiFitMap('edf')
 
@@ -167,7 +167,7 @@ class testPyMcaBatch(TestCaseQt):
         self._assertSlowFitMap('specmesh', roiwidth=100, outputdir='fitresulta')
         self._assertSlowGuiFitMap('specmesh', roiwidth=100, outputdir='fitresultb')
 
-    @unittest.skipIf(numpy.version.version == '1.17.0', "skipped numpy issue 13715")
+    @unittest.skipIf(hasattr(sys, 'frozen') or numpy.version.version == '1.17.0', "skipped running as frozen binary or numpy issue 13715")
     def testSlowMultiFitSpecMap(self):
         self._assertSlowMultiFitMap('specmesh')
 
@@ -669,7 +669,8 @@ def getSuite(auto=True):
         testSuite.addTest(testPyMcaBatch("testFastFitEdfMap"))
         testSuite.addTest(testPyMcaBatch("testSlowFitEdfMap"))
         testSuite.addTest(testPyMcaBatch("testSlowRoiFitEdfMap"))
-        testSuite.addTest(testPyMcaBatch("testSlowMultiFitEdfMap"))
+        if not hasattr(sys, 'frozen'):
+            testSuite.addTest(testPyMcaBatch("testSlowMultiFitEdfMap"))
         testSuite.addTest(testPyMcaBatch("testFastFitHdf5Map"))
         testSuite.addTest(testPyMcaBatch("testSlowFitHdf5Map"))
         testSuite.addTest(testPyMcaBatch("testSlowRoiFitHdf5Map"))
@@ -677,7 +678,8 @@ def getSuite(auto=True):
         testSuite.addTest(testPyMcaBatch("testFastFitSpecMap"))
         testSuite.addTest(testPyMcaBatch("testSlowFitSpecMap"))
         testSuite.addTest(testPyMcaBatch("testSlowRoiFitSpecMap"))
-        testSuite.addTest(testPyMcaBatch("testSlowMultiFitSpecMap"))
+        if not hasattr(sys, 'frozen'):
+            testSuite.addTest(testPyMcaBatch("testSlowMultiFitSpecMap"))
     return testSuite
 
 
