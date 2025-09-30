@@ -65,7 +65,7 @@ jobs:
 
       - name: Build PyInstaller app for arm64
         run: |
-          arch -arm64 python build-pyinstaller.py
+          arch -arm64 python build-pyinstaller_github.py
           ls dist
           find dist/ -type f -perm +111 | while read -r file; do
             version=$(otool -l "$file" 2>/dev/null | awk '/LC_VERSION_MIN_MACOSX/ {show=1} show && /version / {print $2; show=0}' | head -n 1)
@@ -326,7 +326,7 @@ jobs:
       - name: Build PyInstaller app for x86_64
         run: |
           source venv-x86/bin/activate
-          arch -x86_64 python build-pyinstaller.py
+          arch -x86_64 python build-pyinstaller_github.py
           ls dist
           find dist/ -type f -perm +111 | while read -r file; do
             version=$(otool -l "$file" 2>/dev/null | awk '/LC_VERSION_MIN_MACOSX/ {show=1} show && /version / {print $2; show=0}' | head -n 1)

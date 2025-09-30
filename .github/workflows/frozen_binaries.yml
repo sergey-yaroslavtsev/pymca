@@ -51,7 +51,7 @@ jobs:
 
       - name: Build with PyInstaller
         run:
-          python build-pyinstaller.py
+          python build-pyinstaller_github.py
 
       - name: Run the app to check it launches (Windows PowerShell)
         shell: pwsh
@@ -147,7 +147,7 @@ jobs:
       - name: Build with cx_Freeze
         shell: cmd
         run:
-          python build-cxfreeze.py
+          python build-cxfreeze_github.py
 
       - name: Print dist* directories content with PowerShell
         shell: pwsh
@@ -285,7 +285,7 @@ jobs:
 
       - name: Build with PyInstaller (universal2)
         run: |
-          python build-pyinstaller.py universal2
+          python build-pyinstaller_github.py universal2
           ls dist
           find dist/ -type f -perm +111 | while read -r file; do
             version=$(otool -l "$file" 2>/dev/null | awk '/LC_VERSION_MIN_MACOSX/ {show=1} show && /version / {print $2; show=0}' | head -n 1)

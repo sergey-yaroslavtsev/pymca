@@ -3,7 +3,7 @@ import sys
 
 
 cwd = os.path.abspath(os.getcwd())
-cmd = r"cd %s; pyinstaller --clean pyinstaller.spec --noconfirm --workpath %s --distpath %s" % \
+cmd = r"cd %s; pyinstaller --clean pyinstaller_github.spec --noconfirm --workpath %s --distpath %s" % \
               (os.path.join(".", "package", "pyinstaller"),
                os.path.join(".", "build-" + sys.platform),
                os.path.join(".", "dist-" + sys.platform))

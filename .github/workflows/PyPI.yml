@@ -12,6 +12,12 @@ jobs:
     name: Upload all wheels to PyPI
     runs-on: macos-latest
     steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
 
       - name: Install jq
         run: brew install jq
@@ -42,4 +48,4 @@ jobs:
 #          TWINE_USERNAME: __token__
 #          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
 #        run: |
-#          twine upload dist/*
+#          python -m twine upload --verbose dist/*

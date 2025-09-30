@@ -163,7 +163,7 @@ jobs:
       - name: Build with cx_Freeze
         shell: cmd
         run:
-          python build-cxfreeze.py
+          python build-cxfreeze_github.py
 
       - name: Print dist* directories content with PowerShell
         shell: pwsh

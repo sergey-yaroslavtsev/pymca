@@ -45,7 +45,7 @@ jobs:
 
       - name: Build with PyInstaller
         run:
-          python build-pyinstaller.py
+          python build-pyinstaller_github.py
 
       - name: Run the app to check it launches (Windows PowerShell)
         shell: pwsh

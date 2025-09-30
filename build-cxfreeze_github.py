@@ -1,7 +1,7 @@
 import os
 import sys
 cwd = os.path.abspath(os.getcwd())
-cmd = r'cd %s ; "%s" cx_setup.py build_exe' % \
+cmd = r'cd %s ; "%s" cx_setup_github.py build_exe' % \
               (os.path.join(".", "package", "cxfreeze"),
                sys.executable)
 

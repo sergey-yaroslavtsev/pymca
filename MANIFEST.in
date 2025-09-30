@@ -7,8 +7,10 @@ include changelog.txt
 include qtconffile
 include README.rst
 include build-cxfreeze.py
+include build-cxfreeze_github.py
 include build-deb.sh
 include build-pyinstaller.py
+include build-pyinstaller_github.py
 include version.py
 include copyright
 include requirements.txt
