@@ -111,53 +111,53 @@ jobs:
             fi
           done
 
-      - name: Run the app to check it launches
-        run: |
-          set -e
-          
-          echo "Launching PyMcaMain..."
-          LOGFILE=$(mktemp)
-          
-          # Start the app in the background
-          arch -arm64 /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain > "$LOGFILE" 2>&1 &
-          APP_PID=$!
-          
-          echo "App started with PID $APP_PID"
-          
-          # Wait up to 120 seconds for it to crash or hang
-          for i in {1..120}; do
-            if ! ps -p $APP_PID > /dev/null; then
-              echo "App exited early. Checking exit code..."
-              wait $APP_PID || true
-              EXIT_CODE=$?
-              echo "Exit code: $EXIT_CODE"
-              echo "App output log:"
-              cat "$LOGFILE"
-              if [ $EXIT_CODE -ne 0 ]; then
-                echo "App exited with error code $EXIT_CODE"
-                exit $EXIT_CODE
-              else
-                echo "App exited cleanly before 2 minutes."
-                exit 0
-              fi
-            fi
-          
-            if grep -qE 'ImportError|Traceback|ERROR:' "$LOGFILE"; then
-              echo "Detected error in application output:"
-              cat "$LOGFILE"
-              echo "Failing due to runtime error."
-              kill $APP_PID || true
-              wait $APP_PID || true
-              exit 1
-            fi
-          
-            sleep 1
-          done
-          
-          echo "App ran for 2 minutes without crashing. Killing it now..."
-          kill $APP_PID || true
-          wait $APP_PID || true
-          echo "App test complete."
+#      - name: Run the app to check it launches
+#        run: |
+#          set -e
+#
+#          echo "Launching PyMcaMain..."
+#          LOGFILE=$(mktemp)
+#
+#          # Start the app in the background
+#          arch -arm64 /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain > "$LOGFILE" 2>&1 &
+#          APP_PID=$!
+#
+#          echo "App started with PID $APP_PID"
+#
+#          # Wait up to 120 seconds for it to crash or hang
+#          for i in {1..120}; do
+#            if ! ps -p $APP_PID > /dev/null; then
+#              echo "App exited early. Checking exit code..."
+#              wait $APP_PID || true
+#              EXIT_CODE=$?
+#              echo "Exit code: $EXIT_CODE"
+#              echo "App output log:"
+#              cat "$LOGFILE"
+#              if [ $EXIT_CODE -ne 0 ]; then
+#                echo "App exited with error code $EXIT_CODE"
+#                exit $EXIT_CODE
+#              else
+#                echo "App exited cleanly before 2 minutes."
+#                exit 0
+#              fi
+#            fi
+#
+#            if grep -qE 'ImportError|Traceback|ERROR:' "$LOGFILE"; then
+#              echo "Detected error in application output:"
+#              cat "$LOGFILE"
+#              echo "Failing due to runtime error."
+#              kill $APP_PID || true
+#              wait $APP_PID || true
+#              exit 1
+#            fi
+#
+#            sleep 1
+#          done
+#
+#          echo "App ran for 2 minutes without crashing. Killing it now..."
+#          kill $APP_PID || true
+#          wait $APP_PID || true
+#          echo "App test complete."
 
       - name: Copy .app out /Applications
         run: |
@@ -184,53 +184,53 @@ jobs:
       - name: Make main binary executable
         run: chmod +x /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain
 
-      - name: Run the app to check it launches
-        run: |
-          set -e
-          
-          echo "Launching PyMcaMain..."
-          LOGFILE=$(mktemp)
-          
-          # Start the app in the background
-          arch -arm64 /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain > "$LOGFILE" 2>&1 &
-          APP_PID=$!
-          
-          echo "App started with PID $APP_PID"
-          
-          # Wait up to 120 seconds for it to crash or hang
-          for i in {1..120}; do
-            if ! ps -p $APP_PID > /dev/null; then
-              echo "App exited early. Checking exit code..."
-              wait $APP_PID || true
-              EXIT_CODE=$?
-              echo "Exit code: $EXIT_CODE"
-              echo "App output log:"
-              cat "$LOGFILE"
-              if [ $EXIT_CODE -ne 0 ]; then
-                echo "App exited with error code $EXIT_CODE"
-                exit $EXIT_CODE
-              else
-                echo "App exited cleanly before 2 minutes."
-                exit 0
-              fi
-            fi
-          
-            if grep -qE 'ImportError|Traceback|ERROR:' "$LOGFILE"; then
-              echo "Detected error in application output:"
-              cat "$LOGFILE"
-              echo "Failing due to runtime error."
-              kill $APP_PID || true
-              wait $APP_PID || true
-              exit 1
-            fi
-          
-            sleep 1
-          done
-          
-          echo "App ran for 2 minutes without crashing. Killing it now..."
-          kill $APP_PID || true
-          wait $APP_PID || true
-          echo "App test complete."
+#      - name: Run the app to check it launches
+#        run: |
+#          set -e
+#
+#          echo "Launching PyMcaMain..."
+#          LOGFILE=$(mktemp)
+#
+#          # Start the app in the background
+#          arch -arm64 /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain > "$LOGFILE" 2>&1 &
+#          APP_PID=$!
+#
+#          echo "App started with PID $APP_PID"
+#
+#          # Wait up to 120 seconds for it to crash or hang
+#          for i in {1..120}; do
+#            if ! ps -p $APP_PID > /dev/null; then
+#              echo "App exited early. Checking exit code..."
+#              wait $APP_PID || true
+#              EXIT_CODE=$?
+#              echo "Exit code: $EXIT_CODE"
+#              echo "App output log:"
+#              cat "$LOGFILE"
+#              if [ $EXIT_CODE -ne 0 ]; then
+#                echo "App exited with error code $EXIT_CODE"
+#                exit $EXIT_CODE
+#              else
+#                echo "App exited cleanly before 2 minutes."
+#                exit 0
+#              fi
+#            fi
+#
+#            if grep -qE 'ImportError|Traceback|ERROR:' "$LOGFILE"; then
+#              echo "Detected error in application output:"
+#              cat "$LOGFILE"
+#              echo "Failing due to runtime error."
+#              kill $APP_PID || true
+#              wait $APP_PID || true
+#              exit 1
+#            fi
+#
+#            sleep 1
+#          done
+#
+#          echo "App ran for 2 minutes without crashing. Killing it now..."
+#          kill $APP_PID || true
+#          wait $APP_PID || true
+#          echo "App test complete."
 
       - name: Cleanup
         run: |
@@ -340,6 +340,54 @@ jobs:
           APP_NAME=$(find dist -maxdepth 1 -name 'PyMca*.app' | head -n 1 | xargs -n 1 basename)
           echo "APP_NAME=$APP_NAME" >> $GITHUB_ENV
 
+      - name: Move .app to /Applications
+        run: |
+          sudo mv ./dist/${{ env.APP_NAME }} /Applications/
+          ls -l /Applications/${{ env.APP_NAME }}/Contents/MacOS
+
+      - name: Make main binary executable
+        run: chmod +x /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain
+
+      - name: Rename __dot__dylibs folders to .dylibs
+        run: |
+          find /Applications/${{ env.APP_NAME }} -depth -type d -name '__dot__dylibs' | while IFS= read -r dir; do
+            parent_dir=$(dirname "$dir")
+            target="$parent_dir/.dylibs"
+
+            if [ -e "$target" ]; then
+              echo "⚠️ Skipping: $target already exists."
+            else
+              mv "$dir" "$target"
+              if [ -d "$target" ]; then
+                if [ "$(ls -A "$target")" ]; then
+                  echo "✅ Renamed and verified: $dir → $target (not empty)"
+                else
+                  echo "⚠️ Renamed: $dir → $target but it's empty"
+                fi
+              else
+                echo "❌ Rename failed: $dir → $target does not exist"
+              fi
+            fi
+          done
+
+      - name: Copy .app out /Applications
+        run: |
+          sudo mkdir -p myappfolder
+          sudo cp -R "/Applications/${{ env.APP_NAME }}" myappfolder/
+
+      - name: Cleanup
+        run: |
+          sudo rm -rf /Applications/${{ env.APP_NAME }}
+
+      # upload .app as well
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-x86-pyinstaller-artifacts-dashdotfix
+          path: myappfolder/*
+          include-hidden-files: true
+          retention-days: 1
+
       ### dmg test
 
       - name: Mount the DMG
@@ -356,6 +404,140 @@ jobs:
       - name: Make main binary executable
         run: chmod +x /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain
 
+#      - name: Run the app to check it launches
+#        run: |
+#          set -e
+#
+#          echo "Launching PyMcaMain..."
+#          LOGFILE=$(mktemp)
+#
+#          # Start the app in the background
+#          arch -x86_64 /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain > "$LOGFILE" 2>&1 &
+#          APP_PID=$!
+#
+#          echo "App started with PID $APP_PID"
+#
+#          # Wait up to 120 seconds for it to crash or hang
+#          for i in {1..120}; do
+#            if ! ps -p $APP_PID > /dev/null; then
+#              echo "App exited early. Checking exit code..."
+#              wait $APP_PID || true
+#              EXIT_CODE=$?
+#              echo "Exit code: $EXIT_CODE"
+#              echo "App output log:"
+#              cat "$LOGFILE"
+#              if [ $EXIT_CODE -ne 0 ]; then
+#                echo "App exited with error code $EXIT_CODE"
+#                exit $EXIT_CODE
+#              else
+#                echo "App exited cleanly before 2 minutes."
+#                exit 0
+#              fi
+#            fi
+#
+#            if grep -qE 'ImportError|Traceback|ERROR:' "$LOGFILE"; then
+#              echo "Detected error in application output:"
+#              cat "$LOGFILE"
+#              echo "Failing due to runtime error."
+#              kill $APP_PID || true
+#              wait $APP_PID || true
+#              exit 1
+#            fi
+#
+#            sleep 1
+#          done
+#
+#          echo "App ran for 2 minutes without crashing. Killing it now..."
+#          kill $APP_PID || true
+#          wait $APP_PID || true
+#          echo "App test complete."
+
+      - name: Cleanup
+        run: |
+          sudo rm -rf /Applications/${{ env.APP_NAME }}
+
+      # upload .dmg
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-x86(intel)-pyinstaller-artifacts-dmg
+          path: dist/*.dmg
+          retention-days: 1
+
+  macos_universal_app:
+    runs-on: macos-latest
+    needs:
+      - macos_arm_pyinstaller_python312
+      - macos_x86_pyinstaller_python312
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.12"
+
+      - name: Install Rosetta
+        run: |
+          sudo softwareupdate --install-rosetta --agree-to-license
+
+      - name: Download Mac arm64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-arm-pyinstaller-artifacts-dashdotfix
+          path: dist/arm64
+
+      - name: Download Mac x86 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-x86-pyinstaller-artifacts-dashdotfix
+          path: dist/x86
+          
+      - name: Set app name variable
+        run: |
+          APP_NAME=$(find dist/arm64 -maxdepth 1 -name '*.app' | head -n 1 | xargs -n 1 basename)
+          echo "APP_NAME=$APP_NAME" >> $GITHUB_ENV
+
+      - name: Merge into universal2 .app
+        run: |
+          echo "Merging universal .app: $APP_NAME"
+
+          ARM_APP="dist/arm64/$APP_NAME"
+          X86_APP="dist/x86/$APP_NAME"
+          UNIVERSAL_APP="dist/universal/$APP_NAME"
+
+          # Copy arm64 app as base
+          mkdir -p dist/universal
+          cp -R "$ARM_APP" "$UNIVERSAL_APP"
+
+          echo "Merging executables in Contents/MacOS..."
+          for exe in "$ARM_APP/Contents/MacOS/"*; do
+            exe_name=$(basename "$exe")
+            echo "  -> $exe_name"
+            lipo -create \
+              "$ARM_APP/Contents/MacOS/$exe_name" \
+              "$X86_APP/Contents/MacOS/$exe_name" \
+              -output "$UNIVERSAL_APP/Contents/MacOS/$exe_name"
+          done
+
+          echo "Merging .so and .dylib files in Frameworks and Resources..."
+          for section in Frameworks Resources; do
+            find "$ARM_APP/Contents/$section" -type f \( -name "*.so" -o -name "*.dylib" \) | while read arm_file; do
+              rel_path="${arm_file#$ARM_APP/}"
+              x86_file="$X86_APP/$rel_path"
+              out_file="$UNIVERSAL_APP/$rel_path"
+
+              if [ -f "$x86_file" ]; then
+                echo "  -> $rel_path"
+                lipo -create "$arm_file" "$x86_file" -output "$out_file"
+              fi
+            done
+          done
+
+          echo "✅ Universal app built at $UNIVERSAL_APP"
+
       - name: Run the app to check it launches
         run: |
           set -e
@@ -364,7 +546,7 @@ jobs:
           LOGFILE=$(mktemp)
           
           # Start the app in the background
-          arch -x86_64 /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain > "$LOGFILE" 2>&1 &
+          arch -arm64 dist/universal/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain > "$LOGFILE" 2>&1 &
           APP_PID=$!
           
           echo "App started with PID $APP_PID"
@@ -404,17 +586,80 @@ jobs:
           wait $APP_PID || true
           echo "App test complete."
 
-      - name: Cleanup
+      - name: Run the app to check it launches
         run: |
-          sudo rm -rf /Applications/${{ env.APP_NAME }}
+          set -e
+          
+          echo "Launching PyMcaMain..."
+          LOGFILE=$(mktemp)
+          
+          # Start the app in the background
+          arch -x86_64 dist/universal/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain > "$LOGFILE" 2>&1 &
+          APP_PID=$!
+          
+          echo "App started with PID $APP_PID"
+          
+          # Wait up to 120 seconds for it to crash or hang
+          for i in {1..120}; do
+            if ! ps -p $APP_PID > /dev/null; then
+              echo "App exited early. Checking exit code..."
+              wait $APP_PID || true
+              EXIT_CODE=$?
+              echo "Exit code: $EXIT_CODE"
+              echo "App output log:"
+              cat "$LOGFILE"
+              if [ $EXIT_CODE -ne 0 ]; then
+                echo "App exited with error code $EXIT_CODE"
+                exit $EXIT_CODE
+              else
+                echo "App exited cleanly before 2 minutes."
+                exit 0
+              fi
+            fi
+          
+            if grep -qE 'ImportError|Traceback|ERROR:' "$LOGFILE"; then
+              echo "Detected error in application output:"
+              cat "$LOGFILE"
+              echo "Failing due to runtime error."
+              kill $APP_PID || true
+              wait $APP_PID || true
+              exit 1
+            fi
+          
+            sleep 1
+          done
+          
+          echo "App ran for 2 minutes without crashing. Killing it now..."
+          kill $APP_PID || true
+          wait $APP_PID || true
+          echo "App test complete."
 
-      # upload .dmg
-      - name: Upload artifacts
+      - name: Create .dmg image
+        run: |
+          APP_NAME_NOEXT="${APP_NAME%.app}"
+          DMG_PATH="dist/${APP_NAME_NOEXT}-universal.dmg"
+
+          echo "Creating DMG at $DMG_PATH..."
+
+          mkdir dmg_temp
+          cp -R "dist/universal/$APP_NAME" dmg_temp/
+
+          hdiutil create -volname "$APP_NAME_NOEXT" \
+                         -srcfolder dmg_temp \
+                         -fs HFS+ \
+                         -format UDZO \
+                         "$DMG_PATH"
+
+          echo "✅ DMG created: $DMG_PATH"
+
+      - name: Upload universal .app artifact
         uses: actions/upload-artifact@v4
         with:
-          name: macos-x86(intel)-pyinstaller-artifacts-dmg
-          path: dist/*.dmg
-          retention-days: 1
+          name: ${{ env.APP_NAME }}-universal-app
+          path: dist/universal/${{ env.APP_NAME }}
 
-
-          
+      - name: Upload .dmg artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}-universal-dmg
+          path: dist/${{ env.APP_NAME%.app }}-universal.dmg
