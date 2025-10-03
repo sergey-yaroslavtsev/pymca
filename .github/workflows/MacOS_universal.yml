@@ -95,26 +95,27 @@ jobs:
               rel_path="${arm_file#$ARM_APP/}"
               x86_file="$X86_APP/$rel_path"
               out_file="$UNIVERSAL_APP/$rel_path"
-
+          
               if [ -f "$x86_file" ]; then
                 echo "  -> $rel_path"
-
+          
                 arm_archs=$(lipo -info "$arm_file" 2>/dev/null || echo "error")
                 x86_archs=$(lipo -info "$x86_file" 2>/dev/null || echo "error")
-
+          
+                echo "    Archs arm_file: $arm_archs"
+                echo "    Archs x86_file: $x86_archs"
+          
                 if [ "$arm_archs" = "error" ] || [ "$x86_archs" = "error" ]; then
                   echo "    Warning: Could not get arch info, copying x86_file by default"
                   cp "$x86_file" "$out_file"
                 else
-                  # Extract architectures lists
                   arm_arch_list=$(echo "$arm_archs" | sed -E 's/.*are: (.*)/\1/')
                   x86_arch_list=$(echo "$x86_archs" | sed -E 's/.*are: (.*)/\1/')
-
+          
                   if [ "$arm_arch_list" = "$x86_arch_list" ]; then
-                    # Same arch - copy x86_file
+                    echo "    Warning: Same architectures detected ($arm_arch_list). Copying x86_file."
                     cp "$x86_file" "$out_file"
                   else
-                    # Different archs - merge
                     lipo -create "$arm_file" "$x86_file" -output "$out_file"
                   fi
                 fi
