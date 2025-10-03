@@ -739,7 +739,7 @@ jobs:
       
           # 4. Create compressed DMG with better options
           hdiutil create "$DMG_PATH" \
-            -volname "${{ env.APP_BASE_NAME }}-universal" \
+            -volname "${{ env.APP_BASE_NAME }}" \
             -srcfolder "dmg_temp" \
             -fs HFS+ \
             -format UDZO \
@@ -754,4 +754,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.APP_BASE_NAME }}-universal-dmg
-          path: dist/${{ env.APP_BASE_NAME }}-universal.dmg
+          path: dist/${{ env.APP_BASE_NAME }}.dmg
