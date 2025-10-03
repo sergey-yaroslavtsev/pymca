@@ -109,7 +109,7 @@ jobs:
                 fi
               done
               if [ $found -eq 0 ]; then
-                return 1  # missing arch
+                return 1
               fi
             done
             return 0
@@ -123,20 +123,43 @@ jobs:
               out_file="$UNIVERSAL_APP/$rel_path"
           
               if [ -f "$x86_file" ]; then
-                echo "  -> $rel_path"
-          
+
                 arch_arm=$(lipo -info "$arm_file" 2>&1)
                 arch_x86=$(lipo -info "$x86_file" 2>&1)
                 
                 archs_arm=$(get_archs "$arch_arm")
                 archs_x86=$(get_archs "$arch_x86")
-          
-                if contains_all_archs "$archs_arm" "$archs_x86" && contains_all_archs "$archs_x86" "$archs_arm"; then
-                  echo "    Both files have identical architectures ($archs_arm). Copying x86 file."
+                
+                is_arm_universal=false
+                is_x86_universal=false
+                
+                if [[ "$archs_arm" == *"arm64"* && "$archs_arm" == *"x86_64"* ]]; then
+                  is_arm_universal=true
+                fi
+
+                if [[ "$archs_x86" == *"arm64"* && "$archs_x86" == *"x86_64"* ]]; then
+                  is_x86_universal=true
+                fi
+                
+                if [ "$is_arm_universal" = true ] && [ "$is_x86_universal" = false ]; then
+                  echo "  -> $rel_path"
+                  echo "    arm_file is universal; copying arm_file."
+                  cp "$arm_file" "$out_file"
+                elif [ "$is_x86_universal" = true ] && [ "$is_arm_universal" = false ]; then
+                  echo "  -> $rel_path"
+                  echo "    x86_file is universal; copying x86_file."
                   cp "$x86_file" "$out_file"
                 else
-                  echo "    Architectures differ, merging..."
-                  lipo -create "$arm_file" "$x86_file" -output "$out_file"
+                  # If both universal or both not universal, check if arch sets match exactly
+                  if contains_all_archs "$archs_arm" "$archs_x86" && contains_all_archs "$archs_x86" "$archs_arm"; then
+                    echo "  -> $rel_path"
+                    echo "    Both files have identical architectures ($archs_arm). Copying x86 file."
+                    echo "    Archs arm_file: $arch_arm"
+                    echo "    Archs x86_file: $arch_x86"
+                    cp "$x86_file" "$out_file"
+                  else
+                    lipo -create "$arm_file" "$x86_file" -output "$out_file"
+                  fi
                 fi
               else
                 echo "    Warning: x86 file not found for $rel_path. Skipping."
