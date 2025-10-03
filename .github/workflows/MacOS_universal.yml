@@ -119,9 +119,9 @@ jobs:
           for section in Frameworks Resources; do
             find "$ARM_APP/Contents/$section" -type f | while read -r arm_file; do
               if ! file "$arm_file" | grep -q 'Mach-O'; then
+                echo "Skipping non-Mach-O file $arm_file"
                 continue
               fi
-          
               rel_path="${arm_file#$ARM_APP/}"
               x86_file="$X86_APP/$rel_path"
               out_file="$UNIVERSAL_APP/$rel_path"
@@ -162,6 +162,7 @@ jobs:
                       echo "    Archs arm_file: $arch_arm"
                       echo "    Archs x86_file: $arch_x86"
                     cp "$x86_file" "$out_file"
+                    fi
                   else
                     lipo -create "$arm_file" "$x86_file" -output "$out_file"
                   fi
