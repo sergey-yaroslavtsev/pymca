@@ -88,7 +88,33 @@ jobs:
               "$X86_APP/Contents/MacOS/$exe_name" \
               -output "$UNIVERSAL_APP/Contents/MacOS/$exe_name"
           done
-
+          
+          
+          # Extract all architectures as sorted strings
+          get_archs() {
+            echo "$1" | grep -oE 'arm64|x86_64' | sort | tr '\n' ' '
+          }
+          
+          # Helper: check if arch list1 contains all archs in list2
+          contains_all_archs() {
+            local container=($1)
+            local contained=($2)
+          
+            for arch in "${contained[@]}"; do
+              local found=0
+              for c in "${container[@]}"; do
+                if [ "$arch" = "$c" ]; then
+                  found=1
+                  break
+                fi
+              done
+              if [ $found -eq 0 ]; then
+                return 1  # missing arch
+              fi
+            done
+            return 0
+          }
+          
           echo "Merging .so and .dylib files in Frameworks and Resources..."
           for section in Frameworks Resources; do
             find "$ARM_APP/Contents/$section" -type f \( -name "*.so" -o -name "*.dylib" \) | while read -r arm_file; do
@@ -101,27 +127,16 @@ jobs:
           
                 arch_arm=$(lipo -info "$arm_file" 2>&1)
                 arch_x86=$(lipo -info "$x86_file" 2>&1)
-          
-                # Extract all architectures as sorted strings
-                get_archs() {
-                  echo "$1" | grep -oE 'arm64|x86_64' | sort | tr '\n' ' '
-                }
-          
-                trim() {
-                echo "$1" | xargs
-                }
                 
-                archs_arm=$(trim "$(get_archs "$arch_arm")")
-                archs_x86=$(trim "$(get_archs "$arch_x86")")
-
+                archs_arm=$(get_archs "$arch_arm")
+                archs_x86=$(get_archs "$arch_x86")
           
-                if [ "$archs_arm" != "$archs_x86" ]; then
-                  lipo -create "$arm_file" "$x86_file" -output "$out_file"
-                else
-                  echo "    Architectures identical ($archs_arm). Copying x86 file."
-                  echo "    Archs arm_file: $arch_arm"
-                  echo "    Archs x86_file: $arch_x86"
+                if contains_all_archs "$archs_arm" "$archs_x86" && contains_all_archs "$archs_x86" "$archs_arm"; then
+                  echo "    Both files have identical architectures ($archs_arm). Copying x86 file."
                   cp "$x86_file" "$out_file"
+                else
+                  echo "    Architectures differ, merging..."
+                  lipo -create "$arm_file" "$x86_file" -output "$out_file"
                 fi
               else
                 echo "    Warning: x86 file not found for $rel_path. Skipping."
