@@ -282,22 +282,36 @@ jobs:
           APP_BASE_NAME="${APP_NAME%.app}"
           echo "APP_BASE_NAME=$APP_BASE_NAME" >> $GITHUB_ENV
 
-      - name: Create .dmg image
+      - name: Create compressed .dmg from .app
         run: |
-          DMG_PATH="dist/${APP_BASE_NAME}-universal.dmg"
-
+          set -e
+      
+          DMG_NAME="${{ env.APP_BASE_NAME }}.dmg"
+          DMG_PATH="dist/${DMG_NAME}"
+      
           echo "Creating DMG at $DMG_PATH..."
-
-          mkdir dmg_temp
-          cp -R "dist/universal/$APP_NAME" dmg_temp/
-
-          hdiutil create -volname "$APP_BASE_NAME" \
-                         -srcfolder dmg_temp \
-                         -fs HFS+ \
-                         -format UDZO \
-                         "$DMG_PATH"
-
+      
+          # 1. Create temp directory
+          mkdir -p dmg_temp
+      
+          # 2. Copy app bundle
+          cp -R "dist/universal/${{ env.APP_NAME }}" dmg_temp/
+      
+          # 3. Strip extended attributes (mimics `xattr -cr` logic in .spec)
+          xattr -cr "dmg_temp/${{ env.APP_NAME }}"
+      
+          # 4. Create compressed DMG with better options
+          hdiutil create "$DMG_PATH" \
+            -volname "${{ env.APP_BASE_NAME }}" \
+            -srcfolder "dmg_temp" \
+            -fs HFS+ \
+            -format UDZO \
+            -imagekey zlib-level=9
+      
           echo "✅ DMG created: $DMG_PATH"
+      
+          # 5. Cleanup
+          rm -rf dmg_temp
 
       - name: Upload .dmg artifact
         uses: actions/upload-artifact@v4

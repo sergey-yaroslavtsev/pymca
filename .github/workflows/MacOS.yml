@@ -35,8 +35,8 @@ jobs:
         run: |
           pip install "setuptools<80"
           pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/psutil-5.9.6-cp312-abi3-macosx_10_9_universal2.whl
-          # pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/Pillow-10.1.0-cp312-cp312-macosx_11_0_universal2.whl
-          pip install Pillow
+          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/Pillow-10.1.0-cp312-cp312-macosx_11_0_universal2.whl
+          # pip install Pillow # works as well - just arm64 have more files than x86
           pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/tornado-6.3.3-cp38-abi3-macosx_10_9_universal2.whl
           pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/contourpy-1.2.0-cp312-cp312-macosx_11_0_universal2.whl
           pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/kiwisolver-1.4.5-cp312-cp312-macosx_11_0_universal2.whl
@@ -290,8 +290,8 @@ jobs:
           source venv-x86/bin/activate
           arch -x86_64 pip install "setuptools<81"
           arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/psutil-5.9.6-cp312-abi3-macosx_10_9_universal2.whl
-          # arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/Pillow-10.1.0-cp312-cp312-macosx_11_0_universal2.whl
-          arch -x86_64 pip install Pillow
+          arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/Pillow-10.1.0-cp312-cp312-macosx_11_0_universal2.whl
+          # arch -x86_64 pip install Pillow # works as well - just arm64 have more files than x86
           arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/tornado-6.3.3-cp38-abi3-macosx_10_9_universal2.whl
           arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/contourpy-1.2.0-cp312-cp312-macosx_11_0_universal2.whl
           arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/kiwisolver-1.4.5-cp312-cp312-macosx_11_0_universal2.whl
@@ -723,10 +723,7 @@ jobs:
         run: |
           set -e
       
-          APP_NAME="MyApp.app"  # adjust accordingly
-          APP_BASE_NAME="MyApp"
-          VERSION="1.2.3"       # optionally parse from code or env
-          DMG_NAME="${APP_BASE_NAME}-${VERSION}.dmg"
+          DMG_NAME="${{ env.APP_BASE_NAME }}.dmg"
           DMG_PATH="dist/${DMG_NAME}"
       
           echo "Creating DMG at $DMG_PATH..."
@@ -735,14 +732,14 @@ jobs:
           mkdir -p dmg_temp
       
           # 2. Copy app bundle
-          cp -R "dist/universal/${APP_NAME}" dmg_temp/
+          cp -R "dist/universal/${{ env.APP_NAME }}" dmg_temp/
       
           # 3. Strip extended attributes (mimics `xattr -cr` logic in .spec)
-          xattr -cr "dmg_temp/${APP_NAME}"
+          xattr -cr "dmg_temp/${{ env.APP_NAME }}"
       
           # 4. Create compressed DMG with better options
           hdiutil create "$DMG_PATH" \
-            -volname "${APP_BASE_NAME}" \
+            -volname "${{ env.APP_BASE_NAME }}" \
             -srcfolder "dmg_temp" \
             -fs HFS+ \
             -format UDZO \
