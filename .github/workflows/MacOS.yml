@@ -634,17 +634,27 @@ jobs:
           wait $APP_PID || true
           echo "App test complete."
 
+      - name: Upload universal .app artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}-universal-app
+          path: dist/universal/${{ env.APP_NAME }}
+
+      - name: Set app base name (without .app)
+        run: |
+          APP_BASE_NAME="${APP_NAME%.app}"
+          echo "APP_BASE_NAME=$APP_BASE_NAME" >> $GITHUB_ENV
+
       - name: Create .dmg image
         run: |
-          APP_NAME_NOEXT="${APP_NAME%.app}"
-          DMG_PATH="dist/${APP_NAME_NOEXT}-universal.dmg"
+          DMG_PATH="dist/${APP_BASE_NAME}-universal.dmg"
 
           echo "Creating DMG at $DMG_PATH..."
 
           mkdir dmg_temp
           cp -R "dist/universal/$APP_NAME" dmg_temp/
 
-          hdiutil create -volname "$APP_NAME_NOEXT" \
+          hdiutil create -volname "$APP_BASE_NAME" \
                          -srcfolder dmg_temp \
                          -fs HFS+ \
                          -format UDZO \
@@ -652,14 +662,8 @@ jobs:
 
           echo "✅ DMG created: $DMG_PATH"
 
-      - name: Upload universal .app artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.APP_NAME }}-universal-app
-          path: dist/universal/${{ env.APP_NAME }}
-
       - name: Upload .dmg artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.APP_NAME }}-universal-dmg
-          path: dist/${{ env.APP_NAME%.app }}-universal.dmg
+          name: ${{ env.APP_BASE_NAME }}-universal-dmg
+          path: dist/${{ env.APP_BASE_NAME }}-universal.dmg
