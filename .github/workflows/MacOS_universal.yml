@@ -188,8 +188,8 @@ jobs:
 
           echo "App started with PID $APP_PID"
 
-          # Wait up to 120 seconds for it to crash or hang
-          for i in {1..120}; do
+          # Wait up to 30 seconds for it to crash or hang
+          for i in {1..30}; do
             if ! ps -p $APP_PID > /dev/null; then
               echo "App exited early. Checking exit code..."
               wait $APP_PID || true
@@ -236,8 +236,8 @@ jobs:
 
           echo "App started with PID $APP_PID"
 
-          # Wait up to 120 seconds for it to crash or hang
-          for i in {1..120}; do
+          # Wait up to 30 seconds for it to crash or hang
+          for i in {1..30}; do
             if ! ps -p $APP_PID > /dev/null; then
               echo "App exited early. Checking exit code..."
               wait $APP_PID || true
@@ -302,7 +302,7 @@ jobs:
       
           # 4. Create compressed DMG with better options
           hdiutil create "$DMG_PATH" \
-            -volname "${{ env.APP_BASE_NAME }}" \
+            -volname "${{ env.APP_BASE_NAME }}-universal" \
             -srcfolder "dmg_temp" \
             -fs HFS+ \
             -format UDZO \
