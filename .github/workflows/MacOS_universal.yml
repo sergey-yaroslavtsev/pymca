@@ -1,0 +1,255 @@
+name: MacOs universal
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+env:
+  PROJECT: Pymca_release_test
+  PROJECT_LOWER: pymca_release_test
+jobs:
+  download-artifacts:
+    runs-on: macos-latest
+    steps:
+      -
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.12"
+
+      - name: Download specific artifacts from run 18223080576
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: sergey-yaroslavtsev/pymca
+          RUN_ID: 18223080576
+          ARTIFACT_NAMES: "macos-arm-pyinstaller-artifacts-dashdotfix macos-x86-pyinstaller-artifacts-dashdotfix"
+        run: |
+          echo "Downloading artifacts from workflow run ID: $RUN_ID"
+
+          for ARTIFACT_NAME in $ARTIFACT_NAMES; do
+            echo "Searching for artifact: $ARTIFACT_NAME"
+
+            ARTIFACT_ID=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+              "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID/artifacts" | \
+              jq -r ".artifacts[] | select(.name==\"$ARTIFACT_NAME\") | .id")
+
+            if [ -z "$ARTIFACT_ID" ]; then
+              echo "ERROR: Artifact '$ARTIFACT_NAME' not found in run $RUN_ID"
+              exit 1
+            fi
+
+            echo "Downloading artifact '$ARTIFACT_NAME' (ID: $ARTIFACT_ID)..."
+            curl -L -H "Authorization: token $GITHUB_TOKEN" \
+              -o "$ARTIFACT_NAME.zip" \
+              "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/$ARTIFACT_ID/zip"
+
+            echo "Extracting $ARTIFACT_NAME.zip..."
+            unzip -o "$ARTIFACT_NAME.zip" -d "./$ARTIFACT_NAME"
+          done
+
+          echo "Artifacts downloaded and extracted successfully."
+
+      - name: Install Rosetta
+        run: |
+          sudo softwareupdate --install-rosetta --agree-to-license
+
+      - name: Organize artifacts
+        run: |
+          mkdir -p dist/arm64 dist/x86
+          cp -r macos-arm-pyinstaller-artifacts-dashdotfix/* dist/arm64/
+          cp -r macos-x86-pyinstaller-artifacts-dashdotfix/* dist/x86/
+
+      - name: Set app name variable
+        run: |
+          APP_NAME=$(find dist/arm64 -maxdepth 1 -name '*.app' | head -n 1 | xargs -n 1 basename)
+          echo "APP_NAME=$APP_NAME" >> $GITHUB_ENV
+
+      - name: Merge into universal2 .app
+        run: |
+          echo "Merging universal .app: $APP_NAME"
+
+          ARM_APP="dist/arm64/$APP_NAME"
+          X86_APP="dist/x86/$APP_NAME"
+          UNIVERSAL_APP="dist/universal/$APP_NAME"
+
+          # Copy arm64 app as base
+          mkdir -p dist/universal
+          cp -R "$ARM_APP" "$UNIVERSAL_APP"
+
+          echo "Merging executables in Contents/MacOS..."
+          for exe in "$ARM_APP/Contents/MacOS/"*; do
+            exe_name=$(basename "$exe")
+            echo "  -> $exe_name"
+            lipo -create \
+              "$ARM_APP/Contents/MacOS/$exe_name" \
+              "$X86_APP/Contents/MacOS/$exe_name" \
+              -output "$UNIVERSAL_APP/Contents/MacOS/$exe_name"
+          done
+
+          echo "Merging .so and .dylib files in Frameworks and Resources..."
+          for section in Frameworks Resources; do
+            find "$ARM_APP/Contents/$section" -type f \( -name "*.so" -o -name "*.dylib" \) | while read arm_file; do
+              rel_path="${arm_file#$ARM_APP/}"
+              x86_file="$X86_APP/$rel_path"
+              out_file="$UNIVERSAL_APP/$rel_path"
+
+              if [ -f "$x86_file" ]; then
+                echo "  -> $rel_path"
+
+                arm_archs=$(lipo -info "$arm_file" 2>/dev/null || echo "error")
+                x86_archs=$(lipo -info "$x86_file" 2>/dev/null || echo "error")
+
+                if [ "$arm_archs" = "error" ] || [ "$x86_archs" = "error" ]; then
+                  echo "    Warning: Could not get arch info, copying x86_file by default"
+                  cp "$x86_file" "$out_file"
+                else
+                  # Extract architectures lists
+                  arm_arch_list=$(echo "$arm_archs" | sed -E 's/.*are: (.*)/\1/')
+                  x86_arch_list=$(echo "$x86_archs" | sed -E 's/.*are: (.*)/\1/')
+
+                  if [ "$arm_arch_list" = "$x86_arch_list" ]; then
+                    # Same arch - copy x86_file
+                    cp "$x86_file" "$out_file"
+                  else
+                    # Different archs - merge
+                    lipo -create "$arm_file" "$x86_file" -output "$out_file"
+                  fi
+                fi
+              fi
+            done
+          done
+
+          echo "✅ Universal app built at $UNIVERSAL_APP"
+
+      - name: Run the app to check it launches
+        run: |
+          set -e
+
+          echo "Launching PyMcaMain..."
+          LOGFILE=$(mktemp)
+
+          # Start the app in the background
+          arch -arm64 dist/universal/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain > "$LOGFILE" 2>&1 &
+          APP_PID=$!
+
+          echo "App started with PID $APP_PID"
+
+          # Wait up to 120 seconds for it to crash or hang
+          for i in {1..120}; do
+            if ! ps -p $APP_PID > /dev/null; then
+              echo "App exited early. Checking exit code..."
+              wait $APP_PID || true
+              EXIT_CODE=$?
+              echo "Exit code: $EXIT_CODE"
+              echo "App output log:"
+              cat "$LOGFILE"
+              if [ $EXIT_CODE -ne 0 ]; then
+                echo "App exited with error code $EXIT_CODE"
+                exit $EXIT_CODE
+              else
+                echo "App exited cleanly before 2 minutes."
+                exit 0
+              fi
+            fi
+
+            if grep -qE 'ImportError|Traceback|ERROR:' "$LOGFILE"; then
+              echo "Detected error in application output:"
+              cat "$LOGFILE"
+              echo "Failing due to runtime error."
+              kill $APP_PID || true
+              wait $APP_PID || true
+              exit 1
+            fi
+
+            sleep 1
+          done
+
+          echo "App ran for 2 minutes without crashing. Killing it now..."
+          kill $APP_PID || true
+          wait $APP_PID || true
+          echo "App test complete."
+
+      - name: Run the app to check it launches
+        run: |
+          set -e
+
+          echo "Launching PyMcaMain..."
+          LOGFILE=$(mktemp)
+
+          # Start the app in the background
+          arch -x86_64 dist/universal/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain > "$LOGFILE" 2>&1 &
+          APP_PID=$!
+
+          echo "App started with PID $APP_PID"
+
+          # Wait up to 120 seconds for it to crash or hang
+          for i in {1..120}; do
+            if ! ps -p $APP_PID > /dev/null; then
+              echo "App exited early. Checking exit code..."
+              wait $APP_PID || true
+              EXIT_CODE=$?
+              echo "Exit code: $EXIT_CODE"
+              echo "App output log:"
+              cat "$LOGFILE"
+              if [ $EXIT_CODE -ne 0 ]; then
+                echo "App exited with error code $EXIT_CODE"
+                exit $EXIT_CODE
+              else
+                echo "App exited cleanly before 2 minutes."
+                exit 0
+              fi
+            fi
+
+            if grep -qE 'ImportError|Traceback|ERROR:' "$LOGFILE"; then
+              echo "Detected error in application output:"
+              cat "$LOGFILE"
+              echo "Failing due to runtime error."
+              kill $APP_PID || true
+              wait $APP_PID || true
+              exit 1
+            fi
+
+            sleep 1
+          done
+
+          echo "App ran for 2 minutes without crashing. Killing it now..."
+          kill $APP_PID || true
+          wait $APP_PID || true
+          echo "App test complete."
+
+      - name: Upload universal .app artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}-universal-app
+          path: dist/universal/${{ env.APP_NAME }}
+
+      - name: Set app base name (without .app)
+        run: |
+          APP_BASE_NAME="${APP_NAME%.app}"
+          echo "APP_BASE_NAME=$APP_BASE_NAME" >> $GITHUB_ENV
+
+      - name: Create .dmg image
+        run: |
+          DMG_PATH="dist/${APP_BASE_NAME}-universal.dmg"
+
+          echo "Creating DMG at $DMG_PATH..."
+
+          mkdir dmg_temp
+          cp -R "dist/universal/$APP_NAME" dmg_temp/
+
+          hdiutil create -volname "$APP_BASE_NAME" \
+                         -srcfolder dmg_temp \
+                         -fs HFS+ \
+                         -format UDZO \
+                         "$DMG_PATH"
+
+          echo "✅ DMG created: $DMG_PATH"
+
+      - name: Upload .dmg artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_BASE_NAME }}-universal-dmg
+          path: dist/${{ env.APP_BASE_NAME }}-universal.dmg
