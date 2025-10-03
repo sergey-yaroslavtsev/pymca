@@ -102,27 +102,22 @@ jobs:
                 arch_arm=$(lipo -info "$arm_file" 2>&1)
                 arch_x86=$(lipo -info "$x86_file" 2>&1)
           
-                # Extract architecture name (handles both fat and non-fat files)
-                get_arch() {
-                  echo "$1" | grep -oE 'arm64|x86_64' | head -n 1
-                }
-          
-                arch_arm_name=$(get_arch "$arch_arm")
-                arch_x86_name=$(get_arch "$arch_x86")
-          
                 echo "    Archs arm_file: $arch_arm"
                 echo "    Archs x86_file: $arch_x86"
           
-                if [ "$arch_arm_name" != "" ] && [ "$arch_x86_name" != "" ]; then
-                  if [ "$arch_arm_name" != "$arch_x86_name" ]; then
-                    echo "    Merging architectures: $arch_arm_name + $arch_x86_name"
-                    lipo -create "$arm_file" "$x86_file" -output "$out_file"
-                  else
-                    echo "    Warning: Both files have same architecture ($arch_arm_name). Copying x86 file."
-                    cp "$x86_file" "$out_file"
-                  fi
+                # Extract all architectures as sorted strings
+                get_archs() {
+                  echo "$1" | grep -oE 'arm64|x86_64' | sort | tr '\n' ' '
+                }
+          
+                archs_arm=$(get_archs "$arch_arm")
+                archs_x86=$(get_archs "$arch_x86")
+          
+                if [ "$archs_arm" != "$archs_x86" ]; then
+                  echo "    Architectures differ, merging..."
+                  lipo -create "$arm_file" "$x86_file" -output "$out_file"
                 else
-                  echo "    Could not detect architectures properly. Copying x86 file as fallback."
+                  echo "    Architectures identical ($archs_arm). Copying x86 file."
                   cp "$x86_file" "$out_file"
                 fi
               else
@@ -130,6 +125,7 @@ jobs:
               fi
             done
           done
+
 
           echo "✅ Universal app built at $UNIVERSAL_APP"
 
