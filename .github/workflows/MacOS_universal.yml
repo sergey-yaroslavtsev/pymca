@@ -102,22 +102,25 @@ jobs:
                 arch_arm=$(lipo -info "$arm_file" 2>&1)
                 arch_x86=$(lipo -info "$x86_file" 2>&1)
           
-                echo "    Archs arm_file: $arch_arm"
-                echo "    Archs x86_file: $arch_x86"
-          
                 # Extract all architectures as sorted strings
                 get_archs() {
                   echo "$1" | grep -oE 'arm64|x86_64' | sort | tr '\n' ' '
                 }
           
-                archs_arm=$(get_archs "$arch_arm")
-                archs_x86=$(get_archs "$arch_x86")
+                trim() {
+                echo "$1" | xargs
+                }
+                
+                archs_arm=$(trim "$(get_archs "$arch_arm")")
+                archs_x86=$(trim "$(get_archs "$arch_x86")")
+
           
                 if [ "$archs_arm" != "$archs_x86" ]; then
-                  echo "    Architectures differ, merging..."
                   lipo -create "$arm_file" "$x86_file" -output "$out_file"
                 else
                   echo "    Architectures identical ($archs_arm). Copying x86 file."
+                  echo "    Archs arm_file: $arch_arm"
+                  echo "    Archs x86_file: $arch_x86"
                   cp "$x86_file" "$out_file"
                 fi
               else
