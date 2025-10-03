@@ -35,7 +35,8 @@ jobs:
         run: |
           pip install "setuptools<80"
           pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/psutil-5.9.6-cp312-abi3-macosx_10_9_universal2.whl
-          pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/Pillow-10.1.0-cp312-cp312-macosx_11_0_universal2.whl
+          # pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/Pillow-10.1.0-cp312-cp312-macosx_11_0_universal2.whl
+          pip install Pillow
           pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/tornado-6.3.3-cp38-abi3-macosx_10_9_universal2.whl
           pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/contourpy-1.2.0-cp312-cp312-macosx_11_0_universal2.whl
           pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/kiwisolver-1.4.5-cp312-cp312-macosx_11_0_universal2.whl
@@ -184,53 +185,53 @@ jobs:
       - name: Make main binary executable
         run: chmod +x /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain
 
-#      - name: Run the app to check it launches
-#        run: |
-#          set -e
-#
-#          echo "Launching PyMcaMain..."
-#          LOGFILE=$(mktemp)
-#
-#          # Start the app in the background
-#          arch -arm64 /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain > "$LOGFILE" 2>&1 &
-#          APP_PID=$!
-#
-#          echo "App started with PID $APP_PID"
-#
-#          # Wait up to 120 seconds for it to crash or hang
-#          for i in {1..120}; do
-#            if ! ps -p $APP_PID > /dev/null; then
-#              echo "App exited early. Checking exit code..."
-#              wait $APP_PID || true
-#              EXIT_CODE=$?
-#              echo "Exit code: $EXIT_CODE"
-#              echo "App output log:"
-#              cat "$LOGFILE"
-#              if [ $EXIT_CODE -ne 0 ]; then
-#                echo "App exited with error code $EXIT_CODE"
-#                exit $EXIT_CODE
-#              else
-#                echo "App exited cleanly before 2 minutes."
-#                exit 0
-#              fi
-#            fi
-#
-#            if grep -qE 'ImportError|Traceback|ERROR:' "$LOGFILE"; then
-#              echo "Detected error in application output:"
-#              cat "$LOGFILE"
-#              echo "Failing due to runtime error."
-#              kill $APP_PID || true
-#              wait $APP_PID || true
-#              exit 1
-#            fi
-#
-#            sleep 1
-#          done
-#
-#          echo "App ran for 2 minutes without crashing. Killing it now..."
-#          kill $APP_PID || true
-#          wait $APP_PID || true
-#          echo "App test complete."
+      - name: Run the app to check it launches
+        run: |
+          set -e
+
+          echo "Launching PyMcaMain..."
+          LOGFILE=$(mktemp)
+
+          # Start the app in the background
+          arch -arm64 /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain > "$LOGFILE" 2>&1 &
+          APP_PID=$!
+
+          echo "App started with PID $APP_PID"
+
+          # Wait up to 120 seconds for it to crash or hang
+          for i in {1..120}; do
+            if ! ps -p $APP_PID > /dev/null; then
+              echo "App exited early. Checking exit code..."
+              wait $APP_PID || true
+              EXIT_CODE=$?
+              echo "Exit code: $EXIT_CODE"
+              echo "App output log:"
+              cat "$LOGFILE"
+              if [ $EXIT_CODE -ne 0 ]; then
+                echo "App exited with error code $EXIT_CODE"
+                exit $EXIT_CODE
+              else
+                echo "App exited cleanly before 2 minutes."
+                exit 0
+              fi
+            fi
+
+            if grep -qE 'ImportError|Traceback|ERROR:' "$LOGFILE"; then
+              echo "Detected error in application output:"
+              cat "$LOGFILE"
+              echo "Failing due to runtime error."
+              kill $APP_PID || true
+              wait $APP_PID || true
+              exit 1
+            fi
+
+            sleep 1
+          done
+
+          echo "App ran for 2 minutes without crashing. Killing it now..."
+          kill $APP_PID || true
+          wait $APP_PID || true
+          echo "App test complete."
 
       - name: Cleanup
         run: |
@@ -289,7 +290,8 @@ jobs:
           source venv-x86/bin/activate
           arch -x86_64 pip install "setuptools<81"
           arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/psutil-5.9.6-cp312-abi3-macosx_10_9_universal2.whl
-          arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/Pillow-10.1.0-cp312-cp312-macosx_11_0_universal2.whl
+          # arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/Pillow-10.1.0-cp312-cp312-macosx_11_0_universal2.whl
+          arch -x86_64 pip install Pillow
           arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/tornado-6.3.3-cp38-abi3-macosx_10_9_universal2.whl
           arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/contourpy-1.2.0-cp312-cp312-macosx_11_0_universal2.whl
           arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/kiwisolver-1.4.5-cp312-cp312-macosx_11_0_universal2.whl
@@ -404,53 +406,53 @@ jobs:
       - name: Make main binary executable
         run: chmod +x /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain
 
-#      - name: Run the app to check it launches
-#        run: |
-#          set -e
-#
-#          echo "Launching PyMcaMain..."
-#          LOGFILE=$(mktemp)
-#
-#          # Start the app in the background
-#          arch -x86_64 /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain > "$LOGFILE" 2>&1 &
-#          APP_PID=$!
-#
-#          echo "App started with PID $APP_PID"
-#
-#          # Wait up to 120 seconds for it to crash or hang
-#          for i in {1..120}; do
-#            if ! ps -p $APP_PID > /dev/null; then
-#              echo "App exited early. Checking exit code..."
-#              wait $APP_PID || true
-#              EXIT_CODE=$?
-#              echo "Exit code: $EXIT_CODE"
-#              echo "App output log:"
-#              cat "$LOGFILE"
-#              if [ $EXIT_CODE -ne 0 ]; then
-#                echo "App exited with error code $EXIT_CODE"
-#                exit $EXIT_CODE
-#              else
-#                echo "App exited cleanly before 2 minutes."
-#                exit 0
-#              fi
-#            fi
-#
-#            if grep -qE 'ImportError|Traceback|ERROR:' "$LOGFILE"; then
-#              echo "Detected error in application output:"
-#              cat "$LOGFILE"
-#              echo "Failing due to runtime error."
-#              kill $APP_PID || true
-#              wait $APP_PID || true
-#              exit 1
-#            fi
-#
-#            sleep 1
-#          done
-#
-#          echo "App ran for 2 minutes without crashing. Killing it now..."
-#          kill $APP_PID || true
-#          wait $APP_PID || true
-#          echo "App test complete."
+      - name: Run the app to check it launches
+        run: |
+          set -e
+
+          echo "Launching PyMcaMain..."
+          LOGFILE=$(mktemp)
+
+          # Start the app in the background
+          arch -x86_64 /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain > "$LOGFILE" 2>&1 &
+          APP_PID=$!
+
+          echo "App started with PID $APP_PID"
+
+          # Wait up to 120 seconds for it to crash or hang
+          for i in {1..120}; do
+            if ! ps -p $APP_PID > /dev/null; then
+              echo "App exited early. Checking exit code..."
+              wait $APP_PID || true
+              EXIT_CODE=$?
+              echo "Exit code: $EXIT_CODE"
+              echo "App output log:"
+              cat "$LOGFILE"
+              if [ $EXIT_CODE -ne 0 ]; then
+                echo "App exited with error code $EXIT_CODE"
+                exit $EXIT_CODE
+              else
+                echo "App exited cleanly before 2 minutes."
+                exit 0
+              fi
+            fi
+
+            if grep -qE 'ImportError|Traceback|ERROR:' "$LOGFILE"; then
+              echo "Detected error in application output:"
+              cat "$LOGFILE"
+              echo "Failing due to runtime error."
+              kill $APP_PID || true
+              wait $APP_PID || true
+              exit 1
+            fi
+
+            sleep 1
+          done
+
+          echo "App ran for 2 minutes without crashing. Killing it now..."
+          kill $APP_PID || true
+          wait $APP_PID || true
+          echo "App test complete."
 
       - name: Cleanup
         run: |
@@ -521,55 +523,105 @@ jobs:
               "$X86_APP/Contents/MacOS/$exe_name" \
               -output "$UNIVERSAL_APP/Contents/MacOS/$exe_name"
           done
-
-          echo "Merging .so and .dylib files in Frameworks and Resources..."
+          
+          # Extract all architectures as sorted strings
+          get_archs() {
+            echo "$1" | grep -oE 'arm64|x86_64' | sort | tr '\n' ' '
+          }
+          
+          # Helper: check if arch list1 contains all archs in list2
+          contains_all_archs() {
+            local container=($1)
+            local contained=($2)
+          
+            for arch in "${contained[@]}"; do
+              local found=0
+              for c in "${container[@]}"; do
+                if [ "$arch" = "$c" ]; then
+                  found=1
+                  break
+                fi
+              done
+              if [ $found -eq 0 ]; then
+                return 1
+              fi
+            done
+            return 0
+          }
+          
+          echo "Merging Mach-O (.so, .dylib, etc.) files in Frameworks and Resources..."
           for section in Frameworks Resources; do
-            find "$ARM_APP/Contents/$section" -type f \( -name "*.so" -o -name "*.dylib" \) | while read arm_file; do
+            find "$ARM_APP/Contents/$section" -type f | while read -r arm_file; do
+              if ! file "$arm_file" | grep -q 'Mach-O'; then
+                continue
+              fi
               rel_path="${arm_file#$ARM_APP/}"
               x86_file="$X86_APP/$rel_path"
               out_file="$UNIVERSAL_APP/$rel_path"
-      
+          
               if [ -f "$x86_file" ]; then
-                echo "  -> $rel_path"
-      
-                arm_archs=$(lipo -info "$arm_file" 2>/dev/null || echo "error")
-                x86_archs=$(lipo -info "$x86_file" 2>/dev/null || echo "error")
-      
-                if [ "$arm_archs" = "error" ] || [ "$x86_archs" = "error" ]; then
-                  echo "    Warning: Could not get arch info, copying x86_file by default"
+
+                arch_arm=$(lipo -info "$arm_file" 2>&1)
+                arch_x86=$(lipo -info "$x86_file" 2>&1)
+                
+                archs_arm=$(get_archs "$arch_arm")
+                archs_x86=$(get_archs "$arch_x86")
+                
+                is_arm_universal=false
+                is_x86_universal=false
+                
+                if [[ "$archs_arm" == *"arm64"* && "$archs_arm" == *"x86_64"* ]]; then
+                  is_arm_universal=true
+                fi
+
+                if [[ "$archs_x86" == *"arm64"* && "$archs_x86" == *"x86_64"* ]]; then
+                  is_x86_universal=true
+                fi
+                
+                if [ "$is_arm_universal" = true ] && [ "$is_x86_universal" = false ]; then
+                  echo "  -> $rel_path"
+                  echo "    arm_file is universal; copying arm_file."
+                  cp "$arm_file" "$out_file"
+                elif [ "$is_x86_universal" = true ] && [ "$is_arm_universal" = false ]; then
+                  echo "  -> $rel_path"
+                  echo "    x86_file is universal; copying x86_file."
                   cp "$x86_file" "$out_file"
                 else
-                  # Extract architectures lists
-                  arm_arch_list=$(echo "$arm_archs" | sed -E 's/.*are: (.*)/\1/')
-                  x86_arch_list=$(echo "$x86_archs" | sed -E 's/.*are: (.*)/\1/')
-      
-                  if [ "$arm_arch_list" = "$x86_arch_list" ]; then
-                    # Same arch - copy x86_file
+                  # If both universal or both not universal, check if arch sets match exactly
+                  if contains_all_archs "$archs_arm" "$archs_x86" && contains_all_archs "$archs_x86" "$archs_arm"; then
+                    if [ "$is_arm_universal" = false ]; then
+                      echo "  -> $rel_path"
+                      echo "    Archs arm_file: $arch_arm"
+                      echo "    Archs x86_file: $arch_x86"
+                      echo "    Both files have identical architectures. Copying x86 file."
                     cp "$x86_file" "$out_file"
+                    fi
                   else
-                    # Different archs - merge
                     lipo -create "$arm_file" "$x86_file" -output "$out_file"
                   fi
                 fi
+              else
+                echo "    Warning: x86 file not found for $rel_path. Skipping."
               fi
             done
           done
+
 
           echo "✅ Universal app built at $UNIVERSAL_APP"
 
       - name: Run the app to check it launches
         run: |
           set -e
-          
+
           echo "Launching PyMcaMain..."
           LOGFILE=$(mktemp)
-          
+
           # Start the app in the background
           arch -arm64 dist/universal/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain > "$LOGFILE" 2>&1 &
           APP_PID=$!
-          
+
           echo "App started with PID $APP_PID"
-          
+
           # Wait up to 120 seconds for it to crash or hang
           for i in {1..120}; do
             if ! ps -p $APP_PID > /dev/null; then
@@ -587,7 +639,7 @@ jobs:
                 exit 0
               fi
             fi
-          
+
             if grep -qE 'ImportError|Traceback|ERROR:' "$LOGFILE"; then
               echo "Detected error in application output:"
               cat "$LOGFILE"
@@ -596,10 +648,10 @@ jobs:
               wait $APP_PID || true
               exit 1
             fi
-          
+
             sleep 1
           done
-          
+
           echo "App ran for 2 minutes without crashing. Killing it now..."
           kill $APP_PID || true
           wait $APP_PID || true
@@ -608,16 +660,16 @@ jobs:
       - name: Run the app to check it launches
         run: |
           set -e
-          
+
           echo "Launching PyMcaMain..."
           LOGFILE=$(mktemp)
-          
+
           # Start the app in the background
           arch -x86_64 dist/universal/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain > "$LOGFILE" 2>&1 &
           APP_PID=$!
-          
+
           echo "App started with PID $APP_PID"
-          
+
           # Wait up to 120 seconds for it to crash or hang
           for i in {1..120}; do
             if ! ps -p $APP_PID > /dev/null; then
@@ -635,7 +687,7 @@ jobs:
                 exit 0
               fi
             fi
-          
+
             if grep -qE 'ImportError|Traceback|ERROR:' "$LOGFILE"; then
               echo "Detected error in application output:"
               cat "$LOGFILE"
@@ -644,10 +696,10 @@ jobs:
               wait $APP_PID || true
               exit 1
             fi
-          
+
             sleep 1
           done
-          
+
           echo "App ran for 2 minutes without crashing. Killing it now..."
           kill $APP_PID || true
           wait $APP_PID || true
@@ -659,30 +711,30 @@ jobs:
           name: ${{ env.APP_NAME }}-universal-app
           path: dist/universal/${{ env.APP_NAME }}
 
-      - name: Set app base name (without .app)
-        run: |
-          APP_BASE_NAME="${APP_NAME%.app}"
-          echo "APP_BASE_NAME=$APP_BASE_NAME" >> $GITHUB_ENV
-
-      - name: Create .dmg image
-        run: |
-          DMG_PATH="dist/${APP_BASE_NAME}-universal.dmg"
-
-          echo "Creating DMG at $DMG_PATH..."
-
-          mkdir dmg_temp
-          cp -R "dist/universal/$APP_NAME" dmg_temp/
-
-          hdiutil create -volname "$APP_BASE_NAME" \
-                         -srcfolder dmg_temp \
-                         -fs HFS+ \
-                         -format UDZO \
-                         "$DMG_PATH"
-
-          echo "✅ DMG created: $DMG_PATH"
-
-      - name: Upload .dmg artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.APP_BASE_NAME }}-universal-dmg
-          path: dist/${{ env.APP_BASE_NAME }}-universal.dmg
+#      - name: Set app base name (without .app)
+#        run: |
+#          APP_BASE_NAME="${APP_NAME%.app}"
+#          echo "APP_BASE_NAME=$APP_BASE_NAME" >> $GITHUB_ENV
+#
+#      - name: Create .dmg image
+#        run: |
+#          DMG_PATH="dist/${APP_BASE_NAME}-universal.dmg"
+#
+#          echo "Creating DMG at $DMG_PATH..."
+#
+#          mkdir dmg_temp
+#          cp -R "dist/universal/$APP_NAME" dmg_temp/
+#
+#          hdiutil create -volname "$APP_BASE_NAME" \
+#                         -srcfolder dmg_temp \
+#                         -fs HFS+ \
+#                         -format UDZO \
+#                         "$DMG_PATH"
+#
+#          echo "✅ DMG created: $DMG_PATH"
+#
+#      - name: Upload .dmg artifact
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: ${{ env.APP_BASE_NAME }}-universal-dmg
+#          path: dist/${{ env.APP_BASE_NAME }}-universal.dmg
