@@ -117,7 +117,11 @@ jobs:
           
           echo "Merging .so and .dylib files in Frameworks and Resources..."
           for section in Frameworks Resources; do
-            find "$ARM_APP/Contents/$section" -type f \( -name "*.so" -o -name "*.dylib" \) | while read -r arm_file; do
+            find "$ARM_APP/Contents/$section" -type f | while read -r arm_file; do
+              if ! file "$arm_file" | grep -q 'Mach-O'; then
+                continue
+              fi
+          
               rel_path="${arm_file#$ARM_APP/}"
               x86_file="$X86_APP/$rel_path"
               out_file="$UNIVERSAL_APP/$rel_path"
@@ -152,10 +156,11 @@ jobs:
                 else
                   # If both universal or both not universal, check if arch sets match exactly
                   if contains_all_archs "$archs_arm" "$archs_x86" && contains_all_archs "$archs_x86" "$archs_arm"; then
-                    echo "  -> $rel_path"
-                    echo "    Both files have identical architectures ($archs_arm). Copying x86 file."
-                    echo "    Archs arm_file: $arch_arm"
-                    echo "    Archs x86_file: $arch_x86"
+                    if [ "$is_arm_universal" = false ]; then
+                      echo "  -> $rel_path"
+                      echo "    Both files have identical architectures ($archs_arm). Copying x86 file."
+                      echo "    Archs arm_file: $arch_arm"
+                      echo "    Archs x86_file: $arch_x86"
                     cp "$x86_file" "$out_file"
                   else
                     lipo -create "$arm_file" "$x86_file" -output "$out_file"
