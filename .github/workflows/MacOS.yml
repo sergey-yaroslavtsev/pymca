@@ -609,6 +609,9 @@ jobs:
 
           echo "✅ Universal app built at $UNIVERSAL_APP"
 
+      - name: Make main binary executable
+        run: chmod +x dist/universal/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain
+
       - name: Run the app to check it launches
         run: |
           set -e
@@ -711,30 +714,47 @@ jobs:
           name: ${{ env.APP_NAME }}-universal-app
           path: dist/universal/${{ env.APP_NAME }}
 
-#      - name: Set app base name (without .app)
-#        run: |
-#          APP_BASE_NAME="${APP_NAME%.app}"
-#          echo "APP_BASE_NAME=$APP_BASE_NAME" >> $GITHUB_ENV
-#
-#      - name: Create .dmg image
-#        run: |
-#          DMG_PATH="dist/${APP_BASE_NAME}-universal.dmg"
-#
-#          echo "Creating DMG at $DMG_PATH..."
-#
-#          mkdir dmg_temp
-#          cp -R "dist/universal/$APP_NAME" dmg_temp/
-#
-#          hdiutil create -volname "$APP_BASE_NAME" \
-#                         -srcfolder dmg_temp \
-#                         -fs HFS+ \
-#                         -format UDZO \
-#                         "$DMG_PATH"
-#
-#          echo "✅ DMG created: $DMG_PATH"
-#
-#      - name: Upload .dmg artifact
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: ${{ env.APP_BASE_NAME }}-universal-dmg
-#          path: dist/${{ env.APP_BASE_NAME }}-universal.dmg
+      - name: Set app base name (without .app)
+        run: |
+          APP_BASE_NAME="${APP_NAME%.app}"
+          echo "APP_BASE_NAME=$APP_BASE_NAME" >> $GITHUB_ENV
+
+      - name: Create compressed .dmg from .app
+        run: |
+          set -e
+      
+          APP_NAME="MyApp.app"  # adjust accordingly
+          APP_BASE_NAME="MyApp"
+          VERSION="1.2.3"       # optionally parse from code or env
+          DMG_NAME="${APP_BASE_NAME}-${VERSION}.dmg"
+          DMG_PATH="dist/${DMG_NAME}"
+      
+          echo "Creating DMG at $DMG_PATH..."
+      
+          # 1. Create temp directory
+          mkdir -p dmg_temp
+      
+          # 2. Copy app bundle
+          cp -R "dist/universal/${APP_NAME}" dmg_temp/
+      
+          # 3. Strip extended attributes (mimics `xattr -cr` logic in .spec)
+          xattr -cr "dmg_temp/${APP_NAME}"
+      
+          # 4. Create compressed DMG with better options
+          hdiutil create "$DMG_PATH" \
+            -volname "${APP_BASE_NAME}" \
+            -srcfolder "dmg_temp" \
+            -fs HFS+ \
+            -format UDZO \
+            -imagekey zlib-level=9
+      
+          echo "✅ DMG created: $DMG_PATH"
+      
+          # 5. Cleanup
+          rm -rf dmg_temp
+
+      - name: Upload .dmg artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_BASE_NAME }}-universal-dmg
+          path: dist/${{ env.APP_BASE_NAME }}-universal.dmg
