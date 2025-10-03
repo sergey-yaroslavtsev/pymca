@@ -119,7 +119,6 @@ jobs:
           for section in Frameworks Resources; do
             find "$ARM_APP/Contents/$section" -type f | while read -r arm_file; do
               if ! file "$arm_file" | grep -q 'Mach-O'; then
-                echo "Skipping non-Mach-O file $arm_file"
                 continue
               fi
               rel_path="${arm_file#$ARM_APP/}"
