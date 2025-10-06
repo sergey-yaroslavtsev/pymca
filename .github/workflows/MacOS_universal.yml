@@ -69,13 +69,15 @@ jobs:
 
       - name: Attach ARM64 DMG and copy files
         run: |
-          hdiutil attach macos-arm-pyinstaller-artifacts.dmg -mountpoint /Volumes/arm64-dmg
+          ARM_DMG=$(find macos-arm-pyinstaller-artifacts-dmg -name "*.dmg" | head -n 1)
+          hdiutil attach "$ARM_DMG" -mountpoint /Volumes/arm64-dmg
           cp -R /Volumes/arm64-dmg/* dist/arm64/
           hdiutil detach /Volumes/arm64-dmg
 
       - name: Attach x86 DMG and copy files
         run: |
-          hdiutil attach macos-x86-pyinstaller-artifacts.dmg -mountpoint /Volumes/x86-dmg
+          X86_DMG=$(find macos-x86-pyinstaller-artifacts-dmg -name "*.dmg" | head -n 1)
+          hdiutil attach "$X86_DMG" -mountpoint /Volumes/x86-dmg
           cp -R /Volumes/x86-dmg/* dist/x86/
           hdiutil detach /Volumes/x86-dmg
 
