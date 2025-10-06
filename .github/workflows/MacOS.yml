@@ -720,40 +720,124 @@ jobs:
           APP_BASE_NAME="${APP_NAME%.app}"
           echo "APP_BASE_NAME=$APP_BASE_NAME" >> $GITHUB_ENV
 
-      - name: Create compressed .dmg from .app
+      - name: Install create-dmg
+        # On macOS runner you can brew install it
+        run: brew install create-dmg
+
+      - name: Create fancy compressed DMG
         run: |
           set -e
       
           DMG_NAME="${{ env.APP_BASE_NAME }}.dmg"
           DMG_PATH="dist/${DMG_NAME}"
+          APP_PATH="dist/universal/${{ env.APP_NAME }}.app"
       
-          echo "Creating DMG at $DMG_PATH..."
+          echo "Creating DMG at $DMG_PATH from $APP_PATH"
       
-          # 1. Create temp directory
-          mkdir -p dmg_temp
+          # (Optional) Clear xattrs first
+          xattr -cr "$APP_PATH"
       
-          # 2. Copy app bundle
-          cp -R "dist/universal/${{ env.APP_NAME }}" dmg_temp/
-      
-          # 3. Strip extended attributes (mimics `xattr -cr` logic in .spec)
-          xattr -cr "dmg_temp/${{ env.APP_NAME }}"
-      
-          # 4. Create compressed DMG with better options
-          hdiutil create "$DMG_PATH" \
-            -volname "${{ env.APP_BASE_NAME }}" \
-            -srcfolder "dmg_temp" \
-            -fs HFS+ \
-            -format UDZO \
-            -imagekey zlib-level=9
+          # Invoke create-dmg with styling + compression
+          create-dmg \
+            --volname "${{ env.APP_BASE_NAME }}" \
+            --format UDBZ \                       # use better compression
+            --filesystem HFS+ \                  # or APFS if desired
+            --background "resources/dmg_background.png" \   # if you used background
+            --window-pos 200 120 \
+            --window-size 600 400 \
+            --icon-size 128 \
+            --icon "${{ env.APP_NAME }}.app" 200 200 \
+            --app-drop-link 450 200 \
+            --hide-extension "${{ env.APP_NAME }}.app" \
+            --skip-jenkins \                     # skip GUI AppleScript in CI
+            "$DMG_PATH" \
+            "$(dirname "$APP_PATH")"
       
           echo "✅ DMG created: $DMG_PATH"
-      
-          # 5. Cleanup
-          rm -rf dmg_temp
 
       - name: Upload .dmg artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.APP_BASE_NAME }}-universal-dmg
+          name: ${{ env.APP_BASE_NAME }}-create-dmg
           path: dist/${{ env.APP_BASE_NAME }}.dmg
+          retention-days: 1
+
+      - name: Create multiple compressed DMGs
+        run: |
+          set -e
+      
+          APP_NAME="${{ env.APP_NAME }}"  # e.g., MyApp.app
+          BASE_NAME="${{ env.APP_BASE_NAME }}"  # e.g., MyApp
+          APP_SOURCE="dist/universal/${APP_NAME}"
+          BUILD_DIR="dmg_temp"
+          DIST_DIR="dist"
+      
+          FORMATS=("UDZO" "UDBZ" "UDCO")  # zlib, bzip2, LZFSE
+          echo "Creating DMGs for formats: ${FORMATS[*]}"
+      
+          mkdir -p "$DIST_DIR"
+      
+          for FORMAT in "${FORMATS[@]}"; do
+            DMG_PATH="$DIST_DIR/${BASE_NAME}-${FORMAT}.dmg"
+      
+            echo "🔧 Creating $FORMAT DMG: $DMG_PATH"
+      
+            # Clean temp build dir
+            rm -rf "$BUILD_DIR"
+            mkdir -p "$BUILD_DIR"
+      
+            # Copy app bundle
+            cp -R "$APP_SOURCE" "$BUILD_DIR/"
+      
+            # Strip extended attributes
+            xattr -cr "$BUILD_DIR/${APP_NAME}"
+      
+            # Optional: Strip binaries to reduce size
+            BIN_PATH="$BUILD_DIR/${APP_NAME}/Contents/MacOS"
+            if [ -d "$BIN_PATH" ]; then
+              strip -x "$BIN_PATH"/* || true
+            fi
+      
+            # Create DMG
+            hdiutil create "$DMG_PATH" \
+              -volname "$BASE_NAME" \
+              -srcfolder "$BUILD_DIR" \
+              -fs HFS+ \
+              -format "$FORMAT"
+      
+            echo "✅ Created $FORMAT DMG: $DMG_PATH"
+          done
+          
+          echo "📏 DMG sizes:"
+          du -sh dist/*.dmg
+          
+          # Cleanup
+          rm -rf "$BUILD_DIR"
+
+#      - name: Upload .dmg artifact
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: ${{ env.APP_BASE_NAME }}-universal-dmg
+#          path: dist/${{ env.APP_BASE_NAME }}.dmg
+#          retention-days: 1
+
+      - name: Upload UDZO DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_BASE_NAME }}-UDZO
+          path: dist/${{ env.APP_BASE_NAME }}-UDZO.dmg
+          retention-days: 1
+
+      - name: Upload UDBZ DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_BASE_NAME }}-UDBZ
+          path: dist/${{ env.APP_BASE_NAME }}-UDBZ.dmg
+          retention-days: 1
+
+      - name: Upload UDCO DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_BASE_NAME }}-UDCO
+          path: dist/${{ env.APP_BASE_NAME }}-UDCO.dmg
           retention-days: 1

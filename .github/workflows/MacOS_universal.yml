@@ -314,7 +314,47 @@ jobs:
 #          # 5. Cleanup
 #          rm -rf dmg_temp
 
+      - name: Install create-dmg
+        # On macOS runner you can brew install it
+        run: brew install create-dmg
 
+      - name: Create fancy compressed DMG
+        run: |
+          set -e
+      
+          DMG_NAME="${{ env.APP_BASE_NAME }}.dmg"
+          DMG_PATH="dist/${DMG_NAME}"
+          APP_PATH="dist/universal/${{ env.APP_NAME }}.app"
+      
+          echo "Creating DMG at $DMG_PATH from $APP_PATH"
+      
+          # (Optional) Clear xattrs first
+          xattr -cr "$APP_PATH"
+      
+          # Invoke create-dmg with styling + compression
+          create-dmg \
+            --volname "${{ env.APP_BASE_NAME }}" \
+            --format UDBZ \                       # use better compression
+            --filesystem HFS+ \                  # or APFS if desired
+            --background "resources/dmg_background.png" \   # if you used background
+            --window-pos 200 120 \
+            --window-size 600 400 \
+            --icon-size 128 \
+            --icon "${{ env.APP_NAME }}.app" 200 200 \
+            --app-drop-link 450 200 \
+            --hide-extension "${{ env.APP_NAME }}.app" \
+            --skip-jenkins \                     # skip GUI AppleScript in CI
+            "$DMG_PATH" \
+            "$(dirname "$APP_PATH")"
+      
+          echo "✅ DMG created: $DMG_PATH"
+
+      - name: Upload .dmg artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_BASE_NAME }}-create-dmg
+          path: dist/${{ env.APP_BASE_NAME }}.dmg
+          retention-days: 1
 
       - name: Create multiple compressed DMGs
         run: |
@@ -367,7 +407,7 @@ jobs:
           
           # Cleanup
           rm -rf "$BUILD_DIR"
-#
+
 #      - name: Upload .dmg artifact
 #        uses: actions/upload-artifact@v4
 #        with:

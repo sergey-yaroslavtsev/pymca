@@ -102,7 +102,8 @@ else:
 excludes = []
 
 # they will be added in full
-excludes += ["fabio", "hdf5plugin", "silx"]
+# if excluded "interactive console" do not appear in frozen binaries
+# excludes += ["fabio", "hdf5plugin", "silx"]
 
 # if this module is included, the interactive console does not work
 excludes.append("debugpy")
