@@ -76,7 +76,7 @@ jobs:
 
       - name: Attach x86 DMG and copy files
         run: |
-          X86_DMG=$(find macos-x86-pyinstaller-artifacts-dmg -name "*.dmg" | head -n 1)
+          X86_DMG=$(find macos-x86(intel)-pyinstaller-artifacts-dmg -name "*.dmg" | head -n 1)
           hdiutil attach "$X86_DMG" -mountpoint /Volumes/x86-dmg
           cp -R /Volumes/x86-dmg/* dist/x86/
           hdiutil detach /Volumes/x86-dmg
