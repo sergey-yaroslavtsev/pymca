@@ -712,7 +712,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.APP_NAME }}-universal-app
-          path: dist/universal/${{ env.APP_NAME }}
+          path: dist/universal/*
           retention-days: 1
 
       - name: Set app base name (without .app)
