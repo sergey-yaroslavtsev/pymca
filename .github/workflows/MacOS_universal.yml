@@ -337,21 +337,11 @@ jobs:
           
           xattr -cr "$APP_PATH"
   
-          # Optional background
-          BACKGROUND_IMAGE="resources/dmg_background.png"
-          if [ ! -f "$BACKGROUND_IMAGE" ]; then
-            echo "⚠️  No background image found at $BACKGROUND_IMAGE, skipping it."
-            BACKGROUND_FLAG=""
-          else
-            BACKGROUND_FLAG="--background $BACKGROUND_IMAGE"
-          fi
-  
           # Invoke create-dmg with styling + compression
           create-dmg \
             --volname "${{ env.APP_BASE_NAME }}" \
             --format UDBZ \                       # use better compression
             --filesystem HFS+ \                  # or APFS if desired
-            $BACKGROUND_FLAG \
             --window-pos 200 120 \
             --window-size 600 400 \
             --icon-size 128 \
