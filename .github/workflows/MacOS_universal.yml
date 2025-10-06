@@ -25,7 +25,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: sergey-yaroslavtsev/pymca
           RUN_ID: 18276934347
-          ARTIFACT_NAMES: "macos-arm-pyinstaller-artifacts-dashdotfix macos-x86-pyinstaller-artifacts-dashdotfix"
+          ARTIFACT_NAMES: "macos-arm-pyinstaller-artifacts-dmg macos-x86(intel)-pyinstaller-artifacts-dmg"
         run: |
           echo "Downloading artifacts from workflow run ID: $RUN_ID"
 
@@ -56,11 +56,28 @@ jobs:
         run: |
           sudo softwareupdate --install-rosetta --agree-to-license
 
-      - name: Organize artifacts
+#      - name: Organize artifacts
+#        run: |
+#          mkdir -p dist/arm64 dist/x86
+#          cp -r macos-arm-pyinstaller-artifacts-dmg/* dist/arm64/
+#          cp -r macos-x86(intel)-pyinstaller-artifacts-dmg/* dist/x86/
+
+
+      - name: Create output directories
         run: |
           mkdir -p dist/arm64 dist/x86
-          cp -r macos-arm-pyinstaller-artifacts-dashdotfix/* dist/arm64/
-          cp -r macos-x86-pyinstaller-artifacts-dashdotfix/* dist/x86/
+
+      - name: Attach ARM64 DMG and copy files
+        run: |
+          hdiutil attach macos-arm-pyinstaller-artifacts.dmg -mountpoint /Volumes/arm64-dmg
+          cp -R /Volumes/arm64-dmg/* dist/arm64/
+          hdiutil detach /Volumes/arm64-dmg
+
+      - name: Attach x86 DMG and copy files
+        run: |
+          hdiutil attach macos-x86-pyinstaller-artifacts.dmg -mountpoint /Volumes/x86-dmg
+          cp -R /Volumes/x86-dmg/* dist/x86/
+          hdiutil detach /Volumes/x86-dmg
 
       - name: Set app name variable
         run: |
@@ -335,24 +352,6 @@ jobs:
             exit 1
           fi
           
-          # Suggestion 5: Check for unexpected files/folders alongside the .app in dist/universal
-          echo "Checking contents of dist/universal:"
-          ls -l dist/universal
-          count_apps=$(find dist/universal -maxdepth 1 -name "*.app" | wc -l)
-          if [ "$count_apps" -ne 1 ]; then
-            echo "⚠️ Warning: Expected exactly 1 .app in dist/universal, found $count_apps"
-            echo "This might cause extra files/folders in the DMG and increase its size."
-          fi
-          
-          # Strip binaries inside .app to reduce size (Suggestion 2)
-          BIN_PATH="$APP_PATH/Contents/MacOS"
-          if [ -d "$BIN_PATH" ]; then
-            echo "Stripping binaries in $BIN_PATH ..."
-            strip -x "$BIN_PATH"/* || echo "⚠️ Warning: strip failed or no binaries to strip"
-          else
-            echo "No binary folder found at $BIN_PATH, skipping strip"
-          fi
-          
           xattr -cr "$APP_PATH"
   
           # Invoke create-dmg with styling + compression
@@ -380,83 +379,83 @@ jobs:
           path: dist/${{ env.APP_BASE_NAME }}.dmg
           retention-days: 1
 
-      - name: Create multiple compressed DMGs
-        run: |
-          set -e
-      
-          APP_NAME="${{ env.APP_NAME }}"  # e.g., MyApp.app
-          BASE_NAME="${{ env.APP_BASE_NAME }}"  # e.g., MyApp
-          APP_SOURCE="dist/universal/${APP_NAME}"
-          BUILD_DIR="dmg_temp"
-          DIST_DIR="dist"
-      
-          FORMATS=("UDZO" "UDBZ" "UDCO")  # zlib, bzip2, LZFSE
-          echo "Creating DMGs for formats: ${FORMATS[*]}"
-      
-          mkdir -p "$DIST_DIR"
-      
-          for FORMAT in "${FORMATS[@]}"; do
-            DMG_PATH="$DIST_DIR/${BASE_NAME}-${FORMAT}.dmg"
-      
-            echo "🔧 Creating $FORMAT DMG: $DMG_PATH"
-      
-            # Clean temp build dir
-            rm -rf "$BUILD_DIR"
-            mkdir -p "$BUILD_DIR"
-      
-            # Copy app bundle
-            cp -R "$APP_SOURCE" "$BUILD_DIR/"
-      
-            # Strip extended attributes
-            xattr -cr "$BUILD_DIR/${APP_NAME}"
-      
-            # Optional: Strip binaries to reduce size
-            BIN_PATH="$BUILD_DIR/${APP_NAME}/Contents/MacOS"
-            if [ -d "$BIN_PATH" ]; then
-              strip -x "$BIN_PATH"/* || true
-            fi
-      
-            # Create DMG
-            hdiutil create "$DMG_PATH" \
-              -volname "$BASE_NAME" \
-              -srcfolder "$BUILD_DIR" \
-              -fs HFS+ \
-              -format "$FORMAT"
-      
-            echo "✅ Created $FORMAT DMG: $DMG_PATH"
-          done
-          
-          echo "📏 DMG sizes:"
-          du -sh dist/*.dmg
-          
-          # Cleanup
-          rm -rf "$BUILD_DIR"
-
-#      - name: Upload .dmg artifact
+#      - name: Create multiple compressed DMGs
+#        run: |
+#          set -e
+#
+#          APP_NAME="${{ env.APP_NAME }}"  # e.g., MyApp.app
+#          BASE_NAME="${{ env.APP_BASE_NAME }}"  # e.g., MyApp
+#          APP_SOURCE="dist/universal/${APP_NAME}"
+#          BUILD_DIR="dmg_temp"
+#          DIST_DIR="dist"
+#
+#          FORMATS=("UDZO" "UDBZ" "UDCO")  # zlib, bzip2, LZFSE
+#          echo "Creating DMGs for formats: ${FORMATS[*]}"
+#
+#          mkdir -p "$DIST_DIR"
+#
+#          for FORMAT in "${FORMATS[@]}"; do
+#            DMG_PATH="$DIST_DIR/${BASE_NAME}-${FORMAT}.dmg"
+#
+#            echo "🔧 Creating $FORMAT DMG: $DMG_PATH"
+#
+#            # Clean temp build dir
+#            rm -rf "$BUILD_DIR"
+#            mkdir -p "$BUILD_DIR"
+#
+#            # Copy app bundle
+#            cp -R "$APP_SOURCE" "$BUILD_DIR/"
+#
+#            # Strip extended attributes
+#            xattr -cr "$BUILD_DIR/${APP_NAME}"
+#
+#            # Optional: Strip binaries to reduce size
+#            BIN_PATH="$BUILD_DIR/${APP_NAME}/Contents/MacOS"
+#            if [ -d "$BIN_PATH" ]; then
+#              strip -x "$BIN_PATH"/* || true
+#            fi
+#
+#            # Create DMG
+#            hdiutil create "$DMG_PATH" \
+#              -volname "$BASE_NAME" \
+#              -srcfolder "$BUILD_DIR" \
+#              -fs HFS+ \
+#              -format "$FORMAT"
+#
+#            echo "✅ Created $FORMAT DMG: $DMG_PATH"
+#          done
+#
+#          echo "📏 DMG sizes:"
+#          du -sh dist/*.dmg
+#
+#          # Cleanup
+#          rm -rf "$BUILD_DIR"
+#
+##      - name: Upload .dmg artifact
+##        uses: actions/upload-artifact@v4
+##        with:
+##          name: ${{ env.APP_BASE_NAME }}-universal-dmg
+##          path: dist/${{ env.APP_BASE_NAME }}.dmg
+##          retention-days: 1
+#
+#      - name: Upload UDZO DMG
 #        uses: actions/upload-artifact@v4
 #        with:
-#          name: ${{ env.APP_BASE_NAME }}-universal-dmg
-#          path: dist/${{ env.APP_BASE_NAME }}.dmg
+#          name: ${{ env.APP_BASE_NAME }}-UDZO
+#          path: dist/${{ env.APP_BASE_NAME }}-UDZO.dmg
 #          retention-days: 1
-
-      - name: Upload UDZO DMG
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.APP_BASE_NAME }}-UDZO
-          path: dist/${{ env.APP_BASE_NAME }}-UDZO.dmg
-          retention-days: 1
-
-      - name: Upload UDBZ DMG
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.APP_BASE_NAME }}-UDBZ
-          path: dist/${{ env.APP_BASE_NAME }}-UDBZ.dmg
-          retention-days: 1
-
-      - name: Upload UDCO DMG
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.APP_BASE_NAME }}-UDCO
-          path: dist/${{ env.APP_BASE_NAME }}-UDCO.dmg
-          retention-days: 1
+#
+#      - name: Upload UDBZ DMG
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: ${{ env.APP_BASE_NAME }}-UDBZ
+#          path: dist/${{ env.APP_BASE_NAME }}-UDBZ.dmg
+#          retention-days: 1
+#
+#      - name: Upload UDCO DMG
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: ${{ env.APP_BASE_NAME }}-UDCO
+#          path: dist/${{ env.APP_BASE_NAME }}-UDCO.dmg
+#          retention-days: 1
 
