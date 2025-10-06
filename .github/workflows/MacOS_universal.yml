@@ -335,6 +335,24 @@ jobs:
             exit 1
           fi
           
+          # Suggestion 5: Check for unexpected files/folders alongside the .app in dist/universal
+          echo "Checking contents of dist/universal:"
+          ls -l dist/universal
+          count_apps=$(find dist/universal -maxdepth 1 -name "*.app" | wc -l)
+          if [ "$count_apps" -ne 1 ]; then
+            echo "⚠️ Warning: Expected exactly 1 .app in dist/universal, found $count_apps"
+            echo "This might cause extra files/folders in the DMG and increase its size."
+          fi
+          
+          # Strip binaries inside .app to reduce size (Suggestion 2)
+          BIN_PATH="$APP_PATH/Contents/MacOS"
+          if [ -d "$BIN_PATH" ]; then
+            echo "Stripping binaries in $BIN_PATH ..."
+            strip -x "$BIN_PATH"/* || echo "⚠️ Warning: strip failed or no binaries to strip"
+          else
+            echo "No binary folder found at $BIN_PATH, skipping strip"
+          fi
+          
           xattr -cr "$APP_PATH"
   
           # Invoke create-dmg with styling + compression
