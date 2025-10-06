@@ -102,7 +102,7 @@ else:
 excludes = []
 
 # they will be added in full
-# excludes += ["fabio", "hdf5plugin", "silx"]
+excludes += ["fabio", "hdf5plugin", "silx"]
 
 # if this module is included, the interactive console does not work
 excludes.append("debugpy")
