@@ -321,22 +321,37 @@ jobs:
       - name: Create fancy compressed DMG
         run: |
           set -e
-      
+
           DMG_NAME="${{ env.APP_BASE_NAME }}.dmg"
           DMG_PATH="dist/${DMG_NAME}"
           APP_PATH="dist/universal/${{ env.APP_NAME }}"
-      
+
           echo "Creating DMG at $DMG_PATH from $APP_PATH"
-      
-          # (Optional) Clear xattrs first
+          
+          # Check that app exists
+          if [ ! -d "$APP_PATH" ]; then
+            echo "❌ ERROR: .app bundle not found at $APP_PATH"
+            ls -l dist/universal
+            exit 1
+          fi
+          
           xattr -cr "$APP_PATH"
-      
+  
+          # Optional background
+          BACKGROUND_IMAGE="resources/dmg_background.png"
+          if [ ! -f "$BACKGROUND_IMAGE" ]; then
+            echo "⚠️  No background image found at $BACKGROUND_IMAGE, skipping it."
+            BACKGROUND_FLAG=""
+          else
+            BACKGROUND_FLAG="--background $BACKGROUND_IMAGE"
+          fi
+  
           # Invoke create-dmg with styling + compression
           create-dmg \
             --volname "${{ env.APP_BASE_NAME }}" \
             --format UDBZ \                       # use better compression
             --filesystem HFS+ \                  # or APFS if desired
-            ${BACKGROUND_IMAGE:+--background "$BACKGROUND_IMAGE"} \
+            $BACKGROUND_FLAG \
             --window-pos 200 120 \
             --window-size 600 400 \
             --icon-size 128 \
@@ -347,9 +362,7 @@ jobs:
             --hdiutil-verbose \
             "$DMG_PATH" \
             "$(dirname "$APP_PATH")" 
-            
-            #--hide-extension "${{ env.APP_NAME }}" \ 
-          
+
           echo "✅ DMG created: $DMG_PATH"
 
       - name: Upload .dmg artifact
@@ -438,3 +451,4 @@ jobs:
           name: ${{ env.APP_BASE_NAME }}-UDCO
           path: dist/${{ env.APP_BASE_NAME }}-UDCO.dmg
           retention-days: 1
+
