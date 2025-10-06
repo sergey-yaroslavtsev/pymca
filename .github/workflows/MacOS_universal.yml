@@ -20,11 +20,11 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Download specific artifacts from run 18274689015
+      - name: Download specific artifacts from run 18276934347
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: sergey-yaroslavtsev/pymca
-          RUN_ID: 18274689015
+          RUN_ID: 18276934347
           ARTIFACT_NAMES: "macos-arm-pyinstaller-artifacts-dashdotfix macos-x86-pyinstaller-artifacts-dashdotfix"
         run: |
           echo "Downloading artifacts from workflow run ID: $RUN_ID"
@@ -324,7 +324,7 @@ jobs:
       
           DMG_NAME="${{ env.APP_BASE_NAME }}.dmg"
           DMG_PATH="dist/${DMG_NAME}"
-          APP_PATH="dist/universal/${{ env.APP_NAME }}.app"
+          APP_PATH="dist/universal/${{ env.APP_NAME }}"
       
           echo "Creating DMG at $DMG_PATH from $APP_PATH"
       
@@ -340,9 +340,9 @@ jobs:
             --window-pos 200 120 \
             --window-size 600 400 \
             --icon-size 128 \
-            --icon "${{ env.APP_NAME }}.app" 200 200 \
+            --icon "${{ env.APP_NAME }}" 200 200 \
             --app-drop-link 450 200 \
-            --hide-extension "${{ env.APP_NAME }}.app" \
+            --hide-extension "${{ env.APP_NAME }}" \
             --skip-jenkins \                     # skip GUI AppleScript in CI
             "$DMG_PATH" \
             "$(dirname "$APP_PATH")"
