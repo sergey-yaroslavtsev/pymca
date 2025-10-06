@@ -336,17 +336,20 @@ jobs:
             --volname "${{ env.APP_BASE_NAME }}" \
             --format UDBZ \                       # use better compression
             --filesystem HFS+ \                  # or APFS if desired
-            --background "resources/dmg_background.png" \   # if you used background
+            ${BACKGROUND_IMAGE:+--background "$BACKGROUND_IMAGE"} \
             --window-pos 200 120 \
             --window-size 600 400 \
             --icon-size 128 \
             --icon "${{ env.APP_NAME }}" 200 200 \
             --app-drop-link 450 200 \
-            --hide-extension "${{ env.APP_NAME }}" \
             --skip-jenkins \                     # skip GUI AppleScript in CI
+            --sandbox-safe \
+            --hdiutil-verbose \
             "$DMG_PATH" \
-            "$(dirname "$APP_PATH")"
-      
+            "$(dirname "$APP_PATH")" 
+            
+            #--hide-extension "${{ env.APP_NAME }}" \ 
+          
           echo "✅ DMG created: $DMG_PATH"
 
       - name: Upload .dmg artifact
