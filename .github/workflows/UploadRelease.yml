@@ -15,25 +15,35 @@ jobs:
           name: Linux-sdist
           path: dist
 
-      - name: Download Mac arm64 artifact
+#      - name: Download Mac arm64 artifact
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: macos-arm-pyinstaller-artifacts-dmg
+#          path: tmp
+#
+#      - name: Rename Mac arm64 artifact
+#        run: |
+#          sudo mv tmp/PyMca5*.dmg dist/PyMca_arm64.dmg
+#
+#      - name: Download Mac x86 artifact
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: macos-x86(intel)-pyinstaller-artifacts-dmg
+#          path: tmp
+#
+#      - name: Rename Mac x86 artifact
+#        run: |
+#          sudo mv tmp/PyMca5*.dmg dist/PyMca_x86.dmg
+
+      - name: Download Mac universal artifact
         uses: actions/download-artifact@v4
         with:
-          name: macos-arm-pyinstaller-artifacts-dmg
-          path: dist
+          name: PyMca5-universal-dmg
+          path: tmp
 
-      - name: Rename Mac arm64 artifact
+      - name: Rename Mac universal artifact
         run: |
-          sudo mv dist/PyMca5*.dmg dist/PyMca_arm64.dmg
-
-      - name: Download Mac x86 artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: macos-x86(intel)-pyinstaller-artifacts-dmg
-          path: dist
-
-      - name: Rename Mac x86 artifact
-        run: |
-          sudo mv dist/PyMca5*.dmg dist/PyMca_x86.dmg
+          sudo mv tmp/PyMca5*.dmg dist/PyMca5.dmg
 
       - name: Download Windows artifact
         uses: actions/download-artifact@v4
