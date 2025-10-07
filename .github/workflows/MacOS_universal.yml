@@ -334,7 +334,6 @@ jobs:
 #          rm -rf dmg_temp
 
       - name: Install create-dmg
-        # On macOS runner you can brew install it
         run: brew install create-dmg
 
       - name: Create fancy compressed DMG

@@ -198,8 +198,8 @@ jobs:
 
           echo "App started with PID $APP_PID"
 
-          # Wait up to 120 seconds for it to crash or hang
-          for i in {1..120}; do
+          # Wait up to 60 seconds for it to crash or hang
+          for i in {1..60}; do
             if ! ps -p $APP_PID > /dev/null; then
               echo "App exited early. Checking exit code..."
               wait $APP_PID || true
@@ -419,8 +419,8 @@ jobs:
 
           echo "App started with PID $APP_PID"
 
-          # Wait up to 120 seconds for it to crash or hang
-          for i in {1..120}; do
+          # Wait up to 60 seconds for it to crash or hang
+          for i in {1..60}; do
             if ! ps -p $APP_PID > /dev/null; then
               echo "App exited early. Checking exit code..."
               wait $APP_PID || true
@@ -485,18 +485,39 @@ jobs:
         run: |
           sudo softwareupdate --install-rosetta --agree-to-license
 
+      # Yes dmg is needed because pyinstaller have better compression and cleaning.
+      # APPs work as well but file size is 2-3 times larger.
+
       - name: Download Mac arm64 artifact
         uses: actions/download-artifact@v4
         with:
-          name: macos-arm-pyinstaller-artifacts-dashdotfix
-          path: dist/arm64
+          name: macos-arm-pyinstaller-artifacts-dmg
+          path: dist/tmp/arm64
 
       - name: Download Mac x86 artifact
         uses: actions/download-artifact@v4
         with:
-          name: macos-x86-pyinstaller-artifacts-dashdotfix
-          path: dist/x86
-          
+          name: macos-x86(intel)-pyinstaller-artifacts-dmg
+          path: dist/tmp/x86
+
+      - name: Create output directories
+        run: |
+          mkdir -p dist/arm64 dist/x86
+
+      - name: Attach ARM64 DMG and copy files
+        run: |
+          ARM_DMG=$(find dist/tmp/arm64 -name "*.dmg" | head -n 1)
+          hdiutil attach "$ARM_DMG" -mountpoint /Volumes/arm64-dmg
+          cp -R /Volumes/arm64-dmg/* dist/arm64/
+          hdiutil detach /Volumes/arm64-dmg
+
+      - name: Attach x86 DMG and copy files
+        run: |
+          X86_DMG=$(find dist/tmp/x86 -name "*.dmg" | head -n 1)
+          hdiutil attach "$X86_DMG" -mountpoint /Volumes/x86-dmg
+          cp -R /Volumes/x86-dmg/* dist/x86/
+          hdiutil detach /Volumes/x86-dmg
+
       - name: Set app name variable
         run: |
           APP_NAME=$(find dist/arm64 -maxdepth 1 -name '*.app' | head -n 1 | xargs -n 1 basename)
@@ -625,8 +646,8 @@ jobs:
 
           echo "App started with PID $APP_PID"
 
-          # Wait up to 120 seconds for it to crash or hang
-          for i in {1..120}; do
+          # Wait up to 60 seconds for it to crash or hang
+          for i in {1..60}; do
             if ! ps -p $APP_PID > /dev/null; then
               echo "App exited early. Checking exit code..."
               wait $APP_PID || true
@@ -673,8 +694,8 @@ jobs:
 
           echo "App started with PID $APP_PID"
 
-          # Wait up to 120 seconds for it to crash or hang
-          for i in {1..120}; do
+          # Wait up to 60 seconds for it to crash or hang
+          for i in {1..60}; do
             if ! ps -p $APP_PID > /dev/null; then
               echo "App exited early. Checking exit code..."
               wait $APP_PID || true
@@ -721,123 +742,48 @@ jobs:
           echo "APP_BASE_NAME=$APP_BASE_NAME" >> $GITHUB_ENV
 
       - name: Install create-dmg
-        # On macOS runner you can brew install it
         run: brew install create-dmg
 
       - name: Create fancy compressed DMG
         run: |
           set -e
-      
+
           DMG_NAME="${{ env.APP_BASE_NAME }}.dmg"
           DMG_PATH="dist/${DMG_NAME}"
           APP_PATH="dist/universal/${{ env.APP_NAME }}"
-      
+
           echo "Creating DMG at $DMG_PATH from $APP_PATH"
-      
-          # (Optional) Clear xattrs first
+          
+          # Check that app exists
+          if [ ! -d "$APP_PATH" ]; then
+            echo "❌ ERROR: .app bundle not found at $APP_PATH"
+            ls -l dist/universal
+            exit 1
+          fi
+          
           xattr -cr "$APP_PATH"
-      
+  
           # Invoke create-dmg with styling + compression
           create-dmg \
             --volname "${{ env.APP_BASE_NAME }}" \
-            --format UDBZ \                       # use better compression
-            --filesystem HFS+ \                  # or APFS if desired
-            --background "resources/dmg_background.png" \   # if you used background
+            --format UDBZ \
+            --filesystem HFS+ \
             --window-pos 200 120 \
             --window-size 600 400 \
             --icon-size 128 \
             --icon "${{ env.APP_NAME }}" 200 200 \
             --app-drop-link 450 200 \
-            --hide-extension "${{ env.APP_NAME }}" \
-            --skip-jenkins \                     # skip GUI AppleScript in CI
+            --skip-jenkins \
+            --sandbox-safe \
+            --hdiutil-verbose \
             "$DMG_PATH" \
-            "$(dirname "$APP_PATH")"
-      
+            "$(dirname "$APP_PATH")" 
+
           echo "✅ DMG created: $DMG_PATH"
 
       - name: Upload .dmg artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.APP_BASE_NAME }}-create-dmg
+          name: PyMca5-universal-dmg
           path: dist/${{ env.APP_BASE_NAME }}.dmg
-          retention-days: 1
-
-      - name: Create multiple compressed DMGs
-        run: |
-          set -e
-      
-          APP_NAME="${{ env.APP_NAME }}"  # e.g., MyApp.app
-          BASE_NAME="${{ env.APP_BASE_NAME }}"  # e.g., MyApp
-          APP_SOURCE="dist/universal/${APP_NAME}"
-          BUILD_DIR="dmg_temp"
-          DIST_DIR="dist"
-      
-          FORMATS=("UDZO" "UDBZ" "UDCO")  # zlib, bzip2, LZFSE
-          echo "Creating DMGs for formats: ${FORMATS[*]}"
-      
-          mkdir -p "$DIST_DIR"
-      
-          for FORMAT in "${FORMATS[@]}"; do
-            DMG_PATH="$DIST_DIR/${BASE_NAME}-${FORMAT}.dmg"
-      
-            echo "🔧 Creating $FORMAT DMG: $DMG_PATH"
-      
-            # Clean temp build dir
-            rm -rf "$BUILD_DIR"
-            mkdir -p "$BUILD_DIR"
-      
-            # Copy app bundle
-            cp -R "$APP_SOURCE" "$BUILD_DIR/"
-      
-            # Strip extended attributes
-            xattr -cr "$BUILD_DIR/${APP_NAME}"
-      
-            # Optional: Strip binaries to reduce size
-            BIN_PATH="$BUILD_DIR/${APP_NAME}/Contents/MacOS"
-            if [ -d "$BIN_PATH" ]; then
-              strip -x "$BIN_PATH"/* || true
-            fi
-      
-            # Create DMG
-            hdiutil create "$DMG_PATH" \
-              -volname "$BASE_NAME" \
-              -srcfolder "$BUILD_DIR" \
-              -fs HFS+ \
-              -format "$FORMAT"
-      
-            echo "✅ Created $FORMAT DMG: $DMG_PATH"
-          done
-          
-          echo "📏 DMG sizes:"
-          du -sh dist/*.dmg
-          
-          # Cleanup
-          rm -rf "$BUILD_DIR"
-
-#      - name: Upload .dmg artifact
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: ${{ env.APP_BASE_NAME }}-universal-dmg
-#          path: dist/${{ env.APP_BASE_NAME }}.dmg
-#          retention-days: 1
-
-      - name: Upload UDZO DMG
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.APP_BASE_NAME }}-UDZO
-          path: dist/${{ env.APP_BASE_NAME }}-UDZO.dmg
-          retention-days: 1
-
-      - name: Upload UDBZ DMG
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.APP_BASE_NAME }}-UDBZ
-          path: dist/${{ env.APP_BASE_NAME }}-UDBZ.dmg
-          retention-days: 1
-
-      - name: Upload UDCO DMG
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.APP_BASE_NAME }}-UDCO
-          path: dist/${{ env.APP_BASE_NAME }}-UDCO.dmg
           retention-days: 1
