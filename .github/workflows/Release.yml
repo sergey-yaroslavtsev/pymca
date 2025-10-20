@@ -51,43 +51,43 @@ jobs:
   version-check:
     needs: version-change
     if: needs.version-change.outputs.should_release == 'true'
-    uses: ./.github/workflows/Version.yml
+    uses: ./.github/workflows/_Version.yml
 
   run-build-upload:
     needs: version-check
-    uses: ./.github/workflows/Wheels.yml
+    uses: ./.github/workflows/_Wheels.yml
     secrets:
       TESTPYPI_PASSWORD: ${{ secrets.TESTPYPI_PASSWORD }}
 
   trigger-windows-pyinstaller:
     needs: run-build-upload
-    uses: ./.github/workflows/WindowsExe.yml
+    uses: ./.github/workflows/_WindowsExe.yml
 
   trigger-windows-cx:
     needs: run-build-upload
-    uses: ./.github/workflows/WindowsInstaller.yml
+    uses: ./.github/workflows/_WindowsInstaller.yml
 
   trigger-mac:
     needs: run-build-upload
-    uses: ./.github/workflows/MacOS.yml
+    uses: ./.github/workflows/_MacOS.yml
 
   tag-release:
     needs:
       - trigger-windows-cx
       - trigger-mac
-    uses: ./.github/workflows/TagRelease.yml
+    uses: ./.github/workflows/_TagRelease.yml
 
   changelog:
     needs: tag-release
-    uses: ./.github/workflows/ChangeLog.yml
+    uses: ./.github/workflows/_ChangeLog.yml
 
   upload-release:
     needs: tag-release
-    uses: ./.github/workflows/UploadRelease.yml
+    uses: ./.github/workflows/_UploadRelease.yml
 
   upload-pypi:
     needs: tag-release
-    uses: ./.github/workflows/PyPI.yml
+    uses: ./.github/workflows/_PyPI.yml
 
 
 
