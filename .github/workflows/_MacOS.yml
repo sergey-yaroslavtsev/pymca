@@ -1,4 +1,4 @@
-name: MacOs (app and dmg)
+name: _MacOs (app and dmg)
 
 on:
   workflow_dispatch:
