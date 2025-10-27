@@ -3,6 +3,9 @@ name: Create Tag and Release from TestPyPI Version
 on:
   workflow_call:
 
+permissions:
+  contents: write
+
 jobs:
   create-release:
     runs-on: ubuntu-latest

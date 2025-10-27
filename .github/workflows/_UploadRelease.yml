@@ -3,6 +3,9 @@ name: Upload release
 on:
   workflow_call:
 
+permissions:
+  contents: write
+
 jobs:
   upload_release:
     name: Upload all packages

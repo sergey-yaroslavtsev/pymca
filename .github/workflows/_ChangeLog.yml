@@ -9,6 +9,9 @@ on:
         type: string
   workflow_call:
 
+permissions:
+  contents: write
+
 jobs:
   changelog:
     runs-on: ubuntu-latest
