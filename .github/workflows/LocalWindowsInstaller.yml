@@ -162,7 +162,8 @@ jobs:
 
       - name: Build with cx_Freeze
         shell: cmd
-        run:
+        run: |
+          refreshenv
           python build-cxfreeze_github.py
 
       - name: Print dist* directories content with PowerShell
