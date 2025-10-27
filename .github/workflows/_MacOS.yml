@@ -61,7 +61,7 @@ jobs:
           pip install Cython
           pip install wheel
           pip install --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
-          pip install git+https://github.com/vasole/bcflight.git
+          pip install --no-build-isolation git+https://github.com/vasole/bcflight.git
           pip install ipywidgets
 
       - name: Build PyInstaller app for arm64
@@ -316,7 +316,7 @@ jobs:
           arch -x86_64 pip install Cython
           arch -x86_64 pip install wheel
           arch -x86_64 pip install --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
-          arch -x86_64 pip install git+https://github.com/vasole/bcflight.git
+          arch -x86_64 pip install --no-build-isolation git+https://github.com/vasole/bcflight.git
           arch -x86_64 pip install ipywidgets
 
 #          arch -x86_64 pip install PySide6==6.6.0

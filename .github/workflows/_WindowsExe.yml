@@ -36,7 +36,7 @@ jobs:
           pip install silx==2.2.2
           pip install PyOpenGL
           pip install PyInstaller
-          pip install git+https://github.com/vasole/bcflight.git
+          pip install --no-build-isolation git+https://github.com/vasole/bcflight.git
           pip install ipywidgets
 
 

@@ -38,7 +38,7 @@ jobs:
           pip install hdf5plugin
           pip install silx==2.2.2
           pip install PyOpenGL
-          pip install git+https://github.com/vasole/bcflight.git
+          pip install --no-build-isolation git+https://github.com/vasole/bcflight.git
 
       - name: Install NSIS
         run: choco install nsis -y
