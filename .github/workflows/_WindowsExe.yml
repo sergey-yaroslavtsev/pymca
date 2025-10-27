@@ -43,6 +43,17 @@ jobs:
       - name: Install NSIS
         run: choco install nsis -y
 
+      - name: Add NSIS to PATH
+        shell: pwsh
+        run: |
+          echo "C:/Program Files (x86)/NSIS" | Out-File -FilePath $env:GITHUB_PATH -Append
+
+      - name: Check makensis availability
+        shell: pwsh
+        run: |
+          where makensis
+          makensis /VERSION
+
       - name: Build with PyInstaller
         run:
           python build-pyinstaller_github.py
