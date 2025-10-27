@@ -160,10 +160,15 @@ jobs:
       - name: Install NSIS
         run: choco install nsis -y
 
+#      - name: Add NSIS to PATH
+#        shell: pwsh
+#        run: |
+#          echo "C:/Program Files (x86)/NSIS" | Out-File -FilePath $env:GITHUB_PATH -Append
+
       - name: Build with cx_Freeze
         shell: cmd
         run: |
-          refreshenv
+          call refreshenv
           python build-cxfreeze_github.py
 
       - name: Print dist* directories content with PowerShell
