@@ -30,7 +30,7 @@ jobs:
       - name: Get version from file
         id: check-change
         run: |
-          version=$(grep -Po "^__version__ = '\K[^']+" src/PyMca5/__init__.py)
+          version=$(awk -F"'" '/^__version__ = /{print $2; exit}' src/PyMca5/__init__.py)
           echo "Found version: $version"
           echo "version=$version" >> $GITHUB_OUTPUT
 
