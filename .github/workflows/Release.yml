@@ -1,5 +1,8 @@
 name: Release
 
+permissions:
+  contents: write
+
 on:
 #  release:
 #    types: [published]
@@ -49,6 +52,8 @@ jobs:
           fi
 
   version-check:
+    permissions:
+      contents: write
     needs: version-change
     if: needs.version-change.outputs.should_release == 'true'
     uses: ./.github/workflows/_Version.yml
@@ -72,20 +77,28 @@ jobs:
     uses: ./.github/workflows/_MacOS.yml
 
   tag-release:
+    permissions:
+      contents: write
     needs:
       - trigger-windows-cx
       - trigger-mac
     uses: ./.github/workflows/_TagRelease.yml
 
   changelog:
+    permissions:
+      contents: write
     needs: tag-release
     uses: ./.github/workflows/_ChangeLog.yml
 
   upload-release:
+    permissions:
+      contents: write
     needs: tag-release
     uses: ./.github/workflows/_UploadRelease.yml
 
   upload-pypi:
+    permissions:
+      contents: write
     needs: tag-release
     uses: ./.github/workflows/_PyPI.yml
 
