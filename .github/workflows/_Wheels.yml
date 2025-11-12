@@ -414,13 +414,42 @@ jobs:
           pkg_name = "${{ env.PACKAGE_NAME }}"
           index_url = f"https://test.pypi.org/pypi/{pkg_name}/json"
           
+          expected_platforms = [
+              "manylinux",
+              "macosx",
+              "win",
+          ]
+          expected_tags = [
+              "cp39", "cp310", "cp311", "cp312", "cp313"
+          ]
+          
           max_retries = 100
           delay_seconds = 10
           
           def all_expected_files_present(releases, version):
               files = releases.get(version, [])
               filenames = [f["filename"] for f in files]
-              return all(any(p in fn for fn in filenames) for p in expected_platforms)
+          
+              missing = []
+          
+              # Check all Python version × platform combos
+              for tag in expected_tags:
+                  for plat in expected_platforms:
+                      if not any(tag in fn and plat in fn for fn in filenames):
+                          missing.append(f"{tag}-{plat}")
+          
+              # Check for source distribution
+              if require_sdist and not any(fn.endswith(".tar.gz") for fn in filenames):
+                  missing.append("sdist (.tar.gz)")
+          
+              if missing:
+                  print("❌ Missing distributions:")
+                  for m in missing:
+                      print("  -", m)
+                  return False
+          
+              print("✅ All expected wheels and sdist found.")
+              return True
           
           for attempt in range(1, max_retries + 1):
               print(f"Attempt {attempt}: Checking {index_url} for version {version}")
