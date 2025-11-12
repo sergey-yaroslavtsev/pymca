@@ -186,12 +186,12 @@ jobs:
           # Launch the app with the environment variable
           Start-Process -FilePath $appPath
             
-            - name: Upload artifacts
-              uses: actions/upload-artifact@v4
-              with:
-                name: windows-installer-cxfreeze
-                path: dist/*
-                retention-days: 1
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer-cxfreeze
+          path: dist/*
+          retention-days: 1
 
 #      # also upload to release
 #      - name: Upload installer to GitHub Release
