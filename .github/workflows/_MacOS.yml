@@ -748,14 +748,14 @@ jobs:
           PYMCA_TEST_MODE: 1
         run: |
           set -e
-          arch -arm64 /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain
+          arch -arm64 dist/universal/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain
 
       - name: Run the app with tests
         env:
           PYMCA_TEST_MODE: 1
         run: |
           set -e
-          arch -x86_64 /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain
+          arch -x86_64 dist/universal/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain
 
       - name: Upload universal .app artifact
         uses: actions/upload-artifact@v4
