@@ -37,11 +37,11 @@ jobs:
 #            BUILD_COMMAND: --wheel
 #            QT_BINDING: PyQt6
 
-          - name-suffix: "PySide6 wheel"
-            os: windows-latest
-            python-version: "3.12"
-            BUILD_COMMAND: --wheel
-            QT_BINDING: PySide6
+#          - name-suffix: "PySide6 wheel"
+#            os: windows-latest
+#            python-version: "3.12"
+#            BUILD_COMMAND: --wheel
+#            QT_BINDING: PySide6
 
     steps:
       - uses: actions/checkout@v2
@@ -107,8 +107,8 @@ jobs:
 #          - QT_BINDING: PyQt6
 #            python-version: "3.12"
 
-          - QT_BINDING: PySide6
-            python-version: "3.12"
+#         - QT_BINDING: PySide6
+#            python-version: "3.12"
 
 #          - QT_BINDING: PyQt6
 #            python-version: "3.13"
