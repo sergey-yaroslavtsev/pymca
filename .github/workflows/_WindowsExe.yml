@@ -158,6 +158,25 @@ jobs:
             }
           }
 
+      - name: Run PyMcaMain with tests (Windows)
+        shell: pwsh
+        env:
+          PYMCA_TEST_MODE: 1
+        run: |
+          # Find the exe in the dist folder (recursive)
+          $appPath = Get-ChildItem -Path "dist" -Filter "PyMcaMain.exe" -Recurse |
+                     Select-Object -First 1 -ExpandProperty FullName
+      
+          if (-not $appPath) {
+              Write-Error "Executable 'PyMcaMain.exe' not found in dist folder."
+              exit 1
+          }
+      
+          Write-Host "Found executable at $appPath"
+      
+          # Launch the app with environment variable
+          Start-Process -FilePath $appPath
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:

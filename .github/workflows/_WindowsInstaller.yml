@@ -149,13 +149,49 @@ jobs:
               exit 1
             }
           }
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-installer-cxfreeze
-          path: dist/*
-          retention-days: 1
+      
+      - name: Run PyMcaMain with tests (Windows)
+        shell: pwsh
+        env:
+          PYMCA_TEST_MODE: 1
+        run: |
+          # Define expected install paths
+          $basePaths = @(
+              "${env:ProgramFiles}",
+              "${env:ProgramFiles(x86)}"
+          )
+          $exeName = "PyMcaMain.exe"
+          $appPath = $null
+      
+          # Find the exe in folders starting with PyMca*
+          foreach ($base in $basePaths) {
+              $candidateDirs = Get-ChildItem -Path $base -Directory -Filter "PyMca*" -ErrorAction SilentlyContinue
+              foreach ($dir in $candidateDirs) {
+                  $possiblePath = Join-Path $dir.FullName $exeName
+                  if (Test-Path $possiblePath) {
+                      $appPath = $possiblePath
+                      break
+                  }
+              }
+              if ($appPath) { break }
+          }
+      
+          if (-not $appPath) {
+              Write-Error "Executable '$exeName' not found in Program Files."
+              exit 1
+          }
+      
+          Write-Host "Found executable at $appPath"
+          
+          # Launch the app with the environment variable
+          Start-Process -FilePath $appPath
+            
+            - name: Upload artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                name: windows-installer-cxfreeze
+                path: dist/*
+                retention-days: 1
 
 #      # also upload to release
 #      - name: Upload installer to GitHub Release
