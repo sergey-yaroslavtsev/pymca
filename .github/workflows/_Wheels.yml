@@ -340,6 +340,12 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
+          name: ubuntu-latest-wheels
+          path: dist
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
           name: Linux-sdist
           path: dist
 
