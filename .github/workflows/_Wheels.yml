@@ -422,6 +422,7 @@ jobs:
           expected_tags = [
               "cp39", "cp310", "cp311", "cp312", "cp313"
           ]
+          require_sdist = True
           
           max_retries = 100
           delay_seconds = 10
