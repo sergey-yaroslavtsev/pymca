@@ -239,7 +239,7 @@ jobs:
           $process = Start-Process -FilePath $appPath -PassThru
           Write-Host "App started with PID $($process.Id)"
       
-          $timeoutSeconds = 120
+          $timeoutSeconds = 60
           $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
       
           while (-not $process.HasExited -and $stopWatch.Elapsed.TotalSeconds -lt $timeoutSeconds) {
@@ -266,42 +266,6 @@ jobs:
               exit 1
             }
           }
-
-      - name: Run PyMcaMain with tests (Windows)
-        shell: pwsh
-        env:
-          PYMCA_TEST_MODE: 1
-        run: |
-          # Define expected install paths
-          $basePaths = @(
-              "${env:ProgramFiles}",
-              "${env:ProgramFiles(x86)}"
-          )
-          $exeName = "PyMcaMain.exe"
-          $appPath = $null
-      
-          # Find the exe in folders starting with PyMca*
-          foreach ($base in $basePaths) {
-              $candidateDirs = Get-ChildItem -Path $base -Directory -Filter "PyMca*" -ErrorAction SilentlyContinue
-              foreach ($dir in $candidateDirs) {
-                  $possiblePath = Join-Path $dir.FullName $exeName
-                  if (Test-Path $possiblePath) {
-                      $appPath = $possiblePath
-                      break
-                  }
-              }
-              if ($appPath) { break }
-          }
-      
-          if (-not $appPath) {
-              Write-Error "Executable '$exeName' not found in Program Files."
-              exit 1
-          }
-      
-          Write-Host "Found executable at $appPath"
-          
-          # Launch the app with the environment variable
-          Start-Process -FilePath $appPath
 
       - name: Run PyMcaMain with tests (Windows)
         shell: pwsh

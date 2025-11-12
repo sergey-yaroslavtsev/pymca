@@ -116,6 +116,7 @@ jobs:
         env:
           PYMCA_TEST_MODE: 1
         run: |
+          set -e
           arch -arm64 /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain
 
 #      - name: Run the app to check it launches
@@ -416,6 +417,7 @@ jobs:
         env:
           PYMCA_TEST_MODE: 1
         run: |
+          set -e
           arch -x86_64 /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain
 
 #      - name: Run the app to check it launches
@@ -745,12 +747,14 @@ jobs:
         env:
           PYMCA_TEST_MODE: 1
         run: |
+          set -e
           arch -arm64 /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain
 
       - name: Run the app with tests
         env:
           PYMCA_TEST_MODE: 1
         run: |
+          set -e
           arch -x86_64 /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain
 
       - name: Upload universal .app artifact
