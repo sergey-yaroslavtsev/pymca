@@ -60,7 +60,7 @@ jobs:
           pip install PyInstaller==6.15.0
           pip install Cython
           pip install wheel
-          pip install --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
+          pip install --no-cache-dir --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
           pip install --no-build-isolation git+https://github.com/vasole/bcflight.git
           pip install ipywidgets
 
@@ -322,7 +322,7 @@ jobs:
           arch -x86_64 pip install PyInstaller==6.15.0
           arch -x86_64 pip install Cython
           arch -x86_64 pip install wheel
-          arch -x86_64 pip install --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
+          arch -x86_64 pip install --no-cache-dir --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
           arch -x86_64 pip install --no-build-isolation git+https://github.com/vasole/bcflight.git
           arch -x86_64 pip install ipywidgets
 

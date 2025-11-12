@@ -405,7 +405,84 @@ jobs:
           with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
               f.write(f"version={version}\n")
 
-      - name: Wait for version to be available on TestPyPI
+#      - name: Wait for version to be available on TestPyPI
+#        id: wait_testpypi
+#        shell: python
+#        env:
+#          PACKAGE_NAME: ${{ env.PROJECT_LOWER }}
+#          VERSION: ${{ steps.extract_version.outputs.version }}
+#        run: |
+#          import requests
+#          import time
+#          import sys
+#
+#          version = "${{ env.VERSION }}"
+#          pkg_name = "${{ env.PACKAGE_NAME }}"
+#          index_url = f"https://test.pypi.org/pypi/{pkg_name}/json"
+#
+#          expected_platforms = [
+#              "manylinux",
+#              "macosx",
+#              "win",
+#          ]
+#          expected_tags = [
+#              "cp39", "cp310", "cp311", "cp312", "cp313"
+#          ]
+#          require_sdist = True
+#
+#          max_retries = 100
+#          delay_seconds = 10
+#
+#          def all_expected_files_present(releases, version):
+#              files = releases.get(version, [])
+#              filenames = [f["filename"] for f in files]
+#
+#              missing = []
+#
+#              # Check all Python version × platform combos
+#              for tag in expected_tags:
+#                  for plat in expected_platforms:
+#                      if not any(tag in fn and plat in fn for fn in filenames):
+#                          missing.append(f"{tag}-{plat}")
+#
+#              # Check for source distribution
+#              if require_sdist and not any(fn.endswith(".tar.gz") for fn in filenames):
+#                  missing.append("sdist (.tar.gz)")
+#
+#              if missing:
+#                  print("❌ Missing distributions:")
+#                  for m in missing:
+#                      print("  -", m)
+#                  return False
+#
+#              print("✅ All expected wheels and sdist found.")
+#              return True
+#
+#          for attempt in range(1, max_retries + 1):
+#              print(f"Attempt {attempt}: Checking {index_url} for version {version}")
+#              response = requests.get(index_url)
+#              if response.status_code != 200:
+#                  print(f"Failed to fetch metadata (status {response.status_code})")
+#              else:
+#                  data = response.json()
+#                  releases = data.get("releases", {})
+#                  if version in releases:
+#                      if all_expected_files_present(releases, version):
+#                          print(f"✅ All expected files for version {version} found on TestPyPI")
+#                          break
+#                      else:
+#                          print(f"⏳ Version {version} found but not all expected wheels uploaded yet")
+#                  else:
+#                      print(f"⏳ Version {version} not yet on TestPyPI")
+#
+#              if attempt < max_retries:
+#                  print(f"Waiting {delay_seconds} seconds before retrying...")
+#                  time.sleep(delay_seconds)
+#              else:
+#                  print(f"❌ Version {version} not fully available after {max_retries} attempts.")
+#                  sys.exit(1)
+
+      - name: Wait for version to be fully available on TestPyPI
         id: wait_testpypi
         shell: python
         env:
@@ -415,66 +492,77 @@ jobs:
           import requests
           import time
           import sys
-          
+      
           version = "${{ env.VERSION }}"
           pkg_name = "${{ env.PACKAGE_NAME }}"
           index_url = f"https://test.pypi.org/pypi/{pkg_name}/json"
-          
-          expected_platforms = [
-              "manylinux",
-              "macosx",
-              "win",
+      
+          # Wheels required for frozen binaries
+          expected_wheels = [
+              {"py_tag": "cp312", "platform": "macosx"},
+              {"py_tag": "cp313", "platform": "win"},
           ]
-          expected_tags = [
-              "cp39", "cp310", "cp311", "cp312", "cp313"
-          ]
-          require_sdist = True
-          
+      
           max_retries = 100
           delay_seconds = 10
-          
-          def all_expected_files_present(releases, version):
+      
+          def downloadable(url):
+              try:
+                  r = requests.head(url, allow_redirects=True, timeout=10)
+                  return r.status_code == 200
+              except requests.RequestException:
+                  return False
+      
+          def all_expected_files_downloadable(releases, version):
               files = releases.get(version, [])
               filenames = [f["filename"] for f in files]
-          
+              urls = {f["filename"]: f["url"] for f in files}
+      
               missing = []
-          
-              # Check all Python version × platform combos
-              for tag in expected_tags:
-                  for plat in expected_platforms:
-                      if not any(tag in fn and plat in fn for fn in filenames):
-                          missing.append(f"{tag}-{plat}")
-          
-              # Check for source distribution
-              if require_sdist and not any(fn.endswith(".tar.gz") for fn in filenames):
-                  missing.append("sdist (.tar.gz)")
-          
+      
+              # Check minimal wheels
+              for wheel in expected_wheels:
+                  matched_files = [fn for fn in filenames if wheel["py_tag"] in fn and wheel["platform"] in fn]
+                  if not matched_files:
+                      missing.append(f'{wheel["py_tag"]} on {wheel["platform"]}')
+                  else:
+                      # Check actual downloadability
+                      for fn in matched_files:
+                          url = urls[fn]
+                          if not downloadable(url):
+                              missing.append(f'{fn} (not downloadable)')
+      
               if missing:
-                  print("❌ Missing distributions:")
+                  print("❌ Missing or not downloadable distributions:")
                   for m in missing:
                       print("  -", m)
                   return False
-          
-              print("✅ All expected wheels and sdist found.")
+      
+              print("✅ Expected wheels are downloadable.")
               return True
-          
+      
           for attempt in range(1, max_retries + 1):
               print(f"Attempt {attempt}: Checking {index_url} for version {version}")
-              response = requests.get(index_url)
-              if response.status_code != 200:
-                  print(f"Failed to fetch metadata (status {response.status_code})")
+              try:
+                  response = requests.get(index_url, timeout=10)
+              except requests.RequestException as e:
+                  print(f"Failed to fetch metadata: {e}")
+                  response = None
+      
+              if response is None or response.status_code != 200:
+                  print(f"Failed to fetch metadata (status {response.status_code if response else 'N/A'})")
               else:
                   data = response.json()
                   releases = data.get("releases", {})
                   if version in releases:
-                      if all_expected_files_present(releases, version):
-                          print(f"✅ All expected files for version {version} found on TestPyPI")
+                      if all_expected_files_downloadable(releases, version):
+                          print(f"✅ Version {version} fully available on TestPyPI")
                           break
                       else:
-                          print(f"⏳ Version {version} found but not all expected wheels uploaded yet")
+                          print(f"⏳ Version {version} found but some files not downloadable yet")
                   else:
                       print(f"⏳ Version {version} not yet on TestPyPI")
-          
+      
               if attempt < max_retries:
                   print(f"Waiting {delay_seconds} seconds before retrying...")
                   time.sleep(delay_seconds)
