@@ -680,9 +680,15 @@ jobs:
         include:
           - os: macos-latest
             python-version: "3.12"
+            arch: "arch -x86_64"
+            label: "macOS (cp312)"
+          - os: macos-latest
+            python-version: "3.12"
+            arch: "arch -arm64"
             label: "macOS (cp312)"
           - os: windows-latest
             python-version: "3.13"
+            arch: ""
             label: "Windows (cp313)"
 
     steps:
@@ -716,6 +722,10 @@ jobs:
           with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
               f.write(f"version={version}\n")
 
+      # Yes arch is needed indeed because of PyPI behavior
+      # many times when arm64 download new wheel while x86 got the old one
+      # even after check that wheels exist
+      # and wheels are universal2 for MacOS
       - name: Wait for wheel availability on TestPyPI
         env:
           PACKAGE_NAME: ${{ env.PROJECT_LOWER }}
@@ -726,7 +736,8 @@ jobs:
           ver="${VERSION}"
           max_retries=90
           delay=10
-
+          arch_cmd="${{ matrix.arch }}"
+          
           echo "Checking availability of wheels"
           echo "Python: ${{ matrix.python-version }}, OS: ${{ matrix.os }}"
                
@@ -734,7 +745,7 @@ jobs:
             echo "Attempt $i/$max_retries..."
             python -m pip uninstall -y "${pkg}" >/dev/null 2>&1 || true
 
-            if pip install --no-cache-dir --pre \
+            if $arch_cmd pip install --no-cache-dir --pre \
                 --extra-index-url https://test.pypi.org/simple/ \
                 --trusted-host test.pypi.org \
                 --only-binary "${pkg}" "${pkg}==${ver}" -q; then
