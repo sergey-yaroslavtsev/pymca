@@ -60,7 +60,8 @@ class testEdfFile(unittest.TestCase):
 
     def testEdfFileImport(self):
         #"""Test successful import"""
-        self.assertTrue(self.fileClass is not None)
+        self.assertTrue(False, "Forcing failure") # testing fail behavior
+        # self.assertTrue(self.fileClass is not None)
 
     def testEdfFileReadWrite(self):
         # create a file

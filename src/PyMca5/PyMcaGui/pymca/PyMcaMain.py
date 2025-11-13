@@ -1832,7 +1832,8 @@ if __name__ == '__main__':
         import pstats
 
     # --- TEST MODE for CI or debugging frozen build ---
-    if os.getenv('PYMCA_TEST_MODE', '').lower() in ('1', 'true', 'yes'):
+    #if os.getenv('PYMCA_TEST_MODE', '').lower() in ('1', 'true', 'yes'):
+    if '--test' in args:
         try:
             from PyMca5.tests import TestAll
             print("Running in TEST MODE (from frozen binary)...")

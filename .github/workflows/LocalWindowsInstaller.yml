@@ -269,8 +269,6 @@ jobs:
 
       - name: Run PyMcaMain with tests (Windows)
         shell: pwsh
-        env:
-          PYMCA_TEST_MODE: 1
         run: |
           # Define expected install paths
           $basePaths = @(
@@ -301,7 +299,7 @@ jobs:
           Write-Host "Found executable at $appPath"
           
           # Launch the app with the environment variable
-          Start-Process -FilePath $appPath -Wait -NoNewWindow
+          Start-Process -FilePath $appPath -ArgumentList "--test" -Wait -NoNewWindow
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
