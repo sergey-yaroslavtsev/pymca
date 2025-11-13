@@ -300,45 +300,6 @@ jobs:
       
           Write-Host "Found executable at $appPath"
           
-          # Launch the app with the environment variable
-          $process = Start-Process -FilePath $appPath -Wait -NoNewWindow
-          $exitCode = $process.ExitCode
-          Write-Host "Process exited with code $exitCode"
-          exit $exitCode
-
-      - name: Run PyMcaMain with tests (Windows) V2
-        shell: pwsh
-        env:
-          PYMCA_TEST_MODE: 1
-        run: |
-          # Define expected install paths
-          $basePaths = @(
-              "${env:ProgramFiles}",
-              "${env:ProgramFiles(x86)}"
-          )
-          $exeName = "PyMcaMain.exe"
-          $appPath = $null
-      
-          # Find the exe in folders starting with PyMca*
-          foreach ($base in $basePaths) {
-              $candidateDirs = Get-ChildItem -Path $base -Directory -Filter "PyMca*" -ErrorAction SilentlyContinue
-              foreach ($dir in $candidateDirs) {
-                  $possiblePath = Join-Path $dir.FullName $exeName
-                  if (Test-Path $possiblePath) {
-                      $appPath = $possiblePath
-                      break
-                  }
-              }
-              if ($appPath) { break }
-          }
-      
-          if (-not $appPath) {
-              Write-Error "Executable '$exeName' not found in Program Files."
-              exit 1
-          }
-      
-          Write-Host "Found executable at $appPath"
-          
           & $appPath
           exit $LASTEXITCODE
 

@@ -173,9 +173,9 @@ jobs:
           }
       
           Write-Host "Found executable at $appPath"
-      
-          # Launch the app with environment variable
-          Start-Process -FilePath $appPath -Wait -NoNewWindow
+
+          & $appPath
+          exit $LASTEXITCODE
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
