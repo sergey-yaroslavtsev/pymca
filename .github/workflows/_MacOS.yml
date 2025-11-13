@@ -1,23 +1,26 @@
-name: _MacOs (app and dmg)
+name: _MacOs
 
 on:
   workflow_dispatch:
   workflow_call:
 
 env:
-  PROJECT: Pymca_release_test
-  PROJECT_LOWER: pymca_release_test
+  TEST_APP_FUNCTION: |
+    test_app() {
+      local ARCH=$1
+      local APP_PATH=$2
+      set -e
+      arch -$ARCH "$APP_PATH"
 
 jobs:
-# Fat binaries
-  macos_arm_pyinstaller_python312:
+  macos_arm64_dmg:
     runs-on: macos-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
@@ -25,7 +28,7 @@ jobs:
         run: |
           sudo softwareupdate --install-rosetta --agree-to-license
 
-      - name: Set environment for 11 compatibility #10.13 is a minimum - setting 10.9 do not actually work
+      - name: Set the environment for macOS 11 compatibility # 10.13 is a minimum, 10.9 does not work.
         run: |
           echo "MACOSX_DEPLOYMENT_TARGET=11" >> $GITHUB_ENV
           echo "CFLAGS=-mmacosx-version-min=11" >> $GITHUB_ENV
@@ -36,7 +39,6 @@ jobs:
           pip install "setuptools<80"
           pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/psutil-5.9.6-cp312-abi3-macosx_10_9_universal2.whl
           pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/Pillow-10.1.0-cp312-cp312-macosx_11_0_universal2.whl
-          # pip install Pillow # works as well - just arm64 have more files than x86
           pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/tornado-6.3.3-cp38-abi3-macosx_10_9_universal2.whl
           pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/contourpy-1.2.0-cp312-cp312-macosx_11_0_universal2.whl
           pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/kiwisolver-1.4.5-cp312-cp312-macosx_11_0_universal2.whl
@@ -64,7 +66,7 @@ jobs:
           pip install --no-build-isolation git+https://github.com/vasole/bcflight.git
           pip install ipywidgets
 
-      - name: Build PyInstaller app for arm64
+      - name: Build the application for arm64
         run: |
           arch -arm64 python build-pyinstaller_github.py
           ls dist
@@ -75,200 +77,31 @@ jobs:
             fi
           done | sort
 
-      - name: Set app name variable
-        run: |
-          APP_NAME=$(find dist -maxdepth 1 -name 'PyMca*.app' | head -n 1 | xargs -n 1 basename)
-          echo "APP_NAME=$APP_NAME" >> $GITHUB_ENV
+      - name: Set app name
+        run: echo "APP_NAME=$(basename dist/*.app)" >> $GITHUB_ENV
 
-      ### correct and test app file
-
-      - name: Move .app to /Applications
-        run: |
-          sudo mv ./dist/${{ env.APP_NAME }} /Applications/
-          ls -l /Applications/${{ env.APP_NAME }}/Contents/MacOS
-
-      - name: Make main binary executable
-        run: chmod +x /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain
-
-      - name: Rename __dot__dylibs folders to .dylibs
-        run: |
-          find /Applications/${{ env.APP_NAME }} -depth -type d -name '__dot__dylibs' | while IFS= read -r dir; do
-            parent_dir=$(dirname "$dir")
-            target="$parent_dir/.dylibs"
-
-            if [ -e "$target" ]; then
-              echo "⚠️ Skipping: $target already exists."
-            else
-              mv "$dir" "$target"
-              if [ -d "$target" ]; then
-                if [ "$(ls -A "$target")" ]; then
-                  echo "✅ Renamed and verified: $dir → $target (not empty)"
-                else
-                  echo "⚠️ Renamed: $dir → $target but it's empty"
-                fi
-              else
-                echo "❌ Rename failed: $dir → $target does not exist"
-              fi
-            fi
-          done
-
-      - name: Run the app with tests
+      - name: Test the app
         env:
           PYMCA_TEST_MODE: 1
         run: |
-          set -e
-          arch -arm64 /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain
+          eval "$TEST_APP_FUNCTION"
+          test_app arm64 "dist/$APP_NAME/Contents/MacOS/PyMcaMain"
 
-#      - name: Run the app to check it launches
-#        run: |
-#          set -e
-#
-#          echo "Launching PyMcaMain..."
-#          LOGFILE=$(mktemp)
-#
-#          # Start the app in the background
-#          arch -arm64 /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain > "$LOGFILE" 2>&1 &
-#          APP_PID=$!
-#
-#          echo "App started with PID $APP_PID"
-#
-#          # Wait up to 120 seconds for it to crash or hang
-#          for i in {1..120}; do
-#            if ! ps -p $APP_PID > /dev/null; then
-#              echo "App exited early. Checking exit code..."
-#              wait $APP_PID || true
-#              EXIT_CODE=$?
-#              echo "Exit code: $EXIT_CODE"
-#              echo "App output log:"
-#              cat "$LOGFILE"
-#              if [ $EXIT_CODE -ne 0 ]; then
-#                echo "App exited with error code $EXIT_CODE"
-#                exit $EXIT_CODE
-#              else
-#                echo "App exited cleanly before 2 minutes."
-#                exit 0
-#              fi
-#            fi
-#
-#            if grep -qE 'ImportError|Traceback|ERROR:' "$LOGFILE"; then
-#              echo "Detected error in application output:"
-#              cat "$LOGFILE"
-#              echo "Failing due to runtime error."
-#              kill $APP_PID || true
-#              wait $APP_PID || true
-#              exit 1
-#            fi
-#
-#            sleep 1
-#          done
-#
-#          echo "App ran for 2 minutes without crashing. Killing it now..."
-#          kill $APP_PID || true
-#          wait $APP_PID || true
-#          echo "App test complete."
-
-      - name: Copy .app out /Applications
-        run: |
-          sudo mkdir -p myappfolder
-          sudo cp -R "/Applications/${{ env.APP_NAME }}" myappfolder/
-
-      - name: Cleanup
-        run: |
-          sudo rm -rf /Applications/${{ env.APP_NAME }}
-
-      ### dmg test
-
-      - name: Mount the DMG
-        run: |
-          DMG_NAME="${APP_NAME/.app/.dmg}"
-          hdiutil attach "dist/$DMG_NAME" -mountpoint /Volumes/PyMcaApp
-        env:
-          APP_NAME: ${{ env.APP_NAME }}
-
-      - name: Copy .app to /Applications
-        run: |
-          sudo cp -R "/Volumes/PyMcaApp/${{ env.APP_NAME }}" /Applications/
-
-      - name: Make main binary executable
-        run: chmod +x /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain
-
-      - name: Run the app to check it launches
-        run: |
-          set -e
-
-          echo "Launching PyMcaMain..."
-          LOGFILE=$(mktemp)
-
-          # Start the app in the background
-          arch -arm64 /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain > "$LOGFILE" 2>&1 &
-          APP_PID=$!
-
-          echo "App started with PID $APP_PID"
-
-          # Wait up to 60 seconds for it to crash or hang
-          for i in {1..60}; do
-            if ! ps -p $APP_PID > /dev/null; then
-              echo "App exited early. Checking exit code..."
-              wait $APP_PID || true
-              EXIT_CODE=$?
-              echo "Exit code: $EXIT_CODE"
-              echo "App output log:"
-              cat "$LOGFILE"
-              if [ $EXIT_CODE -ne 0 ]; then
-                echo "App exited with error code $EXIT_CODE"
-                exit $EXIT_CODE
-              else
-                echo "App exited cleanly before 2 minutes."
-                exit 0
-              fi
-            fi
-
-            if grep -qE 'ImportError|Traceback|ERROR:' "$LOGFILE"; then
-              echo "Detected error in application output:"
-              cat "$LOGFILE"
-              echo "Failing due to runtime error."
-              kill $APP_PID || true
-              wait $APP_PID || true
-              exit 1
-            fi
-
-            sleep 1
-          done
-
-          echo "App ran for 2 minutes without crashing. Killing it now..."
-          kill $APP_PID || true
-          wait $APP_PID || true
-          echo "App test complete."
-
-      - name: Cleanup
-        run: |
-          sudo rm -rf /Applications/${{ env.APP_NAME }}
-
-      # upload .dmg
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: macos-arm-pyinstaller-artifacts-dmg
+          name: macos-arm64-dmg
           path: dist/*.dmg
           retention-days: 1
 
-      # upload .app as well
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-arm-pyinstaller-artifacts-dashdotfix
-          path: myappfolder/*
-          include-hidden-files: true
-          retention-days: 1
-
-  macos_x86_pyinstaller_python312:
+  macos_x86_64_dmg:
     runs-on: macos-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
@@ -282,23 +115,22 @@ jobs:
           echo "CFLAGS=-mmacosx-version-min=11" >> $GITHUB_ENV
           echo "LDFLAGS=-mmacosx-version-min=11" >> $GITHUB_ENV
 
-      # "castrate" interpreter to have only x86
-      - name: Setup MacOS x86_64 Python
+      # Remove arm64 from the Python interpreter to force x86_64 usage.
+      - name: Setup macOS x86_64 Python
         run: |
-          arch -x86_64 python -m venv venv-x86
-          lipo venv-x86/bin/python -remove arm64 -output venv-x86/bin/python_x86
-          sudo mv venv-x86/bin/python_x86 venv-x86/bin/python
-          chmod +x venv-x86/bin/python
-          file venv-x86/bin/python
-          source venv-x86/bin/activate
+          arch -x86_64 python -m venv venv-x86_64
+          lipo venv-x86_64/bin/python -remove arm64 -output venv-x86_64/bin/python_x86
+          sudo mv venv-x86_64/bin/python_x86 venv-x86_64/bin/python
+          chmod +x venv-x86_64/bin/python
+          file venv-x86_64/bin/python
+          source venv-x86_64/bin/activate
 
       - name: Install dependencies
         run: |
-          source venv-x86/bin/activate
+          source venv-x86_64/bin/activate
           arch -x86_64 pip install "setuptools<81"
           arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/psutil-5.9.6-cp312-abi3-macosx_10_9_universal2.whl
           arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/Pillow-10.1.0-cp312-cp312-macosx_11_0_universal2.whl
-          # arch -x86_64 pip install Pillow # works as well - just arm64 have more files than x86
           arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/tornado-6.3.3-cp38-abi3-macosx_10_9_universal2.whl
           arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/contourpy-1.2.0-cp312-cp312-macosx_11_0_universal2.whl
           arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/kiwisolver-1.4.5-cp312-cp312-macosx_11_0_universal2.whl
@@ -326,15 +158,15 @@ jobs:
           arch -x86_64 pip install --no-build-isolation git+https://github.com/vasole/bcflight.git
           arch -x86_64 pip install ipywidgets
 
-#          arch -x86_64 pip install PySide6==6.6.0
-#          arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/numpy-1.26.2-cp312-cp312-macosx_10_9_universal2.whl
-#          arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/h5py-3.10.0-cp312-cp312-macosx_11_0_universal2.whl
-#          arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/matplotlib-3.8.2-cp312-cp312-macosx_11_0_universal2.whl
-#          arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/fabio-2023.10.0-cp312-cp312-macosx_10_9_universal2.whl
+      #          arch -x86_64 pip install PySide6==6.6.0
+      #          arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/numpy-1.26.2-cp312-cp312-macosx_10_9_universal2.whl
+      #          arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/h5py-3.10.0-cp312-cp312-macosx_11_0_universal2.whl
+      #          arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/matplotlib-3.8.2-cp312-cp312-macosx_11_0_universal2.whl
+      #          arch -x86_64 pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/fabio-2023.10.0-cp312-cp312-macosx_10_9_universal2.whl
 
-      - name: Build PyInstaller app for x86_64
+      - name: Build the application for x86_64
         run: |
-          source venv-x86/bin/activate
+          source venv-x86_64/bin/activate
           arch -x86_64 python build-pyinstaller_github.py
           ls dist
           find dist/ -type f -perm +111 | while read -r file; do
@@ -344,154 +176,34 @@ jobs:
             fi
           done | sort
 
-      - name: Set app name variable
-        run: |
-          APP_NAME=$(find dist -maxdepth 1 -name 'PyMca*.app' | head -n 1 | xargs -n 1 basename)
-          echo "APP_NAME=$APP_NAME" >> $GITHUB_ENV
+      - name: Set app name
+        run: echo "APP_NAME=$(basename dist/*.app)" >> $GITHUB_ENV
 
-      - name: Move .app to /Applications
-        run: |
-          sudo mv ./dist/${{ env.APP_NAME }} /Applications/
-          ls -l /Applications/${{ env.APP_NAME }}/Contents/MacOS
-
-      - name: Make main binary executable
-        run: chmod +x /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain
-
-      - name: Rename __dot__dylibs folders to .dylibs
-        run: |
-          find /Applications/${{ env.APP_NAME }} -depth -type d -name '__dot__dylibs' | while IFS= read -r dir; do
-            parent_dir=$(dirname "$dir")
-            target="$parent_dir/.dylibs"
-
-            if [ -e "$target" ]; then
-              echo "⚠️ Skipping: $target already exists."
-            else
-              mv "$dir" "$target"
-              if [ -d "$target" ]; then
-                if [ "$(ls -A "$target")" ]; then
-                  echo "✅ Renamed and verified: $dir → $target (not empty)"
-                else
-                  echo "⚠️ Renamed: $dir → $target but it's empty"
-                fi
-              else
-                echo "❌ Rename failed: $dir → $target does not exist"
-              fi
-            fi
-          done
-
-      - name: Copy .app out /Applications
-        run: |
-          sudo mkdir -p myappfolder
-          sudo cp -R "/Applications/${{ env.APP_NAME }}" myappfolder/
-
-      - name: Cleanup
-        run: |
-          sudo rm -rf /Applications/${{ env.APP_NAME }}
-
-      # upload .app as well
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-x86-pyinstaller-artifacts-dashdotfix
-          path: myappfolder/*
-          include-hidden-files: true
-          retention-days: 1
-
-      ### dmg test
-
-      - name: Mount the DMG
-        run: |
-          DMG_NAME="${APP_NAME/.app/.dmg}"
-          hdiutil attach "dist/$DMG_NAME" -mountpoint /Volumes/PyMcaApp
-        env:
-          APP_NAME: ${{ env.APP_NAME }}
-
-      - name: Copy .app to /Applications
-        run: |
-          sudo cp -R "/Volumes/PyMcaApp/${{ env.APP_NAME }}" /Applications/
-
-      - name: Make main binary executable
-        run: chmod +x /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain
-
-      - name: Run the app with tests
+      - name: Test the app
         env:
           PYMCA_TEST_MODE: 1
         run: |
-          set -e
-          arch -x86_64 /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain
+          eval "$TEST_APP_FUNCTION"
+          test_app x86_64 "dist/$APP_NAME/Contents/MacOS/PyMcaMain"
 
-#      - name: Run the app to check it launches
-#        run: |
-#          set -e
-#
-#          echo "Launching PyMcaMain..."
-#          LOGFILE=$(mktemp)
-#
-#          # Start the app in the background
-#          arch -x86_64 /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain > "$LOGFILE" 2>&1 &
-#          APP_PID=$!
-#
-#          echo "App started with PID $APP_PID"
-#
-#          # Wait up to 60 seconds for it to crash or hang
-#          for i in {1..60}; do
-#            if ! ps -p $APP_PID > /dev/null; then
-#              echo "App exited early. Checking exit code..."
-#              wait $APP_PID || true
-#              EXIT_CODE=$?
-#              echo "Exit code: $EXIT_CODE"
-#              echo "App output log:"
-#              cat "$LOGFILE"
-#              if [ $EXIT_CODE -ne 0 ]; then
-#                echo "App exited with error code $EXIT_CODE"
-#                exit $EXIT_CODE
-#              else
-#                echo "App exited cleanly before 2 minutes."
-#                exit 0
-#              fi
-#            fi
-#
-#            if grep -qE 'ImportError|Traceback|ERROR:' "$LOGFILE"; then
-#              echo "Detected error in application output:"
-#              cat "$LOGFILE"
-#              echo "Failing due to runtime error."
-#              kill $APP_PID || true
-#              wait $APP_PID || true
-#              exit 1
-#            fi
-#
-#            sleep 1
-#          done
-#
-#          echo "App ran for 2 minutes without crashing. Killing it now..."
-#          kill $APP_PID || true
-#          wait $APP_PID || true
-#          echo "App test complete."
-
-      - name: Cleanup
-        run: |
-          sudo rm -rf /Applications/${{ env.APP_NAME }}
-
-      # upload .dmg
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: macos-x86(intel)-pyinstaller-artifacts-dmg
+          name: macos-x86_64-dmg
           path: dist/*.dmg
           retention-days: 1
 
-  macos_universal_app:
+  macos_universal2_dmg:
     runs-on: macos-latest
     needs:
-      - macos_arm_pyinstaller_python312
-      - macos_x86_pyinstaller_python312
+      - macos_arm64_dmg
+      - macos_x86_64_dmg
     steps:
-
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
@@ -499,76 +211,73 @@ jobs:
         run: |
           sudo softwareupdate --install-rosetta --agree-to-license
 
-      # Yes dmg is needed because pyinstaller have better compression and cleaning.
-      # APPs work as well but file size is 2-3 times larger.
-
-      - name: Download Mac arm64 artifact
+      - name: Download the arm64 artifact
         uses: actions/download-artifact@v4
         with:
-          name: macos-arm-pyinstaller-artifacts-dmg
+          name: macos-arm64-dmg
           path: dist/tmp/arm64
 
-      - name: Download Mac x86 artifact
+      - name: Download the x86_64 artifact
         uses: actions/download-artifact@v4
         with:
-          name: macos-x86(intel)-pyinstaller-artifacts-dmg
-          path: dist/tmp/x86
+          name: macos-x86_64-dmg
+          path: dist/tmp/x86_64
 
       - name: Create output directories
         run: |
-          mkdir -p dist/arm64 dist/x86
+          mkdir -p dist/arm64 dist/x86_64
 
-      - name: Attach ARM64 DMG and copy files
+      - name: Attach the arm64 DMG and copy the app
         run: |
           ARM_DMG=$(find dist/tmp/arm64 -name "*.dmg" | head -n 1)
-          hdiutil attach "$ARM_DMG" -mountpoint /Volumes/arm64-dmg
-          cp -R /Volumes/arm64-dmg/* dist/arm64/
-          hdiutil detach /Volumes/arm64-dmg
+          hdiutil attach "$ARM_DMG" -mountpoint /Volumes/arm64
+          cp -R /Volumes/arm64/* dist/arm64/
+          hdiutil detach /Volumes/arm64
 
-      - name: Attach x86 DMG and copy files
+      - name: Attach the x86_64 DMG and copy the app
         run: |
-          X86_DMG=$(find dist/tmp/x86 -name "*.dmg" | head -n 1)
-          hdiutil attach "$X86_DMG" -mountpoint /Volumes/x86-dmg
-          cp -R /Volumes/x86-dmg/* dist/x86/
-          hdiutil detach /Volumes/x86-dmg
+          X86_DMG=$(find dist/tmp/x86_64 -name "*.dmg" | head -n 1)
+          hdiutil attach "$X86_DMG" -mountpoint /Volumes/x86_64
+          cp -R /Volumes/x86_64/* dist/x86_64
+          hdiutil detach /Volumes/x86_64
 
-      - name: Set app name variable
+      - name: Set the app name variable
         run: |
           APP_NAME=$(find dist/arm64 -maxdepth 1 -name '*.app' | head -n 1 | xargs -n 1 basename)
           echo "APP_NAME=$APP_NAME" >> $GITHUB_ENV
 
-      - name: Merge into universal2 .app
+      - name: Merge into universal2 app
         run: |
-          echo "Merging universal .app: $APP_NAME"
+          echo "Merging universal2 .app: $APP_NAME"
 
-          ARM_APP="dist/arm64/$APP_NAME"
-          X86_APP="dist/x86/$APP_NAME"
-          UNIVERSAL_APP="dist/universal/$APP_NAME"
+          ARM64_APP="dist/arm64/$APP_NAME"
+          X86_64_APP="dist/x86_64/$APP_NAME"
+          UNIVERSAL2_APP="dist/universal2/$APP_NAME"
 
           # Copy arm64 app as base
-          mkdir -p dist/universal
-          cp -R "$ARM_APP" "$UNIVERSAL_APP"
+          mkdir -p dist/universal2
+          cp -R "$ARM64_APP" "$UNIVERSAL2_APP"
 
           echo "Merging executables in Contents/MacOS..."
-          for exe in "$ARM_APP/Contents/MacOS/"*; do
+          for exe in "$ARM64_APP/Contents/MacOS/"*; do
             exe_name=$(basename "$exe")
             echo "  -> $exe_name"
             lipo -create \
-              "$ARM_APP/Contents/MacOS/$exe_name" \
-              "$X86_APP/Contents/MacOS/$exe_name" \
-              -output "$UNIVERSAL_APP/Contents/MacOS/$exe_name"
+              "$ARM64_APP/Contents/MacOS/$exe_name" \
+              "$X86_64_APP/Contents/MacOS/$exe_name" \
+              -output "$UNIVERSAL2_APP/Contents/MacOS/$exe_name"
           done
-          
-          # Extract all architectures as sorted strings
+
+          # Extract all architectures as sorted strings.
           get_archs() {
             echo "$1" | grep -oE 'arm64|x86_64' | sort | tr '\n' ' '
           }
-          
-          # Helper: check if arch list1 contains all archs in list2
+
+          # Check if arch list1 contains all archs in list2.
           contains_all_archs() {
             local container=($1)
             local contained=($2)
-          
+
             for arch in "${contained[@]}"; do
               local found=0
               for c in "${container[@]}"; do
@@ -583,179 +292,78 @@ jobs:
             done
             return 0
           }
-          
+
           echo "Merging Mach-O (.so, .dylib, etc.) files in Frameworks and Resources..."
           for section in Frameworks Resources; do
-            find "$ARM_APP/Contents/$section" -type f | while read -r arm_file; do
-              if ! file "$arm_file" | grep -q 'Mach-O'; then
+            find "$ARM64_APP/Contents/$section" -type f | while read -r arm64_file; do
+              if ! file "$arm64_file" | grep -q 'Mach-O'; then
                 continue
               fi
-              rel_path="${arm_file#$ARM_APP/}"
-              x86_file="$X86_APP/$rel_path"
-              out_file="$UNIVERSAL_APP/$rel_path"
-          
-              if [ -f "$x86_file" ]; then
+              rel_path="${arm64_file#$ARM64_APP/}"
+              x86_64_file="$X86_64_APP/$rel_path"
+              out_file="$UNIVERSAL2_APP/$rel_path"
 
-                arch_arm=$(lipo -info "$arm_file" 2>&1)
-                arch_x86=$(lipo -info "$x86_file" 2>&1)
-                
-                archs_arm=$(get_archs "$arch_arm")
-                archs_x86=$(get_archs "$arch_x86")
-                
-                is_arm_universal=false
-                is_x86_universal=false
-                
-                if [[ "$archs_arm" == *"arm64"* && "$archs_arm" == *"x86_64"* ]]; then
-                  is_arm_universal=true
+              if [ -f "$x86_64_file" ]; then
+
+                arch_arm64=$(lipo -info "$arm64_file" 2>&1)
+                arch_x86_64=$(lipo -info "$x86_64_file" 2>&1)
+
+                archs_arm64=$(get_archs "$arch_arm64")
+                archs_x86_64=$(get_archs "$arch_x86_64")
+
+                is_arm64_universal2=false
+                is_x86_64_universal2=false
+
+                if [[ "$archs_arm64" == *"arm64"* && "$archs_arm64" == *"x86_64"* ]]; then
+                  is_arm64_universal2=true
                 fi
 
-                if [[ "$archs_x86" == *"arm64"* && "$archs_x86" == *"x86_64"* ]]; then
-                  is_x86_universal=true
+                if [[ "$archs_x86_64" == *"arm64"* && "$archs_x86_64" == *"x86_64"* ]]; then
+                  is_x86_64_universal2=true
                 fi
-                
-                if [ "$is_arm_universal" = true ] && [ "$is_x86_universal" = false ]; then
+
+                if [ "$is_arm64_universal2" = true ] && [ "$is_x86_64_universal2" = false ]; then
                   echo "  -> $rel_path"
-                  echo "    arm_file is universal; copying arm_file."
-                  cp "$arm_file" "$out_file"
-                elif [ "$is_x86_universal" = true ] && [ "$is_arm_universal" = false ]; then
+                  echo "    arm64_file is universal2; copying arm64_file."
+                  cp "$arm64_file" "$out_file"
+                elif [ "$is_x86_64_universal2" = true ] && [ "$is_arm64_universal2" = false ]; then
                   echo "  -> $rel_path"
-                  echo "    x86_file is universal; copying x86_file."
-                  cp "$x86_file" "$out_file"
+                  echo "    x86_64_file is universal2; copying x86_64_file."
+                  cp "$x86_64_file" "$out_file"
                 else
-                  # If both universal or both not universal, check if arch sets match exactly
-                  if contains_all_archs "$archs_arm" "$archs_x86" && contains_all_archs "$archs_x86" "$archs_arm"; then
-                    if [ "$is_arm_universal" = false ]; then
+                  # If both universal2 or both not universal2, check if arch sets match exactly
+                  if contains_all_archs "$archs_arm64" "$archs_x86_64" && contains_all_archs "$archs_x86_64" "$archs_arm64"; then
+                    if [ "$is_arm64_universal2" = false ]; then
                       echo "  -> $rel_path"
-                      echo "    Archs arm_file: $arch_arm"
-                      echo "    Archs x86_file: $arch_x86"
-                      echo "    Both files have identical architectures. Copying x86 file."
-                    cp "$x86_file" "$out_file"
+                      echo "    Archs arm64_file: $arch_arm64"
+                      echo "    Archs x86_64_file: $arch_x86_64"
+                      echo "    Both files have identical architectures. Copying x86_64 file."
+                      cp "$x86_64_file" "$out_file"
                     fi
                   else
-                    lipo -create "$arm_file" "$x86_file" -output "$out_file"
+                    lipo -create "$arm64_file" "$x86_64_file" -output "$out_file"
                   fi
                 fi
               else
-                echo "    Warning: x86 file not found for $rel_path. Skipping."
+                echo "    Warning: x86_64 file not found for $rel_path. Skipping."
               fi
             done
           done
 
-
-          echo "✅ Universal app built at $UNIVERSAL_APP"
+          echo "Universal2 app built at $UNIVERSAL2_APP"
 
       - name: Make main binary executable
-        run: chmod +x dist/universal/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain
+        run: chmod +x dist/universal2/$APP_NAME/Contents/MacOS/PyMcaMain
 
-#      - name: Run the app to check it launches
-#        run: |
-#          set -e
-#
-#          echo "Launching PyMcaMain..."
-#          LOGFILE=$(mktemp)
-#
-#          # Start the app in the background
-#          arch -arm64 dist/universal/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain > "$LOGFILE" 2>&1 &
-#          APP_PID=$!
-#
-#          echo "App started with PID $APP_PID"
-#
-#          # Wait up to 60 seconds for it to crash or hang
-#          for i in {1..60}; do
-#            if ! ps -p $APP_PID > /dev/null; then
-#              echo "App exited early. Checking exit code..."
-#              wait $APP_PID || true
-#              EXIT_CODE=$?
-#              echo "Exit code: $EXIT_CODE"
-#              echo "App output log:"
-#              cat "$LOGFILE"
-#              if [ $EXIT_CODE -ne 0 ]; then
-#                echo "App exited with error code $EXIT_CODE"
-#                exit $EXIT_CODE
-#              else
-#                echo "App exited cleanly before 2 minutes."
-#                exit 0
-#              fi
-#            fi
-#
-#            if grep -qE 'ImportError|Traceback|ERROR:' "$LOGFILE"; then
-#              echo "Detected error in application output:"
-#              cat "$LOGFILE"
-#              echo "Failing due to runtime error."
-#              kill $APP_PID || true
-#              wait $APP_PID || true
-#              exit 1
-#            fi
-#
-#            sleep 1
-#          done
-#
-#          echo "App ran for 2 minutes without crashing. Killing it now..."
-#          kill $APP_PID || true
-#          wait $APP_PID || true
-#          echo "App test complete."
-
-#      - name: Run the app to check it launches
-#        run: |
-#          set -e
-#
-#          echo "Launching PyMcaMain..."
-#          LOGFILE=$(mktemp)
-#
-#          # Start the app in the background
-#          arch -x86_64 dist/universal/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain > "$LOGFILE" 2>&1 &
-#          APP_PID=$!
-#
-#          echo "App started with PID $APP_PID"
-#
-#          # Wait up to 60 seconds for it to crash or hang
-#          for i in {1..60}; do
-#            if ! ps -p $APP_PID > /dev/null; then
-#              echo "App exited early. Checking exit code..."
-#              wait $APP_PID || true
-#              EXIT_CODE=$?
-#              echo "Exit code: $EXIT_CODE"
-#              echo "App output log:"
-#              cat "$LOGFILE"
-#              if [ $EXIT_CODE -ne 0 ]; then
-#                echo "App exited with error code $EXIT_CODE"
-#                exit $EXIT_CODE
-#              else
-#                echo "App exited cleanly before 2 minutes."
-#                exit 0
-#              fi
-#            fi
-#
-#            if grep -qE 'ImportError|Traceback|ERROR:' "$LOGFILE"; then
-#              echo "Detected error in application output:"
-#              cat "$LOGFILE"
-#              echo "Failing due to runtime error."
-#              kill $APP_PID || true
-#              wait $APP_PID || true
-#              exit 1
-#            fi
-#
-#            sleep 1
-#          done
-#
-#          echo "App ran for 2 minutes without crashing. Killing it now..."
-#          kill $APP_PID || true
-#          wait $APP_PID || true
-#          echo "App test complete."
-
-      - name: Run the app with tests
+      - name: Test the app for both architectures
         env:
           PYMCA_TEST_MODE: 1
         run: |
-          set -e
-          arch -arm64 dist/universal/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain
+          eval "$TEST_APP_FUNCTION"
 
-      - name: Run the app with tests
-        env:
-          PYMCA_TEST_MODE: 1
-        run: |
-          set -e
-          arch -x86_64 dist/universal/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain
+          # Run tests for both architectures
+          test_app arm64 "dist/universal2/$APP_NAME/Contents/MacOS/PyMcaMain"
+          test_app x86_64 "dist/universal2/$APP_NAME/Contents/MacOS/PyMcaMain"
 
       - name: Upload universal .app artifact
         uses: actions/upload-artifact@v4
@@ -809,9 +417,9 @@ jobs:
 
           echo "✅ DMG created: $DMG_PATH"
 
-      - name: Upload .dmg artifact
+      - name: Upload the universal2 DMG artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PyMca5-universal-dmg
-          path: dist/${{ env.APP_BASE_NAME }}.dmg
+          name: macos-universal2-dmg
+          path: dist/*.dmg
           retention-days: 1
