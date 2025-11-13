@@ -35,7 +35,28 @@ jobs:
           echo "CFLAGS=-mmacosx-version-min=11" >> $GITHUB_ENV
           echo "LDFLAGS=-mmacosx-version-min=11" >> $GITHUB_ENV
 
+      - name: Extract version from __init__.py
+        id: extract_version
+        shell: python
+        run: |
+          import os
+          path = 'src/PyMca5/__init__.py'
+
+          version = None
+          with open(path, 'r') as f:
+              for line in f:
+                  if line.startswith('__version__'):
+                      version = line.replace(' ', '').split('=')[-1].strip().strip('"\'')
+                      break
+          assert version is not None, "Version not found in __init__.py"
+          print(version)
+          # Save version to GitHub output
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f"version={version}\n")
+
       - name: Install dependencies
+        env:
+          VERSION: ${{ steps.extract_version.outputs.version }}
         run: |
           pip install "setuptools<80"
           pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/psutil-5.9.6-cp312-abi3-macosx_10_9_universal2.whl
@@ -63,7 +84,7 @@ jobs:
           pip install PyInstaller==6.15.0
           pip install Cython
           pip install wheel
-          pip install --no-cache-dir --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
+          pip install --no-cache-dir --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test==${VERSION}
           pip install --no-build-isolation git+https://github.com/vasole/bcflight.git
           pip install ipywidgets
 
@@ -126,7 +147,28 @@ jobs:
           file venv-x86_64/bin/python
           source venv-x86_64/bin/activate
 
+      - name: Extract version from __init__.py
+        id: extract_version
+        shell: python
+        run: |
+          import os
+          path = 'src/PyMca5/__init__.py'
+
+          version = None
+          with open(path, 'r') as f:
+              for line in f:
+                  if line.startswith('__version__'):
+                      version = line.replace(' ', '').split('=')[-1].strip().strip('"\'')
+                      break
+          assert version is not None, "Version not found in __init__.py"
+          print(version)
+          # Save version to GitHub output
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f"version={version}\n")
+
       - name: Install dependencies
+        env:
+          VERSION: ${{ steps.extract_version.outputs.version }}
         run: |
           source venv-x86_64/bin/activate
           arch -x86_64 pip install "setuptools<81"
@@ -155,7 +197,7 @@ jobs:
           arch -x86_64 pip install PyInstaller==6.15.0
           arch -x86_64 pip install Cython
           arch -x86_64 pip install wheel
-          arch -x86_64 pip install --no-cache-dir --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
+          arch -x86_64 pip install --no-cache-dir --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test==${VERSION}
           arch -x86_64 pip install --no-build-isolation git+https://github.com/vasole/bcflight.git
           arch -x86_64 pip install ipywidgets
 
@@ -417,6 +459,39 @@ jobs:
             "$(dirname "$APP_PATH")" 
 
           echo "✅ DMG created: $DMG_PATH"
+
+      - name: Mount the DMG
+        run: |
+          set -e
+          DMG_NAME="${{ env.APP_BASE_NAME }}.dmg"
+          MOUNT_POINT="/Volumes/${{ env.APP_BASE_NAME }}"
+          
+          echo "Mounting DMG $DMG_NAME at $MOUNT_POINT"
+          hdiutil attach "dist/$DMG_NAME" -mountpoint "$MOUNT_POINT"
+
+      - name: Copy .app to /Applications
+        run: |
+          set -e
+          APP_PATH="$MOUNT_POINT/${{ env.APP_NAME }}"
+          sudo cp -R "$APP_PATH" /Applications/
+
+      - name: Make main binary executable
+        run: chmod +x /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain
+
+      - name: Run the app with tests
+        env:
+          PYMCA_TEST_MODE: 1
+        run: |
+          set -e
+          arch -x86_64 /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain
+
+      - name: Unmount the DMG
+        if: always()
+        run: |
+          set -e
+          MOUNT_POINT="/Volumes/${{ env.APP_BASE_NAME }}"
+          echo "Unmounting DMG at $MOUNT_POINT"
+          hdiutil detach "$MOUNT_POINT"
 
       - name: Upload the universal2 DMG artifact
         uses: actions/upload-artifact@v4
