@@ -11,6 +11,7 @@ env:
       local APP_PATH=$2
       set -e
       arch -$ARCH "$APP_PATH"
+    }
 
 jobs:
   macos_arm64_dmg:
