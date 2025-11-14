@@ -21,6 +21,12 @@ jobs:
         with:
           python-version: "3.13" #was working with cp3.9 and pyqt5 numpy==1.24.4 cx_freeze==6.14.7 qtconsole==5.4.1 lief==0.12.3 matplotlib==3.5.3
 
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-latest-wheels
+          path: wheels
+
       - name: Install dependencies
         run: |          
           
@@ -29,7 +35,7 @@ jobs:
           pip install matplotlib==3.10.5
           pip install lief==0.16.6
           pip install cx_Freeze==8.3.0
-          pip install --no-cache-dir --pre --extra-index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
+          pip install wheels/
           pip install Cython
           pip install numpy==2.2.6 
           pip install Pyside6==6.9.1

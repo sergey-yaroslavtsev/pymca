@@ -671,111 +671,100 @@ jobs:
 
 
 
-  wait_for_testpypi_availability:
-    runs-on: ${{ matrix.os }}
-    needs: upload_to_testpypi
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: macos-latest
-            python-version: "3.12"
-            arch: "arch -x86_64"
-            label: "macOS (cp312)"
-          - os: macos-latest
-            python-version: "3.12"
-            arch: "arch -arm64"
-            label: "macOS (cp312)"
-          - os: windows-latest
-            python-version: "3.13"
-            arch: ""
-            label: "Windows (cp313)"
-
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip requests
-
-      - name: Extract version from __init__.py
-        id: extract_version
-        shell: python
-        run: |
-          import os
-          path = 'src/PyMca5/__init__.py'
-
-          version = None
-          with open(path, 'r') as f:
-              for line in f:
-                  if line.startswith('__version__'):
-                      version = line.replace(' ', '').split('=')[-1].strip().strip('"\'')
-                      break
-          assert version is not None, "Version not found in __init__.py"
-          print(version)
-          # Save version to GitHub output
-          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
-              f.write(f"version={version}\n")
-
-      # Yes arch is needed indeed because of PyPI behavior
-      # many times when arm64 download new wheel while x86 got the old one
-      # even after check that wheels exist
-      # and wheels are universal2 for MacOS
-      - name: Wait for wheel availability on TestPyPI
-        env:
-          PACKAGE_NAME: ${{ env.PROJECT_LOWER }}
-          VERSION: ${{ steps.extract_version.outputs.version }}
-        shell: bash
-        run: |
-          pkg="${PACKAGE_NAME}"
-          ver="${VERSION}"
-          max_retries=90
-          delay=10
-          arch_cmd="${{ matrix.arch }}"
-          
-          echo "Python: ${{ matrix.python-version }}, OS: ${{ matrix.os }}"
-               
-          for i in $(seq 1 $max_retries); do
-            echo "Attempt $i/$max_retries..."
-            python -m pip uninstall -y "${pkg}" >/dev/null 2>&1 || true
-
-            if $arch_cmd pip install --no-cache-dir --pre \
-                --extra-index-url https://test.pypi.org/simple/ \
-                --trusted-host test.pypi.org \
-                --only-binary "${pkg}" "${pkg}==${ver}" -q; then
-
-              installed_ver=$(python -c "import importlib.metadata; print(importlib.metadata.version('${pkg}'))" 2>/dev/null || echo "not found")
-
-              if [ "$installed_ver" = "$ver" ]; then
-                echo "✅ Successfully installed ${pkg}==${installed_ver} on ${{ matrix.label }}"
-                exit 0
-              else
-                echo "⚠️ Version mismatch: expected ${ver}, got ${installed_ver}"
-              fi
-            else
-              echo "⏳ Install failed — likely not yet available on TestPyPI."
-            fi
-
-            echo "Waiting ${delay}s before retry..."
-            sleep $delay
-          done
-          
-          echo "Something is wrong. Wheels are not available even after 15min"
-          exit 1
-          
-
+#  wait_for_testpypi_availability:
+#    runs-on: ${{ matrix.os }}
+#    needs: upload_to_testpypi
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        include:
+#          - os: macos-latest
+#            python-version: "3.12"
+#            arch: "arch -x86_64"
+#            label: "macOS (cp312)"
+#          - os: macos-latest
+#            python-version: "3.12"
+#            arch: "arch -arm64"
+#            label: "macOS (cp312)"
+#          - os: windows-latest
+#            python-version: "3.13"
+#            arch: ""
+#            label: "Windows (cp313)"
+#
+#    steps:
+#      - uses: actions/checkout@v5
+#
+#      - name: Set up Python
+#        uses: actions/setup-python@v5
+#        with:
+#          python-version: ${{ matrix.python-version }}
+#
+#      - name: Install dependencies
+#        run: |
+#          python -m pip install --upgrade pip requests
+#
+#      - name: Extract version from __init__.py
+#        id: extract_version
+#        shell: python
+#        run: |
+#          import os
+#          path = 'src/PyMca5/__init__.py'
+#
+#          version = None
+#          with open(path, 'r') as f:
+#              for line in f:
+#                  if line.startswith('__version__'):
+#                      version = line.replace(' ', '').split('=')[-1].strip().strip('"\'')
+#                      break
+#          assert version is not None, "Version not found in __init__.py"
+#          print(version)
+#          # Save version to GitHub output
+#          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+#              f.write(f"version={version}\n")
+#
+#      # Yes arch is needed indeed because of PyPI behavior
+#      # many times when arm64 download new wheel while x86 got the old one
+#      # even after check that wheels exist
+#      # and wheels are universal2 for MacOS
+#      - name: Wait for wheel availability on TestPyPI
+#        env:
+#          PACKAGE_NAME: ${{ env.PROJECT_LOWER }}
+#          VERSION: ${{ steps.extract_version.outputs.version }}
+#        shell: bash
+#        run: |
+#          pkg="${PACKAGE_NAME}"
+#          ver="${VERSION}"
+#          max_retries=90
+#          delay=10
+#          arch_cmd="${{ matrix.arch }}"
+#
+#          echo "Python: ${{ matrix.python-version }}, OS: ${{ matrix.os }}"
+#
 #          for i in $(seq 1 $max_retries); do
 #            echo "Attempt $i/$max_retries..."
-#            if pip install --index-url https://test.pypi.org/simple --extra-index-url https://pypi.org/simple "${pkg}==${ver}" --dry-run >/dev/null 2>&1; then
-#              echo "✅ $pkg==$ver is installable on ${{ matrix.label }}"
-#              exit 0
+#            python -m pip uninstall -y "${pkg}" >/dev/null 2>&1 || true
+#
+#            if $arch_cmd pip install --no-cache-dir --pre \
+#                --extra-index-url https://test.pypi.org/simple/ \
+#                --trusted-host test.pypi.org \
+#                --only-binary "${pkg}" "${pkg}==${ver}" -q; then
+#
+#              installed_ver=$(python -c "import importlib.metadata; print(importlib.metadata.version('${pkg}'))" 2>/dev/null || echo "not found")
+#
+#              if [ "$installed_ver" = "$ver" ]; then
+#                echo "✅ Successfully installed ${pkg}==${installed_ver} on ${{ matrix.label }}"
+#                exit 0
+#              else
+#                echo "⚠️ Version mismatch: expected ${ver}, got ${installed_ver}"
+#              fi
 #            else
-#              echo "⏳ Not yet available. Waiting ${delay}s..."
-#              sleep $delay
+#              echo "⏳ Install failed — likely not yet available on TestPyPI."
 #            fi
+#
+#            echo "Waiting ${delay}s before retry..."
+#            sleep $delay
 #          done
+#
+#          echo "Something is wrong. Wheels are not available even after 15min"
+#          exit 1
+#
