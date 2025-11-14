@@ -88,683 +88,285 @@ jobs:
           retention-days: 1
 
 
-  test_sdist:
-    runs-on: ubuntu-latest
-    needs: build_wheels_sdist
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: [ "3.9", "3.10", "3.11", "3.12", "3.13" ]
-
-    steps:
-
-      - uses: actions/checkout@v5
-
-      - name: Install OS dependencies
-        run: |
-            sudo apt-get update -yy
-            sudo apt-get install -yy \
-              libxkbcommon-x11-0 \
-              libxkbcommon0 \
-              libxkbcommon-dev \
-              libxcb-icccm4 \
-              libxcb-image0 \
-              libxcb-shm0 \
-              libxcb-keysyms1 \
-              libxcb-randr0 \
-              libxcb-render-util0 \
-              libxcb-render0 \
-              libxcb-shape0 \
-              libxcb-sync1 \
-              libxcb-xfixes0 \
-              libxcb-xinerama0 \
-              libxcb-xkb1 \
-              libxcb1 \
-              libxcb-util1 \
-              libxcb-cursor0 \
-              libglu1-mesa \
-              libgl1 \
-              libegl1 \
-              libegl-dev \
-              libx11-xcb1 \
-              libxi6 \
-              libxrender1 \
-              libsm6 \
-              x11-utils \
-              xvfb
-            export QT_QPA_PLATFORM=offscreen
-            export QT_OPENGL=software
-
-      - name: Start virtual display
-        run: |
-          /usr/bin/Xvfb :99 -screen 0 1920x1080x24 &
-          export DISPLAY=:99
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install cython
-          python -m pip install numpy
-          python -m pip install silx
-
-      - name: Install Qt
-        run: |
-          python -m pip install Pyside6==6.9.1
-          #PyQt5==5.14.1
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: Linux-sdist
-          path: dist
-
-      - name: Install
-        run: |
-          python -m pip install --pre "$(ls dist/*test-5.*)"
-    #          pip install --pre "$(ls dist/*ca5-5.*)"
-
-      - name: Run the tests
-        run: |
-          cd ..
-          xvfb-run -a python -m PyMca5.tests.TestAll
-
-  test_wheels:
-    runs-on: ${{ matrix.os }}
-    needs: build_wheels_sdist
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ ubuntu-latest, windows-latest, macos-latest ]
-        python-version: [ "3.9", "3.10", "3.11", "3.12", "3.13" ]
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Install OS dependencies
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-            sudo apt-get update -yy
-            sudo apt-get install -yy \
-              libxkbcommon-x11-0 \
-              libxkbcommon0 \
-              libxkbcommon-dev \
-              libxcb-icccm4 \
-              libxcb-image0 \
-              libxcb-shm0 \
-              libxcb-keysyms1 \
-              libxcb-randr0 \
-              libxcb-render-util0 \
-              libxcb-render0 \
-              libxcb-shape0 \
-              libxcb-sync1 \
-              libxcb-xfixes0 \
-              libxcb-xinerama0 \
-              libxcb-xkb1 \
-              libxcb1 \
-              libxcb-util1 \
-              libxcb-cursor0 \
-              libglu1-mesa \
-              libgl1 \
-              libegl1 \
-              libegl-dev \
-              libx11-xcb1 \
-              libxi6 \
-              libxrender1 \
-              libsm6 \
-              x11-utils \
-              xvfb
-            export QT_QPA_PLATFORM=offscreen
-            export QT_OPENGL=software
-
-      - name: Start virtual display
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          /usr/bin/Xvfb :99 -screen 0 1920x1080x24 &
-          export DISPLAY=:99
-
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install cython
-          python -m pip install numpy
-          python -m pip install silx
-
-      - name: Install Qt
-        run: |
-          python -m pip install Pyside6==6.9.1
-          #PyQt5
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ matrix.os }}-wheels
-          path: dist
-
-      - name: Install correct wheel
-        shell: bash
-        id: install_wheel
-        run: |
-          pv="${{ matrix.python-version }}"
-          PYTAG="cp${pv//./}"
-          case "${{ matrix.os }}" in
-            ubuntu-latest)
-              PLATFORM_TAG="manylinux"
-              ;;
-            windows-latest)
-              PLATFORM_TAG="win"
-              ;;
-            macos-latest)
-              PLATFORM_TAG="macosx"
-              ;;
-            *)
-              echo "Unsupported OS: ${{ matrix.os }}"
-              exit 1
-              ;;
-          esac
-      
-          echo "wheel tag: $PYTAG + $PLATFORM_TAG"
-          WHL_PATH=$(find dist -name "*${PYTAG}*${PLATFORM_TAG}*.whl" | head -n 1)
-      
-          if [[ -z "$WHL_PATH" ]]; then
-            echo "❌ No matching wheel found for $PYTAG + $PLATFORM_TAG"
-            exit 1
-          fi
-      
-          echo "✅ Installing: $WHL_PATH"
-          pip install "$WHL_PATH"
-          
-          # Set output for the step
-          echo "wheel-path=$WHL_PATH" >> $GITHUB_OUTPUT
-
-      - name: Run the tests
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          cd ..
-          xvfb-run -a python -m PyMca5.tests.TestAll
-
-      - name: Run the tests
-        if: matrix.os != 'ubuntu-latest'
-        run: |
-          cd ..
-          python -m PyMca5.tests.TestAll
-
-      - name: Run extra x86 tests
-        if: matrix.os == 'macos-latest'
-        run: |
-          arch -x86_64 python -m venv venv-x86
-          chmod +x venv-x86/bin/python
-          source venv-x86/bin/activate
-          arch -x86_64 python -m pip install Pyside6
-          arch -x86_64 python -m pip install silx
-          arch -x86_64 python -m pip install --pre ${{ steps.install_wheel.outputs.wheel-path }}
-          cd ..
-          arch -x86_64 python -m PyMca5.tests.TestAll
-
-  upload_to_testpypi:
-    name: Upload all wheels to TestPyPI
-    runs-on: macos-latest
-    needs:
-      - test_wheels
-      - test_sdist
-    if: ${{ success() }}
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: macos-latest-wheels
-          path: dist
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: windows-latest-wheels
-          path: dist
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: ubuntu-latest-wheels
-          path: dist
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: Linux-sdist
-          path: dist
-
-      - name: List all downloaded files
-        run: ls -R dist
-
-      - name: Upgrade
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install --upgrade twine
-
-      - name: List files to be uploaded
-        run: |
-          find dist -type f \( -name '*.whl' -o -name '*.tar.gz' \)
-
-      - name: Upload wheels to TestPyPI
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.TESTPYPI_PASSWORD }}
-        run: |
-          files=$(find dist -type f \( -name '*.whl' -o -name '*.tar.gz' \))
-          echo "Uploading files:"
-          echo "$files"
-          python -m twine upload --verbose --repository testpypi $files
-
-#  Wait_for_upload:
+#  test_sdist:
 #    runs-on: ubuntu-latest
-#    needs: upload_to_testpypi
-#    steps:
-#      - uses: actions/checkout@v5
-#
-#      - name: Set up Python
-#        uses: actions/setup-python@v5
-#        with:
-#          python-version: "3.11"
-#
-#      - name: Install dependencies
-#        run: |
-#          python -m pip install --upgrade pip requests
-#
-#      - name: Extract version from __init__.py
-#        id: extract_version
-#        shell: python
-#        run: |
-#          import os
-#          path = 'src/PyMca5/__init__.py'
-#
-#          version = None
-#          with open(path, 'r') as f:
-#              for line in f:
-#                  if line.startswith('__version__'):
-#                      version = line.replace(' ', '').split('=')[-1].strip().strip('"\'')
-#                      break
-#          assert version is not None, "Version not found in __init__.py"
-#          print(version)
-#          # Save version to GitHub output
-#          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
-#              f.write(f"version={version}\n")
-#
-##      - name: Wait for version to be available on TestPyPI
-##        id: wait_testpypi
-##        shell: python
-##        env:
-##          PACKAGE_NAME: ${{ env.PROJECT_LOWER }}
-##          VERSION: ${{ steps.extract_version.outputs.version }}
-##        run: |
-##          import requests
-##          import time
-##          import sys
-##
-##          version = "${{ env.VERSION }}"
-##          pkg_name = "${{ env.PACKAGE_NAME }}"
-##          index_url = f"https://test.pypi.org/pypi/{pkg_name}/json"
-##
-##          expected_platforms = [
-##              "manylinux",
-##              "macosx",
-##              "win",
-##          ]
-##          expected_tags = [
-##              "cp39", "cp310", "cp311", "cp312", "cp313"
-##          ]
-##          require_sdist = True
-##
-##          max_retries = 100
-##          delay_seconds = 10
-##
-##          def all_expected_files_present(releases, version):
-##              files = releases.get(version, [])
-##              filenames = [f["filename"] for f in files]
-##
-##              missing = []
-##
-##              # Check all Python version × platform combos
-##              for tag in expected_tags:
-##                  for plat in expected_platforms:
-##                      if not any(tag in fn and plat in fn for fn in filenames):
-##                          missing.append(f"{tag}-{plat}")
-##
-##              # Check for source distribution
-##              if require_sdist and not any(fn.endswith(".tar.gz") for fn in filenames):
-##                  missing.append("sdist (.tar.gz)")
-##
-##              if missing:
-##                  print("❌ Missing distributions:")
-##                  for m in missing:
-##                      print("  -", m)
-##                  return False
-##
-##              print("✅ All expected wheels and sdist found.")
-##              return True
-##
-##          for attempt in range(1, max_retries + 1):
-##              print(f"Attempt {attempt}: Checking {index_url} for version {version}")
-##              response = requests.get(index_url)
-##              if response.status_code != 200:
-##                  print(f"Failed to fetch metadata (status {response.status_code})")
-##              else:
-##                  data = response.json()
-##                  releases = data.get("releases", {})
-##                  if version in releases:
-##                      if all_expected_files_present(releases, version):
-##                          print(f"✅ All expected files for version {version} found on TestPyPI")
-##                          break
-##                      else:
-##                          print(f"⏳ Version {version} found but not all expected wheels uploaded yet")
-##                  else:
-##                      print(f"⏳ Version {version} not yet on TestPyPI")
-##
-##              if attempt < max_retries:
-##                  print(f"Waiting {delay_seconds} seconds before retrying...")
-##                  time.sleep(delay_seconds)
-##              else:
-##                  print(f"❌ Version {version} not fully available after {max_retries} attempts.")
-##                  sys.exit(1)
-#
-##      - name: Wait for version to be fully available on TestPyPI
-##        id: wait_testpypi
-##        shell: python
-##        env:
-##          PACKAGE_NAME: ${{ env.PROJECT_LOWER }}
-##          VERSION: ${{ steps.extract_version.outputs.version }}
-##        run: |
-##          import requests
-##          import time
-##          import sys
-##
-##          version = "${{ env.VERSION }}"
-##          pkg_name = "${{ env.PACKAGE_NAME }}"
-##          index_url = f"https://test.pypi.org/pypi/{pkg_name}/json"
-##
-##          # Wheels required for frozen binaries
-##          expected_wheels = [
-##              {"py_tag": "cp312", "platform": "macosx"},
-##              {"py_tag": "cp313", "platform": "win"},
-##          ]
-##
-##          max_retries = 100
-##          delay_seconds = 10
-##
-##          def downloadable(url):
-##              try:
-##                  r = requests.head(url, allow_redirects=True, timeout=10)
-##                  return r.status_code == 200
-##              except requests.RequestException:
-##                  return False
-##
-##          def all_expected_files_downloadable(releases, version):
-##              files = releases.get(version, [])
-##              filenames = [f["filename"] for f in files]
-##              urls = {f["filename"]: f["url"] for f in files}
-##
-##              missing = []
-##
-##              # Check minimal wheels
-##              for wheel in expected_wheels:
-##                  matched_files = [fn for fn in filenames if wheel["py_tag"] in fn and wheel["platform"] in fn]
-##                  if not matched_files:
-##                      missing.append(f'{wheel["py_tag"]} on {wheel["platform"]}')
-##                  else:
-##                      # Check actual downloadability
-##                      for fn in matched_files:
-##                          url = urls[fn]
-##                          if not downloadable(url):
-##                              missing.append(f'{fn} (not downloadable)')
-##
-##              if missing:
-##                  print("❌ Missing or not downloadable distributions:")
-##                  for m in missing:
-##                      print("  -", m)
-##                  return False
-##
-##              print("✅ Expected wheels are downloadable.")
-##              return True
-##
-##          for attempt in range(1, max_retries + 1):
-##              print(f"Attempt {attempt}: Checking {index_url} for version {version}")
-##              try:
-##                  response = requests.get(index_url, timeout=10)
-##              except requests.RequestException as e:
-##                  print(f"Failed to fetch metadata: {e}")
-##                  response = None
-##
-##              if response is None or response.status_code != 200:
-##                  print(f"Failed to fetch metadata (status {response.status_code if response else 'N/A'})")
-##              else:
-##                  data = response.json()
-##                  releases = data.get("releases", {})
-##                  if version in releases:
-##                      if all_expected_files_downloadable(releases, version):
-##                          print(f"✅ Version {version} fully available on TestPyPI")
-##                          break
-##                      else:
-##                          print(f"⏳ Version {version} found but some files not downloadable yet")
-##                  else:
-##                      print(f"⏳ Version {version} not yet on TestPyPI")
-##
-##              if attempt < max_retries:
-##                  print(f"Waiting {delay_seconds} seconds before retrying...")
-##                  time.sleep(delay_seconds)
-##              else:
-##                  print(f"❌ Version {version} not fully available after {max_retries} attempts.")
-##                  sys.exit(1)
-#
-#      - name: Wait for version to be installable from TestPyPI
-#        id: wait_testpypi
-#        shell: python
-#        env:
-#          PACKAGE_NAME: ${{ env.PROJECT_LOWER }}
-#          VERSION: ${{ steps.extract_version.outputs.version }}
-#        run: |
-#          import subprocess
-#          import sys
-#          import time
-#
-#          pkg = "${{ env.PACKAGE_NAME }}"
-#          version = "${{ env.VERSION }}"
-#          max_retries = 60
-#          delay_seconds = 10
-#
-#          # Define the environments we want to check
-#          targets = [
-#              {"python_tag": "cp312", "platform": "macosx"},
-#              {"python_tag": "cp313", "platform": "win"},
-#          ]
-#
-#          def pip_index_versions(pkg):
-#              """Run pip index versions and return stdout."""
-#              try:
-#                  result = subprocess.run(
-#                      [sys.executable, "-m", "pip", "index", "versions", pkg, "--index-url", "https://test.pypi.org/simple"],
-#                      capture_output=True,
-#                      text=True,
-#                      timeout=30,
-#                  )
-#                  return result.stdout
-#              except Exception as e:
-#                  print(f"pip index failed: {e}")
-#                  return ""
-#
-#          def version_listed(pkg, version):
-#              """Check if version appears in pip index output."""
-#              output = pip_index_versions(pkg)
-#              return version in output
-#
-#          def installable(pkg, version, python_tag, platform):
-#              """Try a dry-run install with a specific target platform & interpreter tag."""
-#              cmd = [
-#                  sys.executable,
-#                  "-m", "pip", "install",
-#                  f"{pkg}=={version}",
-#                  "--index-url", "https://test.pypi.org/simple",
-#                  "--extra-index-url", "https://pypi.org/simple",
-#                  "--dry-run",
-#              ]
-#              env = dict(**os.environ)
-#              # Not perfect, but we can use environment markers to simulate
-#              # different platforms for now (pip doesn’t fully emulate others).
-#              env["PIP_PLATFORM"] = platform
-#              env["PIP_PYTHON_TAG"] = python_tag
-#              try:
-#                  result = subprocess.run(cmd, capture_output=True, text=True, env=env, timeout=60)
-#                  if result.returncode == 0:
-#                      print(f"✅ {pkg} {version} installable for {python_tag} on {platform}")
-#                      return True
-#                  else:
-#                      print(f"⏳ Not installable yet for {python_tag} on {platform}")
-#                      print(result.stderr)
-#                      return False
-#              except Exception as e:
-#                  print(f"pip install check failed: {e}")
-#                  return False
-#
-#          import os
-#
-#          for attempt in range(1, max_retries + 1):
-#              print(f"\nAttempt {attempt}/{max_retries} — checking TestPyPI for {pkg}=={version}")
-#              all_ok = True
-#
-#              if not version_listed(pkg, version):
-#                  print(f"⏳ Version {version} not yet visible on TestPyPI")
-#                  all_ok = False
-#              else:
-#                  print(f"✅ Version {version} listed in TestPyPI index")
-#
-#                  for target in targets:
-#                      if not installable(pkg, version, target["python_tag"], target["platform"]):
-#                          all_ok = False
-#
-#              if all_ok:
-#                  print(f"\n🎉 Version {version} is fully installable from TestPyPI!")
-#                  sys.exit(0)
-#
-#              if attempt < max_retries:
-#                  print(f"Waiting {delay_seconds} seconds before retrying...")
-#                  time.sleep(delay_seconds)
-#              else:
-#                  print(f"❌ Version {version} not installable after {max_retries} attempts.")
-#                  sys.exit(1)
-#
-#      - name: Extra time buffer
-#        run: sleep 60
-
-
-
-#  wait_for_testpypi_availability:
-#    runs-on: ${{ matrix.os }}
-#    needs: upload_to_testpypi
+#    needs: build_wheels_sdist
 #    strategy:
 #      fail-fast: false
 #      matrix:
-#        include:
-#          - os: macos-latest
-#            python-version: "3.12"
-#            arch: "arch -x86_64"
-#            label: "macOS (cp312)"
-#          - os: macos-latest
-#            python-version: "3.12"
-#            arch: "arch -arm64"
-#            label: "macOS (cp312)"
-#          - os: windows-latest
-#            python-version: "3.13"
-#            arch: ""
-#            label: "Windows (cp313)"
+#        python-version: [ "3.9", "3.10", "3.11", "3.12", "3.13" ]
 #
 #    steps:
+#
 #      - uses: actions/checkout@v5
+#
+#      - name: Install OS dependencies
+#        run: |
+#            sudo apt-get update -yy
+#            sudo apt-get install -yy \
+#              libxkbcommon-x11-0 \
+#              libxkbcommon0 \
+#              libxkbcommon-dev \
+#              libxcb-icccm4 \
+#              libxcb-image0 \
+#              libxcb-shm0 \
+#              libxcb-keysyms1 \
+#              libxcb-randr0 \
+#              libxcb-render-util0 \
+#              libxcb-render0 \
+#              libxcb-shape0 \
+#              libxcb-sync1 \
+#              libxcb-xfixes0 \
+#              libxcb-xinerama0 \
+#              libxcb-xkb1 \
+#              libxcb1 \
+#              libxcb-util1 \
+#              libxcb-cursor0 \
+#              libglu1-mesa \
+#              libgl1 \
+#              libegl1 \
+#              libegl-dev \
+#              libx11-xcb1 \
+#              libxi6 \
+#              libxrender1 \
+#              libsm6 \
+#              x11-utils \
+#              xvfb
+#            export QT_QPA_PLATFORM=offscreen
+#            export QT_OPENGL=software
+#
+#      - name: Start virtual display
+#        run: |
+#          /usr/bin/Xvfb :99 -screen 0 1920x1080x24 &
+#          export DISPLAY=:99
 #
 #      - name: Set up Python
 #        uses: actions/setup-python@v5
 #        with:
 #          python-version: ${{ matrix.python-version }}
 #
-#      - name: Install dependencies
+#      - name: Install
 #        run: |
-#          python -m pip install --upgrade pip requests
+#          python -m pip install --upgrade pip
+#          python -m pip install cython
+#          python -m pip install numpy
+#          python -m pip install silx
 #
-#      - name: Extract version from __init__.py
-#        id: extract_version
-#        shell: python
+#      - name: Install Qt
 #        run: |
-#          import os
-#          path = 'src/PyMca5/__init__.py'
+#          python -m pip install Pyside6==6.9.1
+#          #PyQt5==5.14.1
 #
-#          version = None
-#          with open(path, 'r') as f:
-#              for line in f:
-#                  if line.startswith('__version__'):
-#                      version = line.replace(' ', '').split('=')[-1].strip().strip('"\'')
-#                      break
-#          assert version is not None, "Version not found in __init__.py"
-#          print(version)
-#          # Save version to GitHub output
-#          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
-#              f.write(f"version={version}\n")
+#      - name: Download all artifacts
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: Linux-sdist
+#          path: dist
 #
-#      # Yes arch is needed indeed because of PyPI behavior
-#      # many times when arm64 download new wheel while x86 got the old one
-#      # even after check that wheels exist
-#      # and wheels are universal2 for MacOS
-#      - name: Wait for wheel availability on TestPyPI
-#        env:
-#          PACKAGE_NAME: ${{ env.PROJECT_LOWER }}
-#          VERSION: ${{ steps.extract_version.outputs.version }}
+#      - name: Install
+#        run: |
+#          python -m pip install --pre "$(ls dist/*test-5.*)"
+#    #          pip install --pre "$(ls dist/*ca5-5.*)"
+#
+#      - name: Run the tests
+#        run: |
+#          cd ..
+#          xvfb-run -a python -m PyMca5.tests.TestAll
+
+#  test_wheels:
+#    runs-on: ${{ matrix.os }}
+#    needs: build_wheels_sdist
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        os: [ ubuntu-latest, windows-latest, macos-latest ]
+#        python-version: [ "3.9", "3.10", "3.11", "3.12", "3.13" ]
+#
+#    steps:
+#      - uses: actions/checkout@v2
+#
+#      - name: Install OS dependencies
+#        if: matrix.os == 'ubuntu-latest'
+#        run: |
+#            sudo apt-get update -yy
+#            sudo apt-get install -yy \
+#              libxkbcommon-x11-0 \
+#              libxkbcommon0 \
+#              libxkbcommon-dev \
+#              libxcb-icccm4 \
+#              libxcb-image0 \
+#              libxcb-shm0 \
+#              libxcb-keysyms1 \
+#              libxcb-randr0 \
+#              libxcb-render-util0 \
+#              libxcb-render0 \
+#              libxcb-shape0 \
+#              libxcb-sync1 \
+#              libxcb-xfixes0 \
+#              libxcb-xinerama0 \
+#              libxcb-xkb1 \
+#              libxcb1 \
+#              libxcb-util1 \
+#              libxcb-cursor0 \
+#              libglu1-mesa \
+#              libgl1 \
+#              libegl1 \
+#              libegl-dev \
+#              libx11-xcb1 \
+#              libxi6 \
+#              libxrender1 \
+#              libsm6 \
+#              x11-utils \
+#              xvfb
+#            export QT_QPA_PLATFORM=offscreen
+#            export QT_OPENGL=software
+#
+#      - name: Start virtual display
+#        if: matrix.os == 'ubuntu-latest'
+#        run: |
+#          /usr/bin/Xvfb :99 -screen 0 1920x1080x24 &
+#          export DISPLAY=:99
+#
+#      - name: Set up Python
+#        uses: actions/setup-python@v2
+#        with:
+#          python-version: ${{ matrix.python-version }}
+#
+#      - name: Install
+#        run: |
+#          python -m pip install --upgrade pip
+#          python -m pip install cython
+#          python -m pip install numpy
+#          python -m pip install silx
+#
+#      - name: Install Qt
+#        run: |
+#          python -m pip install Pyside6==6.9.1
+#          #PyQt5
+#
+#      - name: Download all artifacts
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: ${{ matrix.os }}-wheels
+#          path: dist
+#
+#      - name: Install correct wheel
 #        shell: bash
+#        id: install_wheel
 #        run: |
-#          pkg="${PACKAGE_NAME}"
-#          ver="${VERSION}"
-#          max_retries=90
-#          delay=10
-#          arch_cmd="${{ matrix.arch }}"
+#          pv="${{ matrix.python-version }}"
+#          PYTAG="cp${pv//./}"
+#          case "${{ matrix.os }}" in
+#            ubuntu-latest)
+#              PLATFORM_TAG="manylinux"
+#              ;;
+#            windows-latest)
+#              PLATFORM_TAG="win"
+#              ;;
+#            macos-latest)
+#              PLATFORM_TAG="macosx"
+#              ;;
+#            *)
+#              echo "Unsupported OS: ${{ matrix.os }}"
+#              exit 1
+#              ;;
+#          esac
 #
-#          echo "Python: ${{ matrix.python-version }}, OS: ${{ matrix.os }}"
+#          echo "wheel tag: $PYTAG + $PLATFORM_TAG"
+#          WHL_PATH=$(find dist -name "*${PYTAG}*${PLATFORM_TAG}*.whl" | head -n 1)
 #
-#          for i in $(seq 1 $max_retries); do
-#            echo "Attempt $i/$max_retries..."
-#            python -m pip uninstall -y "${pkg}" >/dev/null 2>&1 || true
+#          if [[ -z "$WHL_PATH" ]]; then
+#            echo "❌ No matching wheel found for $PYTAG + $PLATFORM_TAG"
+#            exit 1
+#          fi
 #
-#            if $arch_cmd pip install --no-cache-dir --pre \
-#                --extra-index-url https://test.pypi.org/simple/ \
-#                --trusted-host test.pypi.org \
-#                --only-binary "${pkg}" "${pkg}==${ver}" -q; then
+#          echo "✅ Installing: $WHL_PATH"
+#          pip install "$WHL_PATH"
 #
-#              installed_ver=$(python -c "import importlib.metadata; print(importlib.metadata.version('${pkg}'))" 2>/dev/null || echo "not found")
+#          # Set output for the step
+#          echo "wheel-path=$WHL_PATH" >> $GITHUB_OUTPUT
+
+#      - name: Run the tests
+#        if: matrix.os == 'ubuntu-latest'
+#        run: |
+#          cd ..
+#          xvfb-run -a python -m PyMca5.tests.TestAll
 #
-#              if [ "$installed_ver" = "$ver" ]; then
-#                echo "✅ Successfully installed ${pkg}==${installed_ver} on ${{ matrix.label }}"
-#                exit 0
-#              else
-#                echo "⚠️ Version mismatch: expected ${ver}, got ${installed_ver}"
-#              fi
-#            else
-#              echo "⏳ Install failed — likely not yet available on TestPyPI."
-#            fi
+#      - name: Run the tests
+#        if: matrix.os != 'ubuntu-latest'
+#        run: |
+#          cd ..
+#          python -m PyMca5.tests.TestAll
 #
-#            echo "Waiting ${delay}s before retry..."
-#            sleep $delay
-#          done
+#      - name: Run extra x86 tests
+#        if: matrix.os == 'macos-latest'
+#        run: |
+#          arch -x86_64 python -m venv venv-x86
+#          chmod +x venv-x86/bin/python
+#          source venv-x86/bin/activate
+#          arch -x86_64 python -m pip install Pyside6
+#          arch -x86_64 python -m pip install silx
+#          arch -x86_64 python -m pip install --pre ${{ steps.install_wheel.outputs.wheel-path }}
+#          cd ..
+#          arch -x86_64 python -m PyMca5.tests.TestAll
+
+#  upload_to_testpypi:
+#    name: Upload all wheels to TestPyPI
+#    runs-on: macos-latest
+#    needs:
+#      - test_wheels
+#      - test_sdist
+#    if: ${{ success() }}
+#    steps:
+#      - uses: actions/checkout@v5
 #
-#          echo "Something is wrong. Wheels are not available even after 15min"
-#          exit 1
+#      - name: Set up Python
+#        uses: actions/setup-python@v5
+#        with:
+#          python-version: "3.13"
 #
+#      - name: Download all artifacts
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: macos-latest-wheels
+#          path: dist
+#
+#      - name: Download all artifacts
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: windows-latest-wheels
+#          path: dist
+#
+#      - name: Download all artifacts
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: ubuntu-latest-wheels
+#          path: dist
+#
+#      - name: Download all artifacts
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: Linux-sdist
+#          path: dist
+#
+#      - name: List all downloaded files
+#        run: ls -R dist
+#
+#      - name: Upgrade
+#        run: |
+#          python -m pip install --upgrade pip
+#          python -m pip install --upgrade twine
+#
+#      - name: List files to be uploaded
+#        run: |
+#          find dist -type f \( -name '*.whl' -o -name '*.tar.gz' \)
+#
+#      - name: Upload wheels to TestPyPI
+#        env:
+#          TWINE_USERNAME: __token__
+#          TWINE_PASSWORD: ${{ secrets.TESTPYPI_PASSWORD }}
+#        run: |
+#          files=$(find dist -type f \( -name '*.whl' -o -name '*.tar.gz' \))
+#          echo "Uploading files:"
+#          echo "$files"
+#          python -m twine upload --verbose --repository testpypi $files
