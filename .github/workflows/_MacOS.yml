@@ -84,6 +84,27 @@ jobs:
           pip install PyInstaller==6.15.0
           pip install Cython
           pip install wheel
+          
+          PKG="Pymca_release_test"
+          MAX_TRIES=30
+          SLEEP=20
+          COUNT=1
+          until pip install --no-cache-dir --pre \
+              --index-url https://test.pypi.org/simple/ \
+              --trusted-host test.pypi.org \
+              --only-binary "$PKG" \
+              "$PKG==${VERSION}" || true
+          do
+              if [ $COUNT -ge $MAX_TRIES ]; then
+                  echo "Failed to install $PKG after $MAX_TRIES attempts."
+                  exit 1
+              fi
+      
+              echo "Package not available yet. Attempt $COUNT/$MAX_TRIES failed. Retrying in $SLEEP seconds..."
+              COUNT=$((COUNT+1))
+              sleep $SLEEP
+          done
+          
           pip install --no-cache-dir --pre --index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test==${VERSION}
           pip install --no-build-isolation git+https://github.com/vasole/bcflight.git
           pip install ipywidgets

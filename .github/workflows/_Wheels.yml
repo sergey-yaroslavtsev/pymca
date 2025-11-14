@@ -738,7 +738,6 @@ jobs:
           delay=10
           arch_cmd="${{ matrix.arch }}"
           
-          echo "Checking availability of wheels"
           echo "Python: ${{ matrix.python-version }}, OS: ${{ matrix.os }}"
                
           for i in $(seq 1 $max_retries); do
