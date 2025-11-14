@@ -35,8 +35,7 @@ jobs:
           pip install matplotlib==3.10.5
           pip install lief==0.16.6
           pip install cx_Freeze==8.3.0
-          pip install --no-index --find-links=wheels PyMca5
-          pip install --no-index --find-links=wheels pymca_release_test
+          pip install $(python -c "import glob; print(' '.join(glob.glob('wheels/*cp313*.whl')))")
           pip install Cython
           pip install numpy==2.2.6 
           pip install Pyside6==6.9.1
