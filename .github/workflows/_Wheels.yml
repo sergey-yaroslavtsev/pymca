@@ -310,21 +310,28 @@ jobs:
 #          cd ..
 #          arch -x86_64 python -m PyMca5.tests.TestAll
 
-#  upload_to_testpypi:
-#    name: Upload all wheels to TestPyPI
-#    runs-on: macos-latest
+  upload_to_testpypi:
+    name: Upload all wheels to TestPyPI
+    runs-on: macos-latest
 #    needs:
 #      - test_wheels
 #      - test_sdist
-#    if: ${{ success() }}
-#    steps:
-#      - uses: actions/checkout@v5
-#
-#      - name: Set up Python
-#        uses: actions/setup-python@v5
-#        with:
-#          python-version: "3.13"
-#
+    if: ${{ success() }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v5
+        with:
+          path: dist
+          pattern: '*-wheels'
+          merge-multiple: true
+
 #      - name: Download all artifacts
 #        uses: actions/download-artifact@v4
 #        with:
@@ -342,15 +349,15 @@ jobs:
 #        with:
 #          name: ubuntu-latest-wheels
 #          path: dist
-#
-#      - name: Download all artifacts
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: Linux-sdist
-#          path: dist
-#
-#      - name: List all downloaded files
-#        run: ls -R dist
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: Linux-sdist
+          path: dist
+
+      - name: List all downloaded files
+        run: ls -R dist
 #
 #      - name: Upgrade
 #        run: |

@@ -22,22 +22,34 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Determine current tag
+      - name: Extract version from __init__.py
+        id: get_version
+        shell: python
+        run: |
+          import os
+          path = 'src/PyMca5/__init__.py'
+  
+          version = None
+          with open(path, 'r') as f:
+              for line in f:
+                  if line.startswith('__version__'):
+                      version = line.replace(' ', '').split('=')[-1].strip().strip('"\'')
+                      break
+          assert version is not None, "Version not found in __init__.py"
+          print(version)
+          # Save version to GitHub output
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f"version={version}\n")
+
+      - name: Determine tag
         id: current_tag
         run: |
           if [ -n "${{ github.event.inputs.tag }}" ]; then
             echo "Using input tag: ${{ github.event.inputs.tag }}"
             echo "tag=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
           else
-            PACKAGE="Pymca_release_test"
-            META=$(curl -s https://test.pypi.org/pypi/$PACKAGE/json)
-            VERSION=$(echo "$META" | jq -r '.info.version')
-            if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
-              echo "❌ Could not fetch version from TestPyPI"
-              exit 1
-            fi
-            TAG="v${VERSION}"
-            echo "Fetched version: $VERSION, using tag: $TAG"
+            TAG="v${{ steps.get_version.outputs.version }}"
+            echo "Using version from __init__.py, tag: $TAG"
             echo "tag=$TAG" >> $GITHUB_OUTPUT
           fi
 

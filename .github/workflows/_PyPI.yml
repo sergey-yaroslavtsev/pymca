@@ -19,21 +19,34 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Install jq
-        run: brew install jq
+#      - name: Install jq
+#        run: brew install jq
+#
+#      - name: Download all files for latest version from TestPyPI
+#        run: |
+#          PACKAGE="Pymca_release_test"
+#          META=$(curl -s https://test.pypi.org/pypi/$PACKAGE/json)
+#          VERSION=$(echo "$META" | jq -r '.info.version')
+#          echo "Latest version is $VERSION"
+#
+#          mkdir -p dist
+#          echo "$META" | jq -r ".releases[\"$VERSION\"][] | .url" | while read url; do
+#            echo "Downloading $url"
+#            curl -sL -o "dist/$(basename "$url")" "$url"
+#          done
 
-      - name: Download all files for latest version from TestPyPI
-        run: |
-          PACKAGE="Pymca_release_test"
-          META=$(curl -s https://test.pypi.org/pypi/$PACKAGE/json)
-          VERSION=$(echo "$META" | jq -r '.info.version')
-          echo "Latest version is $VERSION"
-      
-          mkdir -p dist
-          echo "$META" | jq -r ".releases[\"$VERSION\"][] | .url" | while read url; do
-            echo "Downloading $url"
-            curl -sL -o "dist/$(basename "$url")" "$url"
-          done
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v5
+        with:
+          path: dist
+          pattern: '*-wheels'
+          merge-multiple: true
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: Linux-sdist
+          path: dist
 
       - name: List all downloaded files
         run: ls -R dist
@@ -48,4 +61,7 @@ jobs:
 #          TWINE_USERNAME: __token__
 #          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
 #        run: |
-#          python -m twine upload --verbose dist/*
+#          files=$(find dist -type f \( -name '*.whl' -o -name '*.tar.gz' \))
+#          echo "Uploading files:"
+#          echo "$files"
+#          python -m twine upload --verbose $files
