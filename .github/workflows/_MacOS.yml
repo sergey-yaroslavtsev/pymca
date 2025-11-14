@@ -429,14 +429,14 @@ jobs:
 
           DMG_NAME="${{ env.APP_BASE_NAME }}.dmg"
           DMG_PATH="dist/${DMG_NAME}"
-          APP_PATH="dist/universal/${{ env.APP_NAME }}"
+          APP_PATH="dist/universal2/${{ env.APP_NAME }}"
 
           echo "Creating DMG at $DMG_PATH from $APP_PATH"
           
           # Check that app exists
           if [ ! -d "$APP_PATH" ]; then
             echo "❌ ERROR: .app bundle not found at $APP_PATH"
-            ls -l dist/universal
+            ls -l dist/universal2
             exit 1
           fi
           
