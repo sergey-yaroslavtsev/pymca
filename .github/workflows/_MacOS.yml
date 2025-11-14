@@ -90,7 +90,7 @@ jobs:
           pip install PyInstaller==6.15.0
           pip install Cython
           pip install wheel        
-          pip install wheels/     
+          pip install wheels/*.whl
           pip install --no-build-isolation git+https://github.com/vasole/bcflight.git
           pip install ipywidgets
           
@@ -231,7 +231,7 @@ jobs:
           arch -x86_64 pip install PyInstaller==6.15.0
           arch -x86_64 pip install Cython
           arch -x86_64 pip install wheel
-          arch -x86_64 pip install wheels/
+          arch -x86_64 pip install wheels/*.whl
           arch -x86_64 pip install --no-build-isolation git+https://github.com/vasole/bcflight.git
           arch -x86_64 pip install ipywidgets
 
