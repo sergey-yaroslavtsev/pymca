@@ -493,7 +493,7 @@ jobs:
       - name: Copy .app to /Applications
         run: |
           set -e
-          APP_PATH="$MOUNT_POINT/${{ env.APP_NAME }}"
+          APP_PATH="/Volumes/${{ env.APP_BASE_NAME }}/${{ env.APP_NAME }}"
           sudo cp -R "$APP_PATH" /Applications/
 
       - name: Make main binary executable
