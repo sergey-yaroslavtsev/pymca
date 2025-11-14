@@ -191,7 +191,43 @@ jobs:
                     
           & $appPath
           exit $LASTEXITCODE
-            
+
+      - name: Run PyMcaTest as a script (Windows)
+        shell: pwsh
+        env:
+          PYMCA_TEST_MODE: 0
+        run: |
+          # Define expected install paths
+          $basePaths = @(
+              "${env:ProgramFiles}",
+              "${env:ProgramFiles(x86)}"
+          )
+          $exeName = "PyMcaTest.exe"
+          $appPath = $null
+      
+          # Find the exe in folders starting with PyMca*
+          foreach ($base in $basePaths) {
+              $candidateDirs = Get-ChildItem -Path $base -Directory -Filter "PyMca*" -ErrorAction SilentlyContinue
+              foreach ($dir in $candidateDirs) {
+                  $possiblePath = Join-Path $dir.FullName $exeName
+                  if (Test-Path $possiblePath) {
+                      $appPath = $possiblePath
+                      break
+                  }
+              }
+              if ($appPath) { break }
+          }
+      
+          if (-not $appPath) {
+              Write-Error "Executable '$exeName' not found in Program Files."
+              exit 1
+          }
+      
+          Write-Host "Found executable at $appPath"
+                    
+          & $appPath
+          exit $LASTEXITCODE
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:

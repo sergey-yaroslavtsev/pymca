@@ -126,6 +126,8 @@ exec_dict = {"PyMcaMain": os.path.join(PyMcaDir, "PyMcaGui", \
                                     "pymca", "PyMcaPostBatch.py"),
              "EdfFileSimpleViewer": os.path.join(PyMcaDir, "PyMcaGui", \
                                       "pymca", "EdfFileSimpleViewer.py"),
+             "PyMcaTest": os.path.join(PyMcaDir, "tests", \
+                                      "TestAll.py"),
             }
 
 if not sys.platform.startswith("darwin"):

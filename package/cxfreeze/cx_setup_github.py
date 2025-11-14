@@ -255,6 +255,8 @@ exec_dict = {"PyMcaMain": os.path.join(PyMcaDir, "PyMcaGui", \
                                     "pymca", "Mca2Edf.py"),
             "ElementsInfo":os.path.join(PyMcaDir, "PyMcaGui", \
                                         "physics", "xrf", "ElementsInfo.py"),
+            "PyMcaTest": os.path.join(PyMcaDir, "tests", \
+                                       "TestAll.py"),
             }
 
 include_files = []

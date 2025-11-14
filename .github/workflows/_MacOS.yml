@@ -521,6 +521,13 @@ jobs:
           set -e
           arch -x86_64 /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain
 
+      - name: Run the app with tests via script
+        env:
+          PYMCA_TEST_MODE: 0
+        run: |
+          set -e
+          arch -x86_64 /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaTest
+
       - name: Unmount the DMG
         if: always()
         run: |
