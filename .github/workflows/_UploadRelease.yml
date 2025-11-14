@@ -22,8 +22,8 @@ jobs:
       - name: Rename sdist to .src.tgz
         run: |
           cd dist
-          old_file=$(ls pymca5-*.tar.gz)
-          new_file=$(echo "$old_file" | sed 's/^pymca_release_test-/pymca/' | sed 's/\.tar\.gz$/.src.tgz/')
+          old_file=$(ls pymca_release_test*.tar.gz)
+          new_file=$(echo "$old_file" | sed 's/^pymca5-/pymca/' | sed 's/\.tar\.gz$/.src.tgz/')
           mv "$old_file" "$new_file"
           echo "Renamed $old_file → $new_file"
 
