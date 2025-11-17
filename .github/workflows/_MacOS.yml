@@ -137,6 +137,13 @@ jobs:
           eval "$TEST_APP_FUNCTION"
           test_app arm64 "dist/$APP_NAME/Contents/MacOS/PyMcaMain"
 
+      - name: Test the app
+        env:
+          PYMCA_TEST_MODE: 0
+        run: |
+          eval "$TEST_APP_FUNCTION"
+          test_app arm64 "dist/$APP_NAME/Contents/MacOS/TestAll"
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
