@@ -202,7 +202,7 @@ jobs:
               "${env:ProgramFiles}",
               "${env:ProgramFiles(x86)}"
           )
-          $exeName = "PyMcaTest.exe"
+          $exeName = "TestAll.exe"
           $appPath = $null
       
           # Find the exe in folders starting with PyMca*
