@@ -1846,7 +1846,19 @@ if __name__ == '__main__':
             traceback.print_exc()
             sys.exit(1)
 
-    if '--test' in sys.argv:
+    PyMcaMainWidgetInstance = PyMcaMain(**keywords)
+    if nativeFileDialogs is not None:
+        PyMcaDirs.nativeFileDialogs = nativeFileDialogs
+    if debugreport:
+        PyMcaMainWidgetInstance.onDebug()
+    app.lastWindowClosed.connect(app.quit)
+
+    splash.finish(PyMcaMainWidgetInstance)
+    PyMcaMainWidgetInstance.show()
+    PyMcaMainWidgetInstance.raise_()
+    PyMcaMainWidgetInstance.mcaWindow.replot()
+
+    if '--test' in args:
         try:
             from PyMca5.tests import TestAll
             print("Running in TEST MODE (from frozen binary)...")
@@ -1859,18 +1871,6 @@ if __name__ == '__main__':
             print("Failed to run tests from frozen binary:", e)
             traceback.print_exc()
             sys.exit(1)
-
-    PyMcaMainWidgetInstance = PyMcaMain(**keywords)
-    if nativeFileDialogs is not None:
-        PyMcaDirs.nativeFileDialogs = nativeFileDialogs
-    if debugreport:
-        PyMcaMainWidgetInstance.onDebug()
-    app.lastWindowClosed.connect(app.quit)
-
-    splash.finish(PyMcaMainWidgetInstance)
-    PyMcaMainWidgetInstance.show()
-    PyMcaMainWidgetInstance.raise_()
-    PyMcaMainWidgetInstance.mcaWindow.replot()
 
     #try to interpret rest of command line arguments as data sources
     try:
