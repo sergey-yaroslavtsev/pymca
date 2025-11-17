@@ -1846,6 +1846,20 @@ if __name__ == '__main__':
             traceback.print_exc()
             sys.exit(1)
 
+    if '--test' in sys.argv:
+        try:
+            from PyMca5.tests import TestAll
+            print("Running in TEST MODE (from frozen binary)...")
+            result = TestAll.main()
+            exit_code = 0 if result.wasSuccessful() else 1
+            print('exit code: ', exit_code)
+            sys.exit(exit_code)
+        except Exception as e:
+            import traceback
+            print("Failed to run tests from frozen binary:", e)
+            traceback.print_exc()
+            sys.exit(1)
+
     PyMcaMainWidgetInstance = PyMcaMain(**keywords)
     if nativeFileDialogs is not None:
         PyMcaDirs.nativeFileDialogs = nativeFileDialogs

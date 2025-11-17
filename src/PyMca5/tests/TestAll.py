@@ -30,59 +30,28 @@ __author__ = "V. Armando Sole - ESRF"
 __contact__ = "sole@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-# import unittest
-# import os
-# import sys
-# import glob
-# import unittest
-#
-# def getSuite(auto=True):
-#     pythonFiles = glob.glob(os.path.join(os.path.dirname(__file__), "*.py"))
-#     sys.path.insert(0, os.path.dirname(__file__))
-#     testSuite = unittest.TestSuite()
-#     for fname in pythonFiles:
-#         if os.path.basename(fname) in ["__init__.py", "TestAll.py"]:
-#             continue
-#         modName = os.path.splitext(os.path.basename(fname))[0]
-#         try:
-#             module = __import__(modName)
-#         except ImportError:
-#             print("Failed to import %s" % fname)
-#             continue
-#         if hasattr(module, "getSuite"):
-#             testSuite.addTest(module.getSuite(auto))
-#     return testSuite
-
 import unittest
 import os
 import sys
-import pkgutil
-
-def iter_test_modules():
-    package_path = os.path.dirname(__file__)
-    package_name = os.path.basename(package_path)
-    if package_path not in sys.path:
-        sys.path.insert(0, package_path)
-    package = __import__(package_name)
-    for importer, modname, ispkg in pkgutil.iter_modules(package.__path__):
-        # Skip this file itself
-        if modname in ("__init__", "TestAll"):
-            continue
-        try:
-            module = importer.find_module(modname).load_module(modname)
-        except Exception as e:
-            print(f"Failed to import {modname}: {e}")
-            continue
-        yield module
+import glob
+import unittest
 
 def getSuite(auto=True):
-    suite = unittest.TestSuite()
-    for module in iter_test_modules():
+    pythonFiles = glob.glob(os.path.join(os.path.dirname(__file__), "*.py"))
+    sys.path.insert(0, os.path.dirname(__file__))
+    testSuite = unittest.TestSuite()
+    for fname in pythonFiles:
+        if os.path.basename(fname) in ["__init__.py", "TestAll.py"]:
+            continue
+        modName = os.path.splitext(os.path.basename(fname))[0]
+        try:
+            module = __import__(modName)
+        except ImportError:
+            print("Failed to import %s" % fname)
+            continue
         if hasattr(module, "getSuite"):
-            suite.addTest(module.getSuite(auto))
-        else:
-            suite.addTest(unittest.defaultTestLoader.loadTestsFromModule(module))
-    return suite
+            testSuite.addTest(module.getSuite(auto))
+    return testSuite
 
 def main(auto=True):
     return unittest.TextTestRunner(verbosity=2).run(getSuite(auto=auto))
