@@ -49,7 +49,8 @@ if __name__ == '__main__':
                    'nativefiledialogs=',
                    'PySide=',
                    'binding=',
-                   'logging=']
+                   'logging=',
+                   'test']
     try:
         opts, args = getopt.getopt(
                      sys.argv[1:],
@@ -99,6 +100,21 @@ if __name__ == '__main__':
                 import PyQt6.QtCore
             else:
                 raise ValueError("Unknown Qt binding <%s>" % binding)
+        elif opt in ('--test'):
+            try:
+                from PyMca5.tests import TestAll
+
+                print("Running in TEST MODE (from frozen binary)...")
+                result = TestAll.main()
+                exit_code = 0 if result.wasSuccessful() else 1
+                print('exit code: ', exit_code)
+                sys.exit(exit_code)
+            except Exception as e:
+                import traceback
+                print("Failed to run tests from frozen binary:", e)
+                traceback.print_exc()
+                sys.exit(1)
+
 
     from PyMca5.PyMcaCore.LoggingLevel import getLoggingLevel
     logging.basicConfig(level=getLoggingLevel(opts))
@@ -1857,20 +1873,6 @@ if __name__ == '__main__':
     PyMcaMainWidgetInstance.show()
     PyMcaMainWidgetInstance.raise_()
     PyMcaMainWidgetInstance.mcaWindow.replot()
-
-    if '--test' in args:
-        try:
-            from PyMca5.tests import TestAll
-            print("Running in TEST MODE (from frozen binary)...")
-            result = TestAll.main()
-            exit_code = 0 if result.wasSuccessful() else 1
-            print('exit code: ', exit_code)
-            sys.exit(exit_code)
-        except Exception as e:
-            import traceback
-            print("Failed to run tests from frozen binary:", e)
-            traceback.print_exc()
-            sys.exit(1)
 
     #try to interpret rest of command line arguments as data sources
     try:
