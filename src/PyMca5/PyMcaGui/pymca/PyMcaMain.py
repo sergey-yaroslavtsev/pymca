@@ -104,14 +104,14 @@ if __name__ == '__main__':
             try:
                 from PyMca5.tests import TestAll
 
-                print("Running in TEST MODE (from frozen binary)...")
+                print("Running in TEST MODE...")
                 result = TestAll.main()
                 exit_code = 0 if result.wasSuccessful() else 1
                 print('exit code: ', exit_code)
                 sys.exit(exit_code)
             except Exception as e:
                 import traceback
-                print("Failed to run tests from frozen binary:", e)
+                print("Failed to run tests in TEST MODE:", e)
                 traceback.print_exc()
                 sys.exit(1)
 
@@ -1846,21 +1846,6 @@ if __name__ == '__main__':
     if PROFILING:
         import profile
         import pstats
-
-    # --- TEST MODE for CI or debugging frozen build ---
-    if os.getenv('PYMCA_TEST_MODE', '').lower() in ('1', 'true', 'yes'):
-        try:
-            from PyMca5.tests import TestAll
-            print("Running in TEST MODE (from frozen binary)...")
-            result = TestAll.main()
-            exit_code = 0 if result.wasSuccessful() else 1
-            print('exit code: ', exit_code)
-            sys.exit(exit_code)
-        except Exception as e:
-            import traceback
-            print("Failed to run tests from frozen binary:", e)
-            traceback.print_exc()
-            sys.exit(1)
 
     PyMcaMainWidgetInstance = PyMcaMain(**keywords)
     if nativeFileDialogs is not None:

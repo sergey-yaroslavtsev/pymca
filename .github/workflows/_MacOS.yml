@@ -131,25 +131,9 @@ jobs:
         run: echo "APP_NAME=$(basename dist/*.app)" >> $GITHUB_ENV
 
       - name: Test the app
-        env:
-          PYMCA_TEST_MODE: 1
-        run: |
-          eval "$TEST_APP_FUNCTION"
-          test_app arm64 "dist/$APP_NAME/Contents/MacOS/PyMcaMain"
-
-      - name: Test the app
-        env:
-          PYMCA_TEST_MODE: 0
         run: |
           set -e
           arch -arm64 "dist/$APP_NAME/Contents/MacOS/PyMcaMain" --test
-
-      - name: Test the app
-        env:
-          PYMCA_TEST_MODE: 0
-        run: |
-          set -e
-          arch -x86_64 "dist/$APP_NAME/Contents/MacOS/PyMcaMain" --test
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -273,11 +257,9 @@ jobs:
         run: echo "APP_NAME=$(basename dist/*.app)" >> $GITHUB_ENV
 
       - name: Test the app
-        env:
-          PYMCA_TEST_MODE: 1
         run: |
-          eval "$TEST_APP_FUNCTION"
-          test_app x86_64 "dist/$APP_NAME/Contents/MacOS/PyMcaMain"
+          set -e
+          arch -x86_64 "dist/$APP_NAME/Contents/MacOS/PyMcaMain" --test
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -449,14 +431,11 @@ jobs:
         run: chmod +x dist/universal2/$APP_NAME/Contents/MacOS/PyMcaMain
 
       - name: Test the app for both architectures
-        env:
-          PYMCA_TEST_MODE: 1
         run: |
-          eval "$TEST_APP_FUNCTION"
-
           # Run tests for both architectures
-          test_app arm64 "dist/universal2/$APP_NAME/Contents/MacOS/PyMcaMain"
-          test_app x86_64 "dist/universal2/$APP_NAME/Contents/MacOS/PyMcaMain"
+          set -e
+          arch -arm64 "dist/$APP_NAME/Contents/MacOS/PyMcaMain" --test
+          arch -x86_64 "dist/$APP_NAME/Contents/MacOS/PyMcaMain" --test
 
       - name: Upload universal .app artifact
         uses: actions/upload-artifact@v4
@@ -529,18 +508,14 @@ jobs:
         run: chmod +x /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain
 
       - name: Run the app with tests
-        env:
-          PYMCA_TEST_MODE: 1
-        run: |
-          set -e
-          arch -x86_64 /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain
-
-      - name: Run the app with tests via script
-        env:
-          PYMCA_TEST_MODE: 0
         run: |
           set -e
           arch -x86_64 /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain --test
+
+      - name: Run the app with tests via script
+        run: |
+          set -e
+          arch -arm64 /Applications/${{ env.APP_NAME }}/Contents/MacOS/PyMcaMain --test
 
       - name: Unmount the DMG
         if: always()
