@@ -434,8 +434,8 @@ jobs:
         run: |
           # Run tests for both architectures
           set -e
-          arch -arm64 "dist/$APP_NAME/Contents/MacOS/PyMcaMain" --test
-          arch -x86_64 "dist/$APP_NAME/Contents/MacOS/PyMcaMain" --test
+          arch -arm64 "dist/universal2/$APP_NAME/Contents/MacOS/PyMcaMain" --test
+          arch -x86_64 "dist/universal2/$APP_NAME/Contents/MacOS/PyMcaMain" --test
 
       - name: Upload universal .app artifact
         uses: actions/upload-artifact@v4
